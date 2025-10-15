@@ -4,20 +4,26 @@ import { PageNotFound } from 'pages/PageNotFound/PageNotFound';
 import { routes } from 'routes';
 import { AxiosInterceptors, BatchTransactionsContextProvider } from 'wrappers';
 
-import { Layout } from './components';
+import { Layout, LayoutWithSidebar } from './components';
 
 export const App = () => {
   return (
     <Router>
       <AxiosInterceptors>
         <BatchTransactionsContextProvider>
-          <Layout>
-            <Routes>
-              {routes.map((route) => (
+          <Routes>
+            {routes.map((route) => {
+              const LayoutComponent = route.authenticatedRoute ? LayoutWithSidebar : Layout;
+              
+              return (
                 <Route
                   key={`route-key-${route.path}`}
                   path={route.path}
-                  element={<route.component />}
+                  element={
+                    <LayoutComponent>
+                      <route.component />
+                    </LayoutComponent>
+                  }
                 >
                   {route.children?.map((child) => (
                     <Route
@@ -27,10 +33,10 @@ export const App = () => {
                     />
                   ))}
                 </Route>
-              ))}
-              <Route path='*' element={<PageNotFound />} />
-            </Routes>
-          </Layout>
+              );
+            })}
+            <Route path='*' element={<PageNotFound />} />
+          </Routes>
         </BatchTransactionsContextProvider>
       </AxiosInterceptors>
     </Router>

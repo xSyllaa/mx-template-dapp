@@ -27,18 +27,18 @@ const themeExtraProperties: Record<
 > = {
   'mvx:dark-theme': {
     icon: HomeDarkThemeIcon,
-    title: 'Customizable',
+    title: 'Élégante',
     backgroundClass: 'bg-dark-theme'
-  },
-  'mvx:vibe-theme': {
-    icon: HomeVibeThemeIcon,
-    title: 'Vibrant',
-    backgroundClass: 'bg-vibe-theme'
   },
   'mvx:light-theme': {
     icon: HomeLightThemeIcon,
-    title: 'Ownable',
+    title: 'Luxueuse',
     backgroundClass: 'bg-light-theme'
+  },
+  'mvx:vibe-theme': {
+    icon: HomeVibeThemeIcon,
+    title: 'Dynamique',
+    backgroundClass: 'bg-vibe-theme'
   }
 };
 
@@ -72,11 +72,10 @@ export const HomeHero = () => {
     <div className={heroContainerClasses}>
       <div className={styles.heroSectionTop}>
         <div className={styles.heroSectionTopContent}>
-          <h1 className={styles.heroTitle}>dApp Template</h1>
+          <h1 className={styles.heroTitle}>GalacticX</h1>
 
           <p className={styles.heroDescription}>
-            The sdk-dapp starter project for any dApp built on the MultiversX
-            blockchain.
+            The ultimate gamified football experience. Predict, compete, and earn rewards with your NFT collection on MultiversX blockchain.
           </p>
         </div>
 
@@ -86,11 +85,11 @@ export const HomeHero = () => {
           <a
             target='_blank'
             rel='noreferrer'
-            href={DOCUMENTATION_LINK}
+            href='/docs/ARCHITECTURE.md'
             className={styles.heroSectionTopDocButton}
           >
             <span className={styles.heroSectionTopDocButtonText}>
-              See Documentation
+              Learn More
             </span>
 
             <ArrowUpRightIcon />

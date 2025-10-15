@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 
 import { HomeHero } from './components/HomeHero';
+import { HomeFeatures } from './components/HomeFeatures';
 import { HomeConnect } from './components/HomeConnect';
 
 // prettier-ignore
@@ -11,6 +12,7 @@ const styles = {
 export const Home = () => (
   <div className={styles.homeContainer}>
     <HomeHero />
+    <HomeFeatures />
     <HomeConnect />
     <Outlet />
   </div>

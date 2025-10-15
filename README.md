@@ -1,314 +1,488 @@
-# @multiversx/template-dapp
+# 🌌 GalacticX dApp
 
-This project was bootstrapped with [Vite](https://vitejs.dev/guide/).
+> A gamified football dApp combining NFT ownership, predictions, and competitive gameplay on MultiversX blockchain.
 
-The **MultiversX dApp Template**, built using [React.js](https://reactjs.org/) and [Typescript](https://www.typescriptlang.org/).
-It's a basic implementation of [@multiversx/sdk-dapp](https://www.npmjs.com/package/@multiversx/sdk-dapp), providing the basics for MultiversX authentication and TX signing.
+[![License](https://img.shields.io/badge/license-GPL--3.0-blue.svg)](LICENSE)
+[![MultiversX](https://img.shields.io/badge/blockchain-MultiversX-00d4ff.svg)](https://multiversx.com/)
+[![React](https://img.shields.io/badge/react-18.2.0-61dafb.svg)](https://reactjs.org/)
+[![TypeScript](https://img.shields.io/badge/typescript-5.2.2-3178c6.svg)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/backend-Supabase-3ecf8e.svg)](https://supabase.com/)
 
-See [Dapp template](https://template-dapp.multiversx.com/) for live demo.
+---
 
-### Tests
+## 📋 Table of Contents
 
-[![E2E tests](https://github.com/multiversx/mx-template-dapp/actions/workflows/playwright.yml/badge.svg)](https://github.com/multiversx/mx-template-dapp/actions/workflows/playwright.yml)
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Getting Started](#getting-started)
+- [Project Structure](#project-structure)
+- [Development](#development)
+- [Documentation](#documentation)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
 
-## Requirements
+---
 
-- Node.js version 16.20.0+
-- pnpm version 8.19.4+
+## Overview
+
+**GalacticX** is a next-generation football engagement platform where fans can:
+
+- 🎯 **Predict Match Results** - Earn points for correct predictions
+- ⚔️ **Battle with NFT Teams** - War Games mode with 11-player squads
+- 🔥 **Maintain Weekly Streaks** - Daily claim rewards
+- 🏆 **Climb Leaderboards** - Compete globally and weekly
+- ⭐ **Team of the Week** - Earn rewards when your NFT player is featured
+- 🖼️ **Collect & Own NFTs** - Real football player digital collectibles
+
+All powered by **MultiversX blockchain** for true digital ownership and **Supabase** for real-time, secure backend.
+
+---
+
+## Features
+
+### ⚽ Prediction Game
+
+- Admin-created prediction events (match results, over/under, scorers)
+- Points-based rewards system
+- NFT ownership required to participate
+- Real-time status updates
+
+### ⚔️ War Games
+
+- 1v1 NFT team battles
+- Select 11 players + coach + stadium
+- Score calculation based on real-world player stats
+- Winner takes points
+
+### 🔥 Weekly Claim Streak
+
+- Daily claim rewards (Monday-Sunday)
+- Progressive point bonuses (10-50 points)
+- Bonus tokens on weekends ($GOAL)
+- Auto-reset each Monday
+
+### 🏆 Leaderboards
+
+- **All-Time**: Cumulative lifetime points
+- **Weekly**: Resets every Monday
+- Top 10 monthly rewards
+- Real-time updates via Supabase
+
+### ⭐ Team of the Week
+
+- Weekly showcase of top 15 real-world players
+- NFT holders of featured players receive rewards
+- Admin-managed, published every Wednesday
+
+### 🖼️ NFT Gallery
+
+- View all owned GalacticX NFTs
+- Filter by position, league, rarity
+- Direct links to Transfermarkt profiles
+- Real-time ownership verification via MultiversX API
+
+### 👑 Admin Panel
+
+- Protected route (KING role only)
+- CRUD operations for predictions
+- Result validation & point distribution
+- User management
+- Team of the Week editor
+- Analytics dashboard
+
+---
+
+## Tech Stack
+
+### Frontend
+
+| Technology | Version | Purpose |
+|------------|---------|---------|
+| **React** | 18.2.0 | UI library |
+| **TypeScript** | 5.2.2 | Type safety |
+| **Vite** | 4.4.9 | Build tool & dev server |
+| **TailwindCSS** | 4.0.15 | Utility-first CSS |
+| **React Router** | 6.16.0 | Client-side routing |
+
+### Backend
+
+| Technology | Purpose |
+|------------|---------|
+| **Supabase** | PostgreSQL database + Auth + Realtime + Edge Functions |
+| **PostgreSQL** | Relational database with RLS |
+| **Edge Functions** | Serverless functions (Deno) |
+
+### Blockchain
+
+| Technology | Purpose |
+|------------|---------|
+| **MultiversX** | Layer 1 blockchain |
+| **@multiversx/sdk-dapp** | Wallet connection & authentication |
+| **@multiversx/sdk-core** | Transaction building & signing |
+
+### Development Tools
+
+- **npm** - Package manager
+- **PowerShell** - Shell (Windows)
+- **Playwright** - E2E testing
+- **ESLint** - Code linting
+- **Prettier** - Code formatting
+
+---
 
 ## Getting Started
 
-### Step 1. Install modules
+### Prerequisites
 
-From a terminal, navigate to the project folder and run:
+- **Node.js**: v18+ ([Download](https://nodejs.org/))
+- **npm**: Comes with Node.js
+- **Git**: For version control
+- **Supabase Account**: [Sign up](https://supabase.com/)
+- **MultiversX Wallet**: xPortal, DeFi Wallet, or Web Wallet
+
+### Installation
+
+1. **Clone the repository**:
+
+```powershell
+git clone https://github.com/your-org/GalacticDapp.git
+cd GalacticDapp
+```
+
+2. **Install dependencies**:
+
+```powershell
+npm install
+```
+
+3. **Configure environment variables**:
+
+```powershell
+# Copy template
+Copy-Item .env.example .env.local
+
+# Edit with your credentials
+notepad .env.local
+```
+
+**Required variables**:
 
 ```bash
-pnpm install
+# Supabase
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your_anon_key
+
+# MultiversX
+VITE_MULTIVERSX_NETWORK=devnet  # or testnet, mainnet
+VITE_GALACTICX_COLLECTION=GALACTICX-abc123
+
+# WalletConnect
+VITE_WALLETCONNECT_PROJECT_ID=your_project_id
 ```
 
-### Step 2. Running in development mode
+4. **Start development server**:
 
-In the project folder run:
+```powershell
+# Devnet (development)
+npm run start-devnet
 
-```bash
-pnpm start-devnet
-pnpm start-testnet
-pnpm start-mainnet
+# Testnet (staging)
+npm run start-testnet
+
+# Mainnet (production)
+npm run start-mainnet
 ```
 
-This will start the React app in development mode, using the configs found in the `vite.config.ts` file.
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+5. **Open browser**: `http://localhost:3000`
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+---
 
-## Passkey Testing Setup (CRITICAL for Passkey Development)
+## Project Structure
 
-### Step 1: System Configuration
-
-**MUST configure hosts file for passkey functionality:**
-
-```bash
-# Add to /etc/hosts (macOS/Linux) or C:\Windows\System32\drivers\etc\hosts (Windows):
-127.0.0.1    localhost.multiversx.com
-
-# Edit hosts file:
-# macOS/Linux:
-sudo nano /etc/hosts
-
-# Windows (run as Administrator):
-notepad C:\Windows\System32\drivers\etc\hosts
+```
+GalacticDapp/
+├── src/
+│   ├── components/          # Reusable UI components
+│   │   ├── ui/             # Design system (atoms)
+│   │   ├── shared/         # Business components (molecules)
+│   │   └── layout/         # Layout components
+│   │
+│   ├── features/           # Feature modules
+│   │   ├── predictions/
+│   │   ├── war-games/
+│   │   ├── streaks/
+│   │   ├── leaderboards/
+│   │   ├── nft-gallery/
+│   │   ├── team-of-week/
+│   │   └── admin/
+│   │
+│   ├── pages/              # Page components
+│   ├── hooks/              # Global custom hooks
+│   ├── lib/                # External integrations
+│   │   ├── supabase/       # Supabase client
+│   │   └── multiversx/     # MultiversX SDK
+│   ├── routes/             # Routing configuration
+│   ├── types/              # TypeScript types
+│   └── styles/             # Global styles + themes
+│
+├── supabase/               # Supabase configuration
+│   ├── migrations/         # Database migrations
+│   └── functions/          # Edge Functions
+│
+├── docs/                   # Documentation
+│   ├── ARCHITECTURE.md
+│   ├── DATABASE_SCHEMA.md
+│   ├── API_ENDPOINTS.md
+│   ├── DESIGN_SYSTEM.md
+│   ├── COMPONENT_STRUCTURE.md
+│   ├── MULTIVERSX_INTEGRATION.md
+│   ├── SUPABASE_SETUP.md
+│   └── DEVELOPMENT_WORKFLOW.md
+│
+├── tests/                  # E2E tests (Playwright)
+├── public/                 # Static assets
+├── .cursorrules            # Cursor AI development rules
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+└── README.md
 ```
 
-### Step 2: Generate Locally-Trusted SSL Certificates
+---
 
-**CRITICAL: WebAuthn requires valid HTTPS certificates to prevent TLS certificate errors:**
+## Development
 
-```bash
-# Install mkcert (if not already installed)
+### Available Scripts
 
-## Windows (winget)
-winget install mkcert
+```powershell
+# Development
+npm run start-devnet        # Start dev server (Devnet)
+npm run start-testnet       # Start dev server (Testnet)
+npm run start-mainnet       # Start dev server (Mainnet)
 
-## macOS (Homebrew)
-brew install mkcert
+# Build
+npm run build-devnet        # Build for Devnet
+npm run build-testnet       # Build for Testnet
+npm run build-mainnet       # Build for Mainnet
 
-## Linux (snap)
-sudo snap install mkcert
+# Code Quality
+npm run lint                # Run ESLint
+npm run lint -- --fix       # Fix linting issues
 
-# Install the local CA in your system trust store
-mkcert -install
-
-# Generate certificates for localhost.multiversx.com
-mkcert localhost.multiversx.com localhost 127.0.0.1 ::1
+# Testing
+npm run test                # Run unit tests (Jest)
+npm run run-playwright-test # Run E2E tests (Playwright)
+npm run run-playwright-test-ui  # Run E2E with UI
 ```
 
-This creates two files in `certificates` folder:
-- `localhost.multiversx.com+3.pem` (certificate)
-- `localhost.multiversx.com+3-key.pem` (private key)
+### Three Theme System
 
-### Step 3: Configure vite.config.ts with SSL Certificates
+GalacticX supports **3 premium themes**:
 
-**Update vite.config.ts to use port 443:**
+1. **Dark Theme** (`mvx:dark-theme`) - Nocturne/Élégante
+   - Deep ocean blues with gold accents
+   - High contrast for immersive experience
 
-```typescript
-import fs from 'fs';
-// import basicSsl from '@vitejs/plugin-basic-ssl'; // Remove this - use mkcert certificates instead
+2. **Light Theme** (`mvx:light-theme`) - Doré & Élégant
+   - Clean white with gold highlights
+   - Premium, sophisticated feel
 
-const https = {
-  key: fs.readFileSync('./certificates/localhost.multiversx.com-key.pem'),
-  cert: fs.readFileSync('./certificates/localhost.multiversx.com.pem')
-};
+3. **Vibe Theme** (`mvx:vibe-theme`) - Dynamique & Premium
+   - Bold teal with dark accents
+   - Modern, energetic esport aesthetic
 
-export default defineConfig({
-  server: {
-    port: Number(process.env.PORT) || 443,
-    strictPort: true,
-    https,
-    host: true
-  }
-});
+Toggle themes in the app header (top-right icon).
+
+### Coding Standards
+
+Follow the guidelines in [`.cursorrules`](./.cursorrules):
+
+- **Components**: PascalCase, max 200 lines
+- **Files**: Named exports only
+- **TypeScript**: Full type coverage
+- **Styling**: TailwindCSS + CSS variables
+- **State**: React Context + Hooks + Supabase Realtime
+
+---
+
+## Documentation
+
+Comprehensive documentation is available in the [`docs/`](./docs/) folder:
+
+| Document | Description |
+|----------|-------------|
+| [ARCHITECTURE.md](./docs/ARCHITECTURE.md) | System design, tech stack, data flow |
+| [DATABASE_SCHEMA.md](./docs/DATABASE_SCHEMA.md) | PostgreSQL tables, RLS policies, migrations |
+| [API_ENDPOINTS.md](./docs/API_ENDPOINTS.md) | Supabase REST API & Edge Functions |
+| [DESIGN_SYSTEM.md](./docs/DESIGN_SYSTEM.md) | Color palettes, typography, components |
+| [COMPONENT_STRUCTURE.md](./docs/COMPONENT_STRUCTURE.md) | Frontend architecture, patterns |
+| [MULTIVERSX_INTEGRATION.md](./docs/MULTIVERSX_INTEGRATION.md) | Wallet auth, NFT verification, transactions |
+| [SUPABASE_SETUP.md](./docs/SUPABASE_SETUP.md) | Backend setup, migrations, Edge Functions |
+| [DEVELOPMENT_WORKFLOW.md](./docs/DEVELOPMENT_WORKFLOW.md) | Git workflow, testing, deployment |
+
+---
+
+## Deployment
+
+### Vercel (Recommended)
+
+1. **Connect repository** to Vercel
+2. **Configure environment variables** in Vercel dashboard
+3. **Set build settings**:
+   - Build Command: `npm run build-mainnet`
+   - Output Directory: `dist`
+   - Install Command: `npm install`
+
+4. **Deploy**: Automatic on push to `main`
+
+### Manual Deployment
+
+```powershell
+# Build for production
+npm run build-mainnet
+
+# Deploy dist/ folder to your hosting provider
 ```
 
-### Step 4: Browser Setup for Passkeys (Optional)
+### Supabase Production Setup
 
-**With proper certificates, you can use regular Chrome. For additional debugging, use Chrome with security flags:**
+```powershell
+# Push migrations to production
+supabase link --project-ref your-production-ref
+supabase db push
 
-```bash
-# Close all Chrome instances first, then run:
-open -a Google\ Chrome --args --ignore-certificate-errors --ignore-urlfetcher-cert-requests --disable-web-security --user-data-dir=/tmp/chrome_dev_passkey
+# Deploy Edge Functions
+supabase functions deploy validate-prediction-result
+supabase functions deploy process-war-game-result
+supabase functions deploy process-daily-claim
+supabase functions deploy reset-weekly-leaderboard
 ```
 
-**⚠️ Important:** Always close these Chrome instances after testing.
-
-### Step 5: Start the Development Server
-
-```bash
-pnpm start-devnet --force
-```
-
-**Test URLs:**
-- **Template dApp**: https://localhost.multiversx.com
-
-### Troubleshooting WebAuthn TLS Errors
-
-If you encounter `NotAllowedError: WebAuthn is not supported on sites with TLS certificate errors`, ensure:
-
-1. ✅ mkcert is installed and CA is trusted (`mkcert -install`)
-2. ✅ Certificates are generated for localhost.multiversx.com
-3. ✅ vite.config.ts uses the certificate files
-4. ✅ Browser shows a valid HTTPS lock icon
-5. ✅ No mixed content warnings in DevTools
-
-## Available Scripts
-
-In the project directory, you can run:
-
-### `pnpm start` / `pnpm start-devnet`
-
-Runs the app in the development mode.
-**For passkey testing**: Run with `pnpm start` and open [https://localhost.multiversx.com](https://localhost.multiversx.com) to view it in the browser.
-
-The page will reload if you make edits.
-You will also see any lint errors in the console.
-
-### `pnpm test`
-
-Launches the test runner in the interactive watch mode.
-See the section about [running tests](https://vitejs.dev/guide/static-deploy.html#testing-the-app-locally) for more information.
-
-### `pnpm build` / `pnpm build-devnet`
-
-Builds the app for production to the `build` folder.
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.
-Your app is ready to be deployed!
-
-See the section about [deployment](https://vitejs.dev/guide/static-deploy.html#building-the-app) for more information.
-
-### Build for testing and production use
-
-A build of the app is necessary to deploy for testing purposes or for production use.
-To build the project run:
-
-```bash
-pnpm build-devnet
-pnpm build-testnet
-pnpm build-mainnet
-```
-
-## Configure Theme (Optional)
-
-This template comes with three built-in themes:
-- TealLab (mvx:dark-theme)
-- VibeMode (mvx:vibe-theme)
-- BrightLight (mvx:light-theme)
-
-But you can customize the appearance of your project by defining your own theme using CSS variables. 
-Follow these steps to set it up.
-
-### Step 1. Update `tailwind.css` file 
-
-This is the main place where you customize your theme. You add your project specific colors and update 
-CSS variables that style your elements, according to your theme.
-
-Define your color palette in the `:root` section:
-
-```css
-:root {
-  --mvx-custom-primary-color: #your-color;
-  --mvx-custom-secondary-color: #your-color;
-}
-```
-
-Next, configure your theme-specific variables:
-
-```css
-:root[data-mvx-theme='mvx:your-theme'],
-[data-mvx-theme='mvx:your-theme'] {
-  --mvx-bg-color-primary: var(--mvx-custom-primary-color);
-  --mvx-bg-color-secondary: var(--mvx-custom-secondary-color);
-}
-```
-
-### Step 2. Add your theme in `useHandleThemeManagement.ts` hook
-
-This hook registers and manages all available themes in your project.
-It maintains a list of all theme options, tracks the currently active theme and 
-provides a `handleThemeSwitch` function that updates the `data-mvx-theme` attribute. 
-
-```typescript
-const allThemeOptions: ThemeOptionType[] =
-[
-    { identifier: 'mvx:dark-theme', label: 'TealLab' },
-    { identifier: 'mvx:vibe-theme', label: 'VibeMode' },
-    { identifier: 'mvx:light-theme', label: 'BrightLight' },
-
-    { identifier: 'mvx:your-theme', label: 'Your Theme Label' }
-];
-```
-
-### Step 3. Add colors for your theme tooltip in `ThemeTooltip.tsx`
-
-This allows you to see the theme options available in the project. They are listed in a tooltip
-dropdown in header with visual color previews for each theme.
-
-```typescript
-const themeDotColors: Record<string, string[]> = 
-{
-  'mvx:dark-theme': ['#23F7DD', '#262626', '#B6B3AF', '#FFFFFF'],
-  'mvx:vibe-theme': ['#471150', '#5A2A62', '#D200FA', '#FFFFFF'],
-  'mvx:light-theme': ['#000000', '#A5A5A5', '#E2DEDC', '#F3EFED'],
-
-  'mvx:your-theme': ['#color1', '#color2', '#color3', '#color4']
-};
-```
-
-### Step 4. Add theme properties for hero section in `HomeHero.tsx`
-
-Add your icon in `assets` folder and import it as:
-
-```typescript
-import { ReactComponent as YourThemeIcon } from 'assets/icons/your-theme-icon.svg';
-```
-
-Add a background image for your theme in `public` folder and reference it in `tailwind.css`:
-
-```css
-@theme {
-  --background-image-your-theme: url('/your-theme-bg.png');
-}
-```
-
-And then update `themeExtraProperties` object with your values. These properties are used for 
-customizing your hero section from home page. It adds background image and icon + title for the 
-theme switch section in hero.
-
-```typescript
-const themeExtraProperties: Record<
-  string,
-  Omit<HomeThemeOptionType, keyof ThemeOptionType>
-> = {
-  // existing themes
-  'mvx:your-theme': {
-    icon: YourThemeIcon,
-    title: 'Your Title',
-    backgroundClass: 'bg-your-theme'
-  }
-};
-```
-
-### Step 5. Set your theme as default in `initConfig.ts`
-
-```typescript
-dAppConfig: {
-    theme: 'mvx:your-theme',
-  }
-```
-
-Now the project will start with your configured theme. 
-All variables will have the colors you have set. If you don't set custom colors, the default ones will apply.
-You can see the current theme in `data-mvx-theme` attribute in browser inspector.
-
-## Learn More
-
-You can learn more in the [Vite documentation](https://vitejs.dev/).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-## Roadmap
-
-See the [open issues](https://github.com/multiversx/mx-template-dapp/issues) for a list of proposed features (and known issues).
+---
 
 ## Contributing
 
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
+We welcome contributions! Please follow these steps:
 
-One can contribute by creating _pull requests_, or by opening _issues_ for discovered bugs or desired features.
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Commit changes**: `git commit -m 'feat: add amazing feature'`
+4. **Push to branch**: `git push origin feature/amazing-feature`
+5. **Open a Pull Request**
 
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+### Development Guidelines
+
+- Follow [`.cursorrules`](./.cursorrules) coding standards
+- Write descriptive commit messages (Conventional Commits)
+- Update documentation for new features
+- Add tests for critical functionality
+- Ensure all 3 themes work correctly
+- Test on mobile, tablet, and desktop
+
+---
+
+## Roadmap
+
+### Phase 1: Core Features ✅
+- [x] Wallet authentication
+- [x] Three theme system
+- [x] Documentation complete
+
+### Phase 2: Predictions Game (Sprint 1-2)
+- [ ] Prediction creation (admin)
+- [ ] Prediction submission (user)
+- [ ] Result validation
+- [ ] Points distribution
+- [ ] Leaderboards (all-time + weekly)
+
+### Phase 3: Engagement Features (Sprint 3-4)
+- [ ] Weekly claim streak system
+- [ ] NFT gallery
+- [ ] Team of the Week
+
+### Phase 4: War Games (Sprint 5-6)
+- [ ] Team builder (11 NFTs + coach + stadium)
+- [ ] Match lobby
+- [ ] Score calculation engine
+- [ ] Match history
+
+### Phase 5: Admin Panel (Sprint 7)
+- [ ] Admin dashboard
+- [ ] User management
+- [ ] Analytics
+
+### Phase 6: Polish & Launch (Sprint 8)
+- [ ] Performance optimization
+- [ ] Security audit
+- [ ] Beta testing
+- [ ] Production launch
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+**Issue**: npm install fails  
+**Solution**: Clear cache with `npm cache clean --force`, delete `node_modules`, reinstall
+
+**Issue**: Wallet won't connect  
+**Solution**: Ensure correct network (devnet/testnet/mainnet), clear browser cache
+
+**Issue**: Supabase errors  
+**Solution**: Verify `.env.local` has correct `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+
+**Issue**: NFT ownership not detected  
+**Solution**: Check collection ID in `.env.local`, verify NFTs exist on correct network
+
+For more troubleshooting, see [DEVELOPMENT_WORKFLOW.md](./docs/DEVELOPMENT_WORKFLOW.md#troubleshooting-development-issues).
+
+---
+
+## Security
+
+- **Private Keys**: Never stored or handled by the dApp
+- **Wallet Signatures**: All transactions signed client-side
+- **RLS Policies**: Database-level access control
+- **Admin Guards**: Role verification on frontend + backend
+- **Environment Variables**: Never commit `.env.local` to git
+
+Report security issues to: security@galacticx.io
+
+---
+
+## License
+
+This project is licensed under the **GPL-3.0-or-later** License.  
+See [LICENSE](./LICENSE) for details.
+
+---
+
+## Support
+
+- **Documentation**: [docs/](./docs/)
+- **Issues**: [GitHub Issues](https://github.com/your-org/GalacticDapp/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/GalacticDapp/discussions)
+- **Discord**: [Join our community](https://discord.gg/galacticx)
+- **Twitter**: [@GalacticX](https://twitter.com/galacticx)
+
+---
+
+## Acknowledgments
+
+- **MultiversX** - For the robust blockchain infrastructure
+- **Supabase** - For the powerful backend-as-a-service
+- **MultiversX dApp Template** - For the solid foundation
+- **Community** - For the continuous feedback and support
+
+---
+
+<div align="center">
+
+**Built with ❤️ by the GalacticX Team**
+
+[Website](https://galacticx.io) • [Twitter](https://twitter.com/galacticx) • [Discord](https://discord.gg/galacticx)
+
+</div>

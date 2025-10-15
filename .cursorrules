@@ -1,0 +1,411 @@
+# GalacticX dApp - Cursor Rules
+
+## 🎯 Project Overview
+GalacticX is a gamified dApp combining football, NFT ownership, and community engagement on MultiversX blockchain.
+
+## 🛠 Tech Stack
+- **Frontend**: React 18 + Vite + TypeScript
+- **Styling**: TailwindCSS 4 + CSS Variables (3 custom themes)
+- **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
+- **Blockchain**: MultiversX SDK (wallet connect, NFT verification, transactions)
+- **State Management**: React Context + Hooks + Supabase Realtime
+- **Package Manager**: npm (NOT pnpm)
+- **Shell**: PowerShell (NOT Unix commands)
+
+## 📐 Architecture Principles
+
+### Atomic Design Structure
+Follow atomic design methodology:
+- **Atoms**: `src/components/ui/` - Basic UI elements (Button, Input, Badge)
+- **Molecules**: `src/components/shared/` - Composite UI components (NFTCard, UserAvatar)
+- **Organisms**: `src/features/{feature}/components/` - Feature-specific components
+- **Pages**: `src/pages/` - Full page layouts
+
+### Modular Feature Architecture
+Each feature MUST be self-contained in `src/features/{feature}/`:
+```
+features/{feature}/
+├── components/       # Feature-specific UI components
+├── hooks/           # Feature-specific custom hooks
+├── services/        # Supabase/API interactions
+├── types.ts         # TypeScript types/interfaces
+└── index.ts         # Public API exports
+```
+
+## 📝 Naming Conventions
+
+### Files & Folders
+- **Components**: PascalCase (e.g., `PredictionCard.tsx`)
+- **Hooks**: camelCase with `use` prefix (e.g., `usePredictions.ts`)
+- **Services**: camelCase with `Service` suffix (e.g., `predictionService.ts`)
+- **Types**: camelCase with `.types.ts` suffix (e.g., `prediction.types.ts`)
+- **CSS files**: kebab-case (e.g., `prediction-card.styles.ts`)
+- **Utilities**: camelCase (e.g., `formatPoints.ts`)
+
+### Code
+- **Components**: PascalCase (e.g., `const PredictionCard = () => {}`)
+- **Functions**: camelCase (e.g., `const calculateScore = () => {}`)
+- **Constants**: SCREAMING_SNAKE_CASE (e.g., `const MAX_NFT_COUNT = 11`)
+- **Interfaces/Types**: PascalCase with descriptive names (e.g., `interface UserPrediction {}`)
+- **Enums**: PascalCase (e.g., `enum PredictionStatus {}`)
+
+## 🏗 Component Structure
+
+### Component File Organization
+```typescript
+// 1. Imports (grouped: React, third-party, local)
+import { useState } from 'react';
+import { supabase } from 'lib/supabase';
+import { PredictionCard } from '../PredictionCard';
+
+// 2. Types/Interfaces
+interface PredictionListProps {
+  userId: string;
+}
+
+// 3. Component
+export const PredictionList = ({ userId }: PredictionListProps) => {
+  // Hooks
+  const [predictions, setPredictions] = useState([]);
+  
+  // Event handlers
+  const handleSubmit = () => {};
+  
+  // Render
+  return <div>{/* JSX */}</div>;
+};
+```
+
+### Component Best Practices
+- **Max 200 lines** per component file
+- **Separate logic from UI**: Extract complex logic to custom hooks
+- **One component per file** (except small, tightly coupled sub-components)
+- **Export from index.ts**: Always create `index.ts` for clean imports
+- **Props destructuring**: Always destructure props in function signature
+- **Named exports**: Use named exports, NOT default exports
+
+### Custom Hooks Pattern
+```typescript
+// hooks/usePredictions.ts
+export const usePredictions = (status?: PredictionStatus) => {
+  const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<Error | null>(null);
+
+  // Logic here
+
+  return { predictions, loading, error };
+};
+```
+
+## 🔐 Security & Authentication
+
+### MultiversX Wallet Verification
+```typescript
+// Always verify wallet connection before sensitive operations
+const { address } = useGetAccountInfo();
+if (!address) {
+  // Redirect to login or show error
+}
+```
+
+### NFT Ownership Checks
+```typescript
+// Verify NFT ownership before allowing participation
+const { hasNFT } = useNFTOwnership(address);
+if (!hasNFT) {
+  // Show error: "You need at least 1 GalacticX NFT"
+}
+```
+
+### Admin Role Protection
+```typescript
+// Check KING role for admin operations
+const { user } = useUser();
+if (user?.role !== 'king') {
+  // Redirect or show unauthorized error
+}
+```
+
+### Supabase RLS Policies
+- **NEVER bypass RLS** in client code
+- **Trust the database**: Let PostgreSQL RLS handle permissions
+- **Validate on server**: Use Edge Functions for sensitive operations
+
+## 📊 State Management
+
+### Local State (useState)
+Use for:
+- UI state (modals, dropdowns, form inputs)
+- Component-specific data
+- Temporary data not needed elsewhere
+
+### Context (React Context)
+Use for:
+- User authentication state
+- Theme preferences
+- Global UI state (sidebar open/closed)
+
+### Supabase Realtime
+Use for:
+- Leaderboards (auto-update)
+- Live predictions status
+- War games matches
+- Notifications
+
+```typescript
+// Realtime subscription pattern
+useEffect(() => {
+  const channel = supabase
+    .channel('leaderboard')
+    .on('postgres_changes', 
+      { event: '*', schema: 'public', table: 'leaderboards' },
+      (payload) => {
+        // Update local state
+      }
+    )
+    .subscribe();
+
+  return () => {
+    supabase.removeChannel(channel);
+  };
+}, []);
+```
+
+## 🎨 Styling Guidelines
+
+### TailwindCSS Usage
+- **Use Tailwind utilities** whenever possible
+- **Theme-aware colors**: Use CSS variables (e.g., `bg-primary`, `text-primary`)
+- **Responsive design**: Mobile-first approach
+- **Custom classes**: Only when absolutely necessary
+
+### CSS Variables Pattern
+```typescript
+// Access theme colors via CSS variables
+className="bg-[var(--mvx-bg-primary)] text-[var(--mvx-text-primary)]"
+```
+
+### Three Theme Support
+All components MUST work with:
+- `mvx:dark-theme` (Dark - Nocturne/Élégante)
+- `mvx:light-theme` (Light - Doré & Élégant)
+- `mvx:vibe-theme` (Vibe - Dynamique & Premium)
+
+## 🔄 Data Fetching Patterns
+
+### Supabase Query Pattern
+```typescript
+// Use try/catch for error handling
+const fetchPredictions = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('predictions')
+      .select('*')
+      .eq('status', 'open');
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching predictions:', error);
+    throw error;
+  }
+};
+```
+
+### Loading & Error States
+ALWAYS handle:
+- **Loading state**: Show skeleton or spinner
+- **Error state**: User-friendly error messages
+- **Empty state**: "No data available" with helpful context
+
+## 🧪 Testing Considerations
+
+### Component Testing
+- Test user interactions
+- Test edge cases (empty states, errors)
+- Mock Supabase calls
+
+### E2E Testing
+- Critical user flows (login, prediction submission, war game creation)
+- Admin operations (creating predictions, validating results)
+
+## 📦 Import Organization
+
+### Import Order
+1. React & React-related
+2. Third-party libraries
+3. Absolute imports (from `src/`)
+4. Relative imports
+5. Types (if not inline)
+6. Styles/CSS
+
+```typescript
+// 1. React
+import { useState, useEffect } from 'react';
+
+// 2. Third-party
+import classNames from 'classnames';
+
+// 3. Absolute imports
+import { supabase } from 'lib/supabase';
+import { Button } from 'components/ui/Button';
+
+// 4. Relative imports
+import { PredictionCard } from './PredictionCard';
+
+// 5. Types
+import type { Prediction } from './types';
+```
+
+## 🚨 Error Handling
+
+### Client-Side Errors
+```typescript
+try {
+  await submitPrediction();
+} catch (error) {
+  // Log to console for debugging
+  console.error('Prediction submission failed:', error);
+  
+  // Show user-friendly message
+  toast.error('Failed to submit prediction. Please try again.');
+}
+```
+
+### MultiversX Transaction Errors
+```typescript
+try {
+  await sendTransaction();
+} catch (error) {
+  if (error.message.includes('user cancelled')) {
+    toast.info('Transaction cancelled');
+  } else {
+    toast.error('Transaction failed. Please try again.');
+  }
+}
+```
+
+## 🔧 Environment & Configuration
+
+### Environment Variables
+- Prefix with `VITE_` for client-side access
+- NEVER commit `.env.local` to git
+- Document all env vars in `docs/SUPABASE_SETUP.md`
+
+```bash
+# .env.local
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_anon_key
+```
+
+## 📱 Responsive Design
+
+### Breakpoints
+```typescript
+// xs: 480px (30rem)
+// sm: 640px (default Tailwind)
+// md: 768px
+// lg: 1024px
+// xl: 1280px
+// 2xl: 1536px
+```
+
+### Mobile-First Approach
+```typescript
+// Bad
+className="lg:hidden block"
+
+// Good
+className="block lg:hidden"
+```
+
+## 🎯 Performance
+
+### Code Splitting
+```typescript
+// Lazy load pages and heavy components
+const AdminPanel = lazy(() => import('pages/Admin'));
+```
+
+### Memoization
+```typescript
+// Memoize expensive calculations
+const totalScore = useMemo(() => 
+  calculateTeamScore(nfts), 
+  [nfts]
+);
+```
+
+### Image Optimization
+- Use WebP format when possible
+- Lazy load images
+- Provide proper dimensions
+
+## 📚 Documentation
+
+### Code Comments
+- **Why, not what**: Explain reasoning, not obvious syntax
+- **JSDoc for public APIs**: Document exported functions/components
+- **TODO comments**: Format as `// TODO: Description`
+
+```typescript
+/**
+ * Calculates the total score for a War Game team
+ * @param nfts - Array of NFT metadata with player stats
+ * @returns Total team score based on position weights
+ */
+export const calculateTeamScore = (nfts: NFTMetadata[]): number => {
+  // Goalkeepers have higher weight for saves
+  // ...
+};
+```
+
+## 🚀 Git & Development Workflow
+
+### Branch Naming
+- `feature/prediction-game`
+- `fix/leaderboard-sorting`
+- `refactor/war-game-scoring`
+- `docs/api-endpoints`
+
+### Commit Messages
+```
+feat: Add prediction submission flow
+fix: Correct leaderboard sorting logic
+refactor: Extract NFT scoring to service
+docs: Update API endpoints documentation
+```
+
+### PowerShell Commands
+```powershell
+# Use PowerShell syntax, NOT Unix
+npm install              # NOT pnpm
+Get-ChildItem           # NOT ls
+Remove-Item             # NOT rm
+Copy-Item               # NOT cp
+```
+
+## ⚠️ Common Pitfalls to Avoid
+
+1. **DON'T use pnpm** → Use npm
+2. **DON'T use Unix commands** → Use PowerShell
+3. **DON'T bypass RLS** → Trust Supabase security
+4. **DON'T create 500-line components** → Split into smaller pieces
+5. **DON'T forget loading states** → Always handle loading/error
+6. **DON'T hardcode colors** → Use CSS variables
+7. **DON'T skip NFT ownership checks** → Verify before actions
+8. **DON'T use default exports** → Use named exports
+
+## 🎓 Learning Resources
+
+- MultiversX SDK: https://docs.multiversx.com/sdk-and-tools/sdk-js/
+- Supabase Docs: https://supabase.com/docs
+- TailwindCSS: https://tailwindcss.com/docs
+- React Best Practices: https://react.dev/
+
+---
+
+**Remember**: Clean, modular, secure, and maintainable code is the priority. When in doubt, refer to this document.
+
+

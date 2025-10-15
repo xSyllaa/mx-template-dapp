@@ -30,35 +30,155 @@
 }
 
 :root {
-  --mvx-slate-75: #f8f8ff;
-  --mvx-fuchsia-550: #f04dff;
-  --mvx-purple-150: #ddcedb;
-  --mvx-purple-350: #b5a0b9;
-  --mvx-purple-850: #431c4e;
-  --mvx-purple-875: #471150;
-  --mvx-purple-925: #3c1543;
-  --mvx-purple-975: #310339;
+  /* Common Colors */
+  --mvx-white: #FFFFFF;
+  --mvx-black: #000000;
+  
+  /* GalacticX Brand Colors */
+  --galactic-ocean-deep: #0F3A46;
+  --galactic-ocean-dark: #11222D;
+  --galactic-teal: #177071;
+  --galactic-gold: #82785E;
+  --galactic-charcoal: #3D4643;
+  --galactic-ocean-light: #0E505F;
+  --galactic-ocean-border: #1A4A58;
+  --galactic-teal-light: #1A888A;
+  --galactic-teal-hover: #1A9A9C;
+  
+  /* Neutral Colors */
+  --mvx-gray-50: #F8F9FA;
+  --mvx-gray-100: #F3F4F6;
+  --mvx-gray-200: #E5E7EB;
+  --mvx-gray-300: #D1D5DB;
+  --mvx-gray-400: #9CA3AF;
+  --mvx-gray-500: #6B7280;
+  --mvx-gray-600: #B8C4C9;
+  
+  /* Status Colors */
+  --mvx-green-success: #22C55E;
+  --mvx-green-success-light: #10B981;
+  --mvx-red-error: #EF4444;
+  --mvx-red-error-light: #DC2626;
+  --mvx-yellow-warning: #FBBF24;
+  --mvx-blue-info: #3B82F6;
 }
 
+/* ============================================ */
+/* THEME 1: Dark Theme — Nocturne / Élégante   */
+/* ============================================ */
+:root[data-mvx-theme='mvx:dark-theme'],
+[data-mvx-theme='mvx:dark-theme'] {
+  /* Background Colors */
+  --mvx-bg-color-primary: var(--galactic-ocean-deep);
+  --mvx-bg-color-secondary: var(--galactic-ocean-dark);
+  --mvx-bg-accent-color: var(--galactic-ocean-light);
+  --mvx-bg-accent-variant-color: var(--galactic-ocean-deep);
+  --mvx-hover-bg-primary: var(--galactic-ocean-light);
+  
+  /* Text Colors */
+  --mvx-text-color-primary: var(--mvx-white);
+  --mvx-text-color-secondary: var(--mvx-gray-600);
+  --mvx-text-color-tertiary: var(--mvx-gray-400);
+  --mvx-text-accent-color: var(--galactic-teal);
+  
+  /* Interactive */
+  --mvx-link-color: var(--galactic-teal);
+  --mvx-label-color: var(--galactic-gold);
+  --mvx-hover-color-primary: var(--galactic-ocean-light);
+  
+  /* Buttons */
+  --mvx-button-bg-primary: var(--galactic-teal);
+  --mvx-button-bg-secondary: var(--galactic-ocean-dark);
+  --mvx-button-bg-variant: var(--galactic-gold);
+  --mvx-button-text-primary: var(--mvx-white);
+  --mvx-button-text-secondary: var(--mvx-white);
+  
+  /* Borders & Icons */
+  --mvx-border-color-secondary: var(--galactic-ocean-border);
+  --mvx-icon-bg: var(--galactic-ocean-dark);
+  --mvx-scrollbar-thumb: var(--galactic-ocean-light);
+  
+  /* Status Colors */
+  --mvx-success-color: var(--mvx-green-success);
+  --mvx-error-color: var(--mvx-red-error);
+}
+
+/* ============================================ */
+/* THEME 2: Light Theme — Doré & Élégant       */
+/* ============================================ */
+:root[data-mvx-theme='mvx:light-theme'],
+[data-mvx-theme='mvx:light-theme'] {
+  /* Background Colors */
+  --mvx-bg-color-primary: var(--mvx-white);
+  --mvx-bg-color-secondary: var(--mvx-gray-50);
+  --mvx-bg-accent-color: var(--mvx-gray-100);
+  --mvx-bg-accent-variant-color: var(--mvx-white);
+  --mvx-hover-bg-primary: var(--galactic-ocean-deep);
+  
+  /* Text Colors */
+  --mvx-text-color-primary: var(--galactic-charcoal);
+  --mvx-text-color-secondary: var(--mvx-gray-500);
+  --mvx-text-color-tertiary: var(--mvx-gray-400);
+  --mvx-text-accent-color: var(--galactic-teal);
+  
+  /* Interactive */
+  --mvx-link-color: var(--galactic-teal);
+  --mvx-label-color: var(--galactic-gold);
+  --mvx-hover-color-primary: var(--galactic-ocean-deep);
+  
+  /* Buttons */
+  --mvx-button-bg-primary: var(--galactic-teal);
+  --mvx-button-bg-secondary: var(--mvx-gray-50);
+  --mvx-button-bg-variant: var(--galactic-gold);
+  --mvx-button-text-primary: var(--mvx-white);
+  --mvx-button-text-secondary: var(--galactic-charcoal);
+  
+  /* Borders & Icons */
+  --mvx-border-color-secondary: var(--mvx-gray-200);
+  --mvx-icon-bg: var(--mvx-gray-50);
+  --mvx-scrollbar-thumb: var(--mvx-gray-300);
+  
+  /* Status Colors */
+  --mvx-success-color: var(--mvx-green-success-light);
+  --mvx-error-color: var(--mvx-red-error-light);
+}
+
+/* ============================================ */
+/* THEME 3: Vibe Theme — Dynamique & Premium   */
+/* ============================================ */
 :root[data-mvx-theme='mvx:vibe-theme'],
 [data-mvx-theme='mvx:vibe-theme'] {
-  --mvx-bg-color-primary: var(--mvx-purple-925);
-  --mvx-bg-color-secondary: var(--mvx-purple-875);
-  --mvx-bg-accent-color: var(--mvx-purple-975);
-  --mvx-bg-accent-variant-color: var(--mvx-purple-925);
-  --mvx-hover-color-primary: var(--mvx-purple-850);
+  /* Background Colors */
+  --mvx-bg-color-primary: var(--galactic-teal);
+  --mvx-bg-color-secondary: var(--galactic-ocean-dark);
+  --mvx-bg-accent-color: var(--galactic-ocean-deep);
+  --mvx-bg-accent-variant-color: var(--galactic-teal);
+  --mvx-hover-bg-primary: var(--galactic-teal-hover);
+  
+  /* Text Colors */
   --mvx-text-color-primary: var(--mvx-white);
-  --mvx-text-color-secondary: var(--mvx-purple-350);
-  --mvx-text-color-tertiary: var(--mvx-slate-75);
-  --mvx-text-accent-color: var(--mvx-fuchsia-550);
-  --mvx-link-color: var(--mvx-purple-150);
-  --mvx-label-color: var(--mvx-purple-150);
-  --mvx-icon-bg: var(--mvx-purple-925);
-  --mvx-button-bg-primary: var(--mvx-fuchsia-550);
-  --mvx-button-bg-secondary: var(--mvx-purple-875);
-  --mvx-button-bg-variant: var(--mvx-purple-875);
-  --mvx-button-text-primary: var(--mvx-black);
-  --mvx-button-text-secondary: var(--mvx-neutral-225);
-  --mvx-border-color-secondary: var(--mvx-purple-850);
-  --mvx-scrollbar-thumb: var(--mvx-purple-925);
+  --mvx-text-color-secondary: var(--mvx-gray-600);
+  --mvx-text-color-tertiary: var(--mvx-gray-400);
+  --mvx-text-accent-color: var(--galactic-gold);
+  
+  /* Interactive */
+  --mvx-link-color: var(--galactic-gold);
+  --mvx-label-color: var(--galactic-gold);
+  --mvx-hover-color-primary: var(--galactic-teal-hover);
+  
+  /* Buttons */
+  --mvx-button-bg-primary: var(--galactic-ocean-deep);
+  --mvx-button-bg-secondary: var(--galactic-ocean-dark);
+  --mvx-button-bg-variant: var(--galactic-gold);
+  --mvx-button-text-primary: var(--mvx-white);
+  --mvx-button-text-secondary: var(--mvx-white);
+  
+  /* Borders & Icons */
+  --mvx-border-color-secondary: var(--galactic-teal-light);
+  --mvx-icon-bg: var(--galactic-ocean-dark);
+  --mvx-scrollbar-thumb: var(--galactic-ocean-dark);
+  
+  /* Status Colors */
+  --mvx-success-color: #34D399;
+  --mvx-error-color: #F87171;
 }

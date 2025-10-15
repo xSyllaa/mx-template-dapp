@@ -1,0 +1,2 @@
+export { TeamOfWeek } from './TeamOfWeek';
+

@@ -12,3 +12,5 @@ export * from './OutputContainer';
 export * from './PingPongComponent';
 export * from './Tooltip';
 export * from './TransactionsTable';
+export * from './Sidebar';
+export * from './shared/StatsCard';
