@@ -66,7 +66,15 @@ notepad C:\Windows\System32\drivers\etc\hosts
 
 ```bash
 # Install mkcert (if not already installed)
+
+## Windows (winget)
+winget install mkcert
+
+## macOS (Homebrew)
 brew install mkcert
+
+## Linux (snap)
+sudo snap install mkcert
 
 # Install the local CA in your system trust store
 mkcert -install
