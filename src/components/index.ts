@@ -14,3 +14,4 @@ export * from './Tooltip';
 export * from './TransactionsTable';
 export * from './Sidebar';
 export * from './shared/StatsCard';
+export * from './LanguageSwitcher';

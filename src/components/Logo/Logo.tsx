@@ -16,17 +16,14 @@ interface LogoPropsType {
 
 export const Logo = ({ hideTextOnMobile }: LogoPropsType) => (
   <div className={styles.logo}>
-    <div className={styles.logoIcon}>
-      <div className={styles.logoIconEmpty} />
-      <div className={styles.logoIconFilled} />
-    </div>
+   
 
     <div
       className={classNames(styles.logoText, {
         [styles.logoTextHidden]: hideTextOnMobile
       })}
     >
-      dApp Template
+      GalacticX
     </div>
   </div>
 );

@@ -1,0 +1,125 @@
+{
+  "common": {
+    "galacticx": "GalacticX",
+    "connect": "Connecter",
+    "disconnect": "Déconnecter",
+    "loading": "Chargement...",
+    "error": "Erreur",
+    "success": "Succès",
+    "comingSoon": "Bientôt disponible",
+    "points": "points"
+  },
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "predictions": "Prédictions",
+    "warGames": "War Games",
+    "leaderboards": "Classements",
+    "streaks": "Streaks",
+    "myNFTs": "Mes NFTs",
+    "teamOfWeek": "Équipe de la semaine",
+    "admin": "Admin"
+  },
+  "home": {
+    "title": "GalacticX",
+    "subtitle": "L'expérience football gamifiée ultime",
+    "description": "Prédis, affronte et gagne des récompenses avec ta collection de NFTs sur la blockchain MultiversX.",
+    "connectWallet": "Connecter mon Wallet",
+    "learnMore": "En savoir plus",
+    "whyGalacticx": "Pourquoi GalacticX ?",
+    "whySubtitle": "Une expérience football gamifiée complète sur la blockchain MultiversX",
+    "features": {
+      "predictions": {
+        "title": "Prédictions de matchs",
+        "description": "Parie sur les résultats et gagne des points à chaque bonne prédiction"
+      },
+      "warGames": {
+        "title": "Combats d'équipes NFT",
+        "description": "Affronte d'autres joueurs avec tes 11 NFTs dans des war games épiques"
+      },
+      "leaderboards": {
+        "title": "Classements",
+        "description": "Grimpe au sommet du leaderboard et remporte des récompenses exclusives"
+      },
+      "streaks": {
+        "title": "Streaks hebdomadaires",
+        "description": "Claim quotidien pour des bonus progressifs et des multiplicateurs de points"
+      }
+    }
+  },
+  "dashboard": {
+    "welcome": "Bienvenue, {{username}}",
+    "subtitle": "Voici ton tableau de bord GalacticX",
+    "stats": {
+      "totalPoints": "Total Points",
+      "currentStreak": "Streak Actuel",
+      "days": "jours",
+      "myNFTs": "Mes NFTs",
+      "globalRank": "Classement Global",
+      "todayChange": "+{{value}} aujourd'hui",
+      "dayChange": "+{{value}} jour",
+      "positionChange": "+{{value}} positions"
+    },
+    "quickActions": {
+      "title": "Actions Rapides",
+      "activePredictions": {
+        "title": "Prédictions actives",
+        "description": "Consulte et participe aux prédictions en cours",
+        "action": "Accéder"
+      },
+      "dailyReward": {
+        "title": "Claim Daily Reward",
+        "description": "Réclame ta récompense quotidienne",
+        "action": "Accéder"
+      },
+      "createWarGame": {
+        "title": "Créer un War Game",
+        "description": "Challenge d'autres joueurs avec tes NFTs",
+        "action": "Accéder"
+      }
+    },
+    "recentActivity": {
+      "title": "Activité Récente",
+      "noActivity": "Aucune activité récente pour le moment"
+    }
+  },
+  "pages": {
+    "predictions": {
+      "title": "Prédictions",
+      "subtitle": "Parie sur les résultats des matchs et gagne des points"
+    },
+    "warGames": {
+      "title": "War Games",
+      "subtitle": "Affronte d'autres joueurs avec tes 11 NFTs"
+    },
+    "leaderboards": {
+      "title": "Classements",
+      "subtitle": "Grimpe au sommet et remporte des récompenses exclusives"
+    },
+    "streaks": {
+      "title": "Streaks",
+      "subtitle": "Claim quotidien pour des bonus progressifs"
+    },
+    "myNFTs": {
+      "title": "Mes NFTs",
+      "subtitle": "Consulte et gère ta collection de NFTs GalacticX"
+    },
+    "teamOfWeek": {
+      "title": "Équipe de la semaine",
+      "subtitle": "Découvre la meilleure équipe de la semaine"
+    },
+    "admin": {
+      "title": "Panel Admin",
+      "subtitle": "Gestion des prédictions, war games et leaderboards"
+    }
+  },
+  "sidebar": {
+    "expandMenu": "Agrandir le menu",
+    "collapseMenu": "Réduire le menu"
+  },
+  "themes": {
+    "dark": "Sombre",
+    "light": "Clair",
+    "vibe": "Vibe"
+  }
+}
+

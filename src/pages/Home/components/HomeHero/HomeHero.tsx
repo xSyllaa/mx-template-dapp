@@ -2,6 +2,7 @@ import { Fragment, FunctionComponent, MouseEvent, SVGProps } from 'react';
 import { ReactComponent as ArrowUpRightIcon } from 'assets/icons/arrow-up-right-icon.svg';
 import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
+import { useTranslation } from 'react-i18next';
 
 import {
   useHandleThemeManagement,
@@ -44,6 +45,7 @@ const themeExtraProperties: Record<
 
 export const HomeHero = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const { allThemeOptions, activeTheme, handleThemeSwitch } =
     useHandleThemeManagement();
@@ -72,15 +74,15 @@ export const HomeHero = () => {
     <div className={heroContainerClasses}>
       <div className={styles.heroSectionTop}>
         <div className={styles.heroSectionTopContent}>
-          <h1 className={styles.heroTitle}>GalacticX</h1>
+          <h1 className={styles.heroTitle}>{t('home.title')}</h1>
 
           <p className={styles.heroDescription}>
-            The ultimate gamified football experience. Predict, compete, and earn rewards with your NFT collection on MultiversX blockchain.
+            {t('home.description')}
           </p>
         </div>
 
         <div className={styles.heroSectionTopButtons}>
-          <Button onClick={handleLogIn}>Connect Wallet</Button>
+          <Button onClick={handleLogIn}>{t('home.connectWallet')}</Button>
 
           <a
             target='_blank'
@@ -89,7 +91,7 @@ export const HomeHero = () => {
             className={styles.heroSectionTopDocButton}
           >
             <span className={styles.heroSectionTopDocButtonText}>
-              Learn More
+              {t('home.learnMore')}
             </span>
 
             <ArrowUpRightIcon />

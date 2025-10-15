@@ -11,6 +11,7 @@ import { useNavigate } from 'react-router-dom';
 import classNames from 'classnames';
 
 import { Logo, Tooltip } from 'components';
+import { LanguageSwitcher } from 'components/LanguageSwitcher';
 import { GITHUB_REPO_URL } from 'config';
 import {
   ACCOUNTS_ENDPOINT,
@@ -91,6 +92,10 @@ export const Header = () => {
       </div>
 
       <nav className={styles.headerNavigation}>
+        <div className="flex mr-2">
+          <LanguageSwitcher />
+        </div>
+        
         <ThemeTooltip />
 
         <div className={styles.headerNavigationButtons}>

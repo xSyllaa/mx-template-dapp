@@ -1,3 +1,5 @@
+import { useTranslation } from 'react-i18next';
+
 // prettier-ignore
 const styles = {
   container: 'container max-w-7xl mx-auto',
@@ -9,17 +11,19 @@ const styles = {
 } satisfies Record<string, string>;
 
 export const Predictions = () => {
+  const { t } = useTranslation();
+  
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>⚽ Predictions</h1>
+        <h1 className={styles.title}>⚽ {t('pages.predictions.title')}</h1>
         <p className={styles.subtitle}>
-          Parie sur les résultats des matchs et gagne des points
+          {t('pages.predictions.subtitle')}
         </p>
       </div>
 
       <div className={styles.comingSoon}>
-        <p className={styles.comingSoonText}>🚧 Coming Soon 🚧</p>
+        <p className={styles.comingSoonText}>🚧 {t('common.comingSoon')} 🚧</p>
       </div>
     </div>
   );

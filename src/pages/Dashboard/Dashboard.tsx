@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 
 import { useGetAccount } from 'lib';
 import { StatsCard } from 'components/shared/StatsCard';
@@ -31,6 +32,7 @@ const styles = {
 export const Dashboard = () => {
   const navigate = useNavigate();
   const { address } = useGetAccount();
+  const { t } = useTranslation();
   
   // TODO: Replace with actual data from API/context
   const userData = {
@@ -44,20 +46,20 @@ export const Dashboard = () => {
   const quickActions = [
     {
       icon: '⚽',
-      title: 'Predictions actives',
-      description: 'Consulte et participe aux predictions en cours',
+      titleKey: 'dashboard.quickActions.activePredictions.title',
+      descriptionKey: 'dashboard.quickActions.activePredictions.description',
       action: () => navigate('/predictions')
     },
     {
       icon: '🔥',
-      title: 'Claim Daily Reward',
-      description: 'Réclame ta récompense quotidienne',
+      titleKey: 'dashboard.quickActions.dailyReward.title',
+      descriptionKey: 'dashboard.quickActions.dailyReward.description',
       action: () => navigate('/streaks')
     },
     {
       icon: '⚔️',
-      title: 'Créer un War Game',
-      description: 'Challenge d\'autres joueurs avec tes NFTs',
+      titleKey: 'dashboard.quickActions.createWarGame.title',
+      descriptionKey: 'dashboard.quickActions.createWarGame.description',
       action: () => navigate('/war-games')
     }
   ];
@@ -67,10 +69,10 @@ export const Dashboard = () => {
       {/* Welcome Header */}
       <div className={styles.header}>
         <h1 className={styles.welcomeTitle}>
-          Bienvenue, {userData.username} 👋
+          {t('dashboard.welcome', { username: userData.username })} 👋
         </h1>
         <p className={styles.welcomeSubtitle}>
-          Voici ton tableau de bord GalacticX
+          {t('dashboard.subtitle')}
         </p>
       </div>
 
@@ -78,51 +80,51 @@ export const Dashboard = () => {
       <div className={styles.statsGrid}>
         <StatsCard
           icon="⭐"
-          label="Total Points"
+          label={t('dashboard.stats.totalPoints')}
           value={userData.totalPoints.toLocaleString()}
-          change={{ value: '+120 aujourd\'hui', positive: true }}
+          change={{ value: t('dashboard.stats.todayChange', { value: '120' }), positive: true }}
           variant="gold"
         />
         
         <StatsCard
           icon="🔥"
-          label="Current Streak"
-          value={`${userData.currentStreak} jours`}
-          change={{ value: '+1 jour', positive: true }}
+          label={t('dashboard.stats.currentStreak')}
+          value={`${userData.currentStreak} ${t('dashboard.stats.days')}`}
+          change={{ value: t('dashboard.stats.dayChange', { value: '1' }), positive: true }}
           variant="accent"
         />
         
         <StatsCard
           icon="🖼️"
-          label="Mes NFTs"
+          label={t('dashboard.stats.myNFTs')}
           value={userData.nftCount}
           variant="default"
         />
         
         <StatsCard
           icon="🏆"
-          label="Classement Global"
+          label={t('dashboard.stats.globalRank')}
           value={`#${userData.globalRank}`}
-          change={{ value: '+5 positions', positive: true }}
+          change={{ value: t('dashboard.stats.positionChange', { value: '5' }), positive: true }}
           variant="default"
         />
       </div>
 
       {/* Quick Actions */}
       <div className={styles.quickActionsSection}>
-        <h2 className={styles.sectionTitle}>Actions Rapides</h2>
+        <h2 className={styles.sectionTitle}>{t('dashboard.quickActions.title')}</h2>
         
         <div className={styles.quickActionsGrid}>
           {quickActions.map((action) => (
             <div
-              key={action.title}
+              key={action.titleKey}
               className={styles.quickActionCard}
               onClick={action.action}
             >
               <div className={styles.quickActionIcon}>{action.icon}</div>
-              <h3 className={styles.quickActionTitle}>{action.title}</h3>
-              <p className={styles.quickActionDescription}>{action.description}</p>
-              <Button variant="secondary">Accéder</Button>
+              <h3 className={styles.quickActionTitle}>{t(action.titleKey)}</h3>
+              <p className={styles.quickActionDescription}>{t(action.descriptionKey)}</p>
+              <Button variant="secondary">{t('dashboard.quickActions.activePredictions.action')}</Button>
             </div>
           ))}
         </div>
@@ -130,11 +132,11 @@ export const Dashboard = () => {
 
       {/* Recent Activity */}
       <div className={styles.activitySection}>
-        <h2 className={styles.sectionTitle}>Activité Récente</h2>
+        <h2 className={styles.sectionTitle}>{t('dashboard.recentActivity.title')}</h2>
         
         <div className={styles.activityPlaceholder}>
           <p className={styles.activityPlaceholderText}>
-            📊 Aucune activité récente pour le moment
+            📊 {t('dashboard.recentActivity.noActivity')}
           </p>
         </div>
       </div>

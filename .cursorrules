@@ -9,6 +9,7 @@ GalacticX is a gamified dApp combining football, NFT ownership, and community en
 - **Backend**: Supabase (PostgreSQL + Auth + Edge Functions)
 - **Blockchain**: MultiversX SDK (wallet connect, NFT verification, transactions)
 - **State Management**: React Context + Hooks + Supabase Realtime
+- **i18n**: react-i18next (Multilingual support: EN, FR)
 - **Package Manager**: npm (NOT pnpm)
 - **Shell**: PowerShell (NOT Unix commands)
 
@@ -386,6 +387,48 @@ Remove-Item             # NOT rm
 Copy-Item               # NOT cp
 ```
 
+## 🌍 Internationalization (i18n)
+
+### Using Translations
+
+```typescript
+import { useTranslation } from 'react-i18next';
+
+const MyComponent = () => {
+  const { t } = useTranslation();
+  
+  return (
+    <div>
+      <h1>{t('home.title')}</h1>
+      <p>{t('dashboard.welcome', { username: 'John' })}</p>
+    </div>
+  );
+};
+```
+
+### Translation Keys Structure
+- `common.*` - Shared text (buttons, labels, etc.)
+- `nav.*` - Navigation menu items
+- `home.*` - Home page content
+- `dashboard.*` - Dashboard content
+- `pages.*` - Other pages content
+- `sidebar.*` - Sidebar specific text
+- `themes.*` - Theme names
+
+### Rules
+1. **NEVER hardcode text** → Always use `t()` function
+2. **Use descriptive keys** → `dashboard.stats.totalPoints` not `tp`
+3. **Group by feature** → All dashboard keys under `dashboard.*`
+4. **Variables for dynamic content** → `t('key', { variable })`
+5. **Keep English complete** → FR can be incomplete (fallback to EN)
+
+### Adding New Text
+1. Add key to `src/i18n/locales/en.json`
+2. Add translation to `src/i18n/locales/fr.json`
+3. Use in component: `t('your.new.key')`
+
+---
+
 ## ⚠️ Common Pitfalls to Avoid
 
 1. **DON'T use pnpm** → Use npm
@@ -396,6 +439,7 @@ Copy-Item               # NOT cp
 6. **DON'T hardcode colors** → Use CSS variables
 7. **DON'T skip NFT ownership checks** → Verify before actions
 8. **DON'T use default exports** → Use named exports
+9. **DON'T hardcode text** → Always use i18n with `t()` function
 
 ## 🎓 Learning Resources
 

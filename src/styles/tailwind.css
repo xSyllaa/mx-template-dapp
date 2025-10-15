@@ -69,34 +69,34 @@
 :root[data-mvx-theme='mvx:dark-theme'],
 [data-mvx-theme='mvx:dark-theme'] {
   /* Background Colors */
-  --mvx-bg-color-primary: var(--galactic-ocean-deep);
-  --mvx-bg-color-secondary: var(--galactic-ocean-dark);
-  --mvx-bg-accent-color: var(--galactic-ocean-light);
-  --mvx-bg-accent-variant-color: var(--galactic-ocean-deep);
-  --mvx-hover-bg-primary: var(--galactic-ocean-light);
+  --mvx-bg-color-primary: #0A2027;
+  --mvx-bg-color-secondary: #142933;
+  --mvx-bg-accent-color: #1A3D4A;
+  --mvx-bg-accent-variant-color: #0A2027;
+  --mvx-hover-bg-primary: #1A3D4A;
   
-  /* Text Colors */
-  --mvx-text-color-primary: var(--mvx-white);
-  --mvx-text-color-secondary: var(--mvx-gray-600);
-  --mvx-text-color-tertiary: var(--mvx-gray-400);
+  /* Text Colors - Plus clairs pour meilleure lisibilité */
+  --mvx-text-color-primary: #E8F4F8;
+  --mvx-text-color-secondary: #C8D9E0;
+  --mvx-text-color-tertiary: #A0B5C0;
   --mvx-text-accent-color: var(--galactic-teal);
   
   /* Interactive */
-  --mvx-link-color: var(--galactic-teal);
-  --mvx-label-color: var(--galactic-gold);
-  --mvx-hover-color-primary: var(--galactic-ocean-light);
+  --mvx-link-color: #1DA1A8;
+  --mvx-label-color: #B8A876;
+  --mvx-hover-color-primary: #1A3D4A;
   
   /* Buttons */
   --mvx-button-bg-primary: var(--galactic-teal);
-  --mvx-button-bg-secondary: var(--galactic-ocean-dark);
+  --mvx-button-bg-secondary: #1A3D4A;
   --mvx-button-bg-variant: var(--galactic-gold);
   --mvx-button-text-primary: var(--mvx-white);
   --mvx-button-text-secondary: var(--mvx-white);
   
   /* Borders & Icons */
-  --mvx-border-color-secondary: var(--galactic-ocean-border);
-  --mvx-icon-bg: var(--galactic-ocean-dark);
-  --mvx-scrollbar-thumb: var(--galactic-ocean-light);
+  --mvx-border-color-secondary: #2A4A58;
+  --mvx-icon-bg: #142933;
+  --mvx-scrollbar-thumb: #1A3D4A;
   
   /* Status Colors */
   --mvx-success-color: var(--mvx-green-success);
@@ -148,35 +148,35 @@
 /* ============================================ */
 :root[data-mvx-theme='mvx:vibe-theme'],
 [data-mvx-theme='mvx:vibe-theme'] {
-  /* Background Colors */
-  --mvx-bg-color-primary: var(--galactic-teal);
-  --mvx-bg-color-secondary: var(--galactic-ocean-dark);
-  --mvx-bg-accent-color: var(--galactic-ocean-deep);
-  --mvx-bg-accent-variant-color: var(--galactic-teal);
-  --mvx-hover-bg-primary: var(--galactic-teal-hover);
+  /* Background Colors - Plus vibrant */
+  --mvx-bg-color-primary: #0D5F61;
+  --mvx-bg-color-secondary: #1A2832;
+  --mvx-bg-accent-color: #0A4547;
+  --mvx-bg-accent-variant-color: #0D5F61;
+  --mvx-hover-bg-primary: #10787B;
   
-  /* Text Colors */
-  --mvx-text-color-primary: var(--mvx-white);
-  --mvx-text-color-secondary: var(--mvx-gray-600);
-  --mvx-text-color-tertiary: var(--mvx-gray-400);
-  --mvx-text-accent-color: var(--galactic-gold);
+  /* Text Colors - Plus clairs pour meilleure lisibilité */
+  --mvx-text-color-primary: #F0FEFF;
+  --mvx-text-color-secondary: #D4E8EA;
+  --mvx-text-color-tertiary: #B0CDD0;
+  --mvx-text-accent-color: #F5D98F;
   
   /* Interactive */
-  --mvx-link-color: var(--galactic-gold);
-  --mvx-label-color: var(--galactic-gold);
-  --mvx-hover-color-primary: var(--galactic-teal-hover);
+  --mvx-link-color: #F5D98F;
+  --mvx-label-color: #F5D98F;
+  --mvx-hover-color-primary: #10787B;
   
   /* Buttons */
-  --mvx-button-bg-primary: var(--galactic-ocean-deep);
-  --mvx-button-bg-secondary: var(--galactic-ocean-dark);
-  --mvx-button-bg-variant: var(--galactic-gold);
-  --mvx-button-text-primary: var(--mvx-white);
-  --mvx-button-text-secondary: var(--mvx-white);
+  --mvx-button-bg-primary: #0A4547;
+  --mvx-button-bg-secondary: #1A2832;
+  --mvx-button-bg-variant: #D4A55A;
+  --mvx-button-text-primary: #F0FEFF;
+  --mvx-button-text-secondary: #F0FEFF;
   
   /* Borders & Icons */
-  --mvx-border-color-secondary: var(--galactic-teal-light);
-  --mvx-icon-bg: var(--galactic-ocean-dark);
-  --mvx-scrollbar-thumb: var(--galactic-ocean-dark);
+  --mvx-border-color-secondary: #2A9A9E;
+  --mvx-icon-bg: #1A2832;
+  --mvx-scrollbar-thumb: #0A4547;
   
   /* Status Colors */
   --mvx-success-color: #34D399;
