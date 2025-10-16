@@ -1,10 +1,10 @@
 {
-  "name": "@multiversx/mx-template-dapp",
-  "description": "MultiversX Dapp Template",
-  "version": "3.0.0",
-  "author": "MultiversX",
+  "name": "galacticx-dapp",
+  "description": "GalacticX - Gamified Football NFT dApp on MultiversX",
+  "version": "1.0.0",
+  "author": "GalacticX Team",
   "license": "GPL-3.0-or-later",
-  "repository": "@multiversx/mx-template-dapp",
+  "repository": "galacticx-dapp",
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "6.5.1",
     "@fortawesome/free-brands-svg-icons": "^6.7.2",
@@ -15,6 +15,7 @@
     "@multiversx/sdk-dapp": "^5.2.8",
     "@multiversx/sdk-dapp-ui": "^0.0.35",
     "@multiversx/sdk-dapp-utils": "^3.0.0",
+    "@supabase/supabase-js": "^2.39.0",
     "axios": "1.10.0",
     "bignumber.js": "^9.3.1",
     "classnames": "2.3.2",

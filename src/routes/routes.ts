@@ -17,6 +17,7 @@ import { RouteType } from 'types';
 interface RouteWithTitleType extends RouteType {
   title: string;
   authenticatedRoute?: boolean;
+  adminRoute?: boolean;
   children?: RouteWithTitleType[];
 }
 
@@ -79,7 +80,8 @@ export const routes: RouteWithTitleType[] = [
     path: '/admin',
     title: 'Admin',
     component: Admin,
-    authenticatedRoute: true
+    authenticatedRoute: true,
+    adminRoute: true
   },
   {
     path: RouteNamesEnum.disclaimer,

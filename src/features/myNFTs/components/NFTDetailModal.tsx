@@ -123,7 +123,7 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
             relative rounded-3xl overflow-hidden
             bg-gradient-to-br ${style.gradient}
             backdrop-blur-xl ${style.glow}
-            border-2 border-[var(--mvx-border)]
+            border-2 border-secondary
           `}>
             {/* Close Button */}
             <button
@@ -147,7 +147,7 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
               >
                 {/* NFT Image with 3D Parallax */}
                 <div 
-                  className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--mvx-bg-secondary)]"
+                  className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-secondary"
                   onMouseMove={handleMouseMove}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
@@ -217,10 +217,10 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
               <div className="flex flex-col gap-6">
                 {/* Header */}
                 <div>
-                  <h2 className="text-3xl font-bold text-[var(--mvx-text-primary)] mb-2">
+                  <h2 className="text-3xl font-bold text-primary mb-2">
                     {nft.name}
                   </h2>
-                  <p className="text-sm text-[var(--mvx-text-tertiary)]">
+                  <p className="text-sm text-tertiary">
                     ID: {nft.identifier}
                   </p>
                 </div>
@@ -228,44 +228,44 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                 {/* Main Stats */}
                 <div className="grid grid-cols-2 gap-4">
                   {nft.position && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm">
-                      <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">Position</p>
-                      <p className="text-xl font-bold text-[var(--mvx-text-primary)]">{nft.position}</p>
+                    <div className="p-4 rounded-xl bg-secondary/50 backdrop-blur-sm">
+                      <p className="text-xs text-secondary mb-1">Position</p>
+                      <p className="text-xl font-bold text-primary">{nft.position}</p>
                     </div>
                   )}
                   
                   {nft.attributes.number && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm">
-                      <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">Number</p>
-                      <p className="text-xl font-bold text-[var(--mvx-text-primary)]">#{nft.attributes.number}</p>
+                    <div className="p-4 rounded-xl bg-secondary/50 backdrop-blur-sm">
+                      <p className="text-xs text-secondary mb-1">Number</p>
+                      <p className="text-xl font-bold text-primary">#{nft.attributes.number}</p>
                     </div>
                   )}
                   
                   {nft.attributes.nationality && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm col-span-2">
-                      <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">Nationality</p>
-                      <p className="text-lg font-bold text-[var(--mvx-text-primary)]">🌍 {nft.attributes.nationality}</p>
+                    <div className="p-4 rounded-xl bg-secondary/50 backdrop-blur-sm col-span-2">
+                      <p className="text-xs text-secondary mb-1">Nationality</p>
+                      <p className="text-lg font-bold text-primary">🌍 {nft.attributes.nationality}</p>
                     </div>
                   )}
                   
                   {nft.attributes.special_perk && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm col-span-2">
-                      <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">Special Perk</p>
-                      <p className="text-lg font-bold text-[var(--mvx-text-primary)]">✨ {nft.attributes.special_perk}</p>
+                    <div className="p-4 rounded-xl bg-secondary/50 backdrop-blur-sm col-span-2">
+                      <p className="text-xs text-secondary mb-1">Special Perk</p>
+                      <p className="text-lg font-bold text-primary">✨ {nft.attributes.special_perk}</p>
                     </div>
                   )}
                   
                   {nft.attributes.league && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm col-span-2">
-                      <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">League</p>
-                      <p className="text-lg font-bold text-[var(--mvx-text-primary)]">🏆 {nft.attributes.league}</p>
+                    <div className="p-4 rounded-xl bg-secondary/50 backdrop-blur-sm col-span-2">
+                      <p className="text-xs text-secondary mb-1">League</p>
+                      <p className="text-lg font-bold text-primary">🏆 {nft.attributes.league}</p>
                     </div>
                   )}
                   
                   {nft.attributes.capacity && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm col-span-2">
-                      <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">Capacity</p>
-                      <p className="text-lg font-bold text-[var(--mvx-text-primary)]">🏟️ {nft.attributes.capacity}</p>
+                    <div className="p-4 rounded-xl bg-secondary/50 backdrop-blur-sm col-span-2">
+                      <p className="text-xs text-secondary mb-1">Capacity</p>
+                      <p className="text-lg font-bold text-primary">🏟️ {nft.attributes.capacity}</p>
                     </div>
                   )}
                 </div>
@@ -273,18 +273,18 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                 {/* Performance Achievements */}
                 {performanceAttributes.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-bold text-[var(--mvx-text-primary)] mb-3 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-primary mb-3 flex items-center gap-2">
                       🏅 Performances
                     </h3>
                     <div className="space-y-2">
                       {performanceAttributes.map((perf, index) => (
                         <div
                           key={index}
-                          className="p-3 rounded-lg bg-gradient-to-r from-[var(--mvx-bg-secondary)] to-[var(--mvx-bg-tertiary)] border border-[var(--mvx-border)]"
+                          className="p-3 rounded-lg bg-gradient-to-r from-secondary to-tertiary border border-secondary"
                         >
                           <div className="flex items-center gap-2">
                             <span className="text-xl">⭐</span>
-                            <span className="text-sm font-medium text-[var(--mvx-text-primary)]">
+                            <span className="text-sm font-medium text-primary">
                               {perf.value}
                             </span>
                           </div>
@@ -297,17 +297,17 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                 {/* Other Attributes */}
                 {otherAttributes.length > 0 && (
                   <div>
-                    <h3 className="text-lg font-bold text-[var(--mvx-text-primary)] mb-3 flex items-center gap-2">
+                    <h3 className="text-lg font-bold text-primary mb-3 flex items-center gap-2">
                       📊 Other Stats
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       {otherAttributes.map((attr, index) => (
                         <div
                           key={index}
-                          className="p-3 rounded-lg bg-[var(--mvx-bg-secondary)]/50 backdrop-blur-sm"
+                          className="p-3 rounded-lg bg-secondary/50 backdrop-blur-sm"
                         >
-                          <p className="text-xs text-[var(--mvx-text-secondary)] mb-1">{attr.key}</p>
-                          <p className="text-sm font-semibold text-[var(--mvx-text-primary)]">{attr.value}</p>
+                          <p className="text-xs text-secondary mb-1">{attr.key}</p>
+                          <p className="text-sm font-semibold text-primary">{attr.value}</p>
                         </div>
                       ))}
                     </div>
@@ -315,23 +315,23 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                 )}
                 
                 {/* Metadata */}
-                <div className="pt-4 border-t border-[var(--mvx-border)]">
+                <div className="pt-4 border-t border-secondary">
                   <div className="grid grid-cols-2 gap-3 text-xs">
                     {nft.score && (
                       <div>
-                        <p className="text-[var(--mvx-text-secondary)]">Score</p>
-                        <p className="font-semibold text-[var(--mvx-text-primary)]">{nft.score}</p>
+                        <p className="text-secondary">Score</p>
+                        <p className="font-semibold text-primary">{nft.score}</p>
                       </div>
                     )}
                     {nft.rank && (
                       <div>
-                        <p className="text-[var(--mvx-text-secondary)]">Rank</p>
-                        <p className="font-semibold text-[var(--mvx-text-primary)]">#{nft.rank}</p>
+                        <p className="text-secondary">Rank</p>
+                        <p className="font-semibold text-primary">#{nft.rank}</p>
                       </div>
                     )}
                     <div className="col-span-2">
-                      <p className="text-[var(--mvx-text-secondary)]">Nonce</p>
-                      <p className="font-semibold text-[var(--mvx-text-primary)]">{nft.nonce}</p>
+                      <p className="text-secondary">Nonce</p>
+                      <p className="font-semibold text-primary">{nft.nonce}</p>
                     </div>
                   </div>
                 </div>

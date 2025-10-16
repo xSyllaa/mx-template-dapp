@@ -70,37 +70,37 @@
 [data-mvx-theme='mvx:dark-theme'] {
   /* Background Colors */
   --mvx-bg-color-primary: #0A2027;
-  --mvx-bg-color-secondary: #142933;
-  --mvx-bg-accent-color: #1A3D4A;
-  --mvx-bg-accent-variant-color: #0A2027;
-  --mvx-hover-bg-primary: #1A3D4A;
+  --mvx-bg-color-secondary: #1A3541;
+  --mvx-bg-accent-color: #234A5C;
+  --mvx-bg-accent-variant-color: #132932;
+  --mvx-hover-bg-primary: #2A5566;
   
-  /* Text Colors - Plus clairs pour meilleure lisibilité */
-  --mvx-text-color-primary: #E8F4F8;
-  --mvx-text-color-secondary: #C8D9E0;
-  --mvx-text-color-tertiary: #A0B5C0;
-  --mvx-text-accent-color: var(--galactic-teal);
+  /* Text Colors - Optimisés pour meilleure lisibilité sur fond sombre */
+  --mvx-text-color-primary: #F0F8FB;
+  --mvx-text-color-secondary: #D5E5EB;
+  --mvx-text-color-tertiary: #B5CDD6;
+  --mvx-text-accent-color: #5FD9DD;
   
   /* Interactive */
-  --mvx-link-color: #1DA1A8;
-  --mvx-label-color: #B8A876;
-  --mvx-hover-color-primary: #1A3D4A;
+  --mvx-link-color: #4FC8CC;
+  --mvx-label-color: #D4BE8A;
+  --mvx-hover-color-primary: #2A5566;
   
   /* Buttons */
-  --mvx-button-bg-primary: var(--galactic-teal);
-  --mvx-button-bg-secondary: #1A3D4A;
-  --mvx-button-bg-variant: var(--galactic-gold);
-  --mvx-button-text-primary: var(--mvx-white);
-  --mvx-button-text-secondary: var(--mvx-white);
+  --mvx-button-bg-primary: #1DA1A8;
+  --mvx-button-bg-secondary: #234A5C;
+  --mvx-button-bg-variant: #B8A876;
+  --mvx-button-text-primary: #FFFFFF;
+  --mvx-button-text-secondary: #F0F8FB;
   
   /* Borders & Icons */
-  --mvx-border-color-secondary: #2A4A58;
-  --mvx-icon-bg: #142933;
-  --mvx-scrollbar-thumb: #1A3D4A;
+  --mvx-border-color-secondary: #335A6A;
+  --mvx-icon-bg: #1A3541;
+  --mvx-scrollbar-thumb: #2A5566;
   
   /* Status Colors */
-  --mvx-success-color: var(--mvx-green-success);
-  --mvx-error-color: var(--mvx-red-error);
+  --mvx-success-color: #34D399;
+  --mvx-error-color: #F87171;
 }
 
 /* ============================================ */
@@ -109,38 +109,38 @@
 :root[data-mvx-theme='mvx:light-theme'],
 [data-mvx-theme='mvx:light-theme'] {
   /* Background Colors */
-  --mvx-bg-color-primary: var(--mvx-white);
-  --mvx-bg-color-secondary: var(--mvx-gray-50);
-  --mvx-bg-accent-color: var(--mvx-gray-100);
-  --mvx-bg-accent-variant-color: var(--mvx-white);
-  --mvx-hover-bg-primary: var(--galactic-ocean-deep);
+  --mvx-bg-color-primary: #FFFFFF;
+  --mvx-bg-color-secondary: #F8F9FA;
+  --mvx-bg-accent-color: #F0F2F4;
+  --mvx-bg-accent-variant-color: #FAFBFC;
+  --mvx-hover-bg-primary: #0F3A46;
   
-  /* Text Colors */
-  --mvx-text-color-primary: var(--galactic-charcoal);
-  --mvx-text-color-secondary: var(--mvx-gray-500);
-  --mvx-text-color-tertiary: var(--mvx-gray-400);
-  --mvx-text-accent-color: var(--galactic-teal);
+  /* Text Colors - Optimisés pour contraste sur fond clair */
+  --mvx-text-color-primary: #1A2832;
+  --mvx-text-color-secondary: #4A5A64;
+  --mvx-text-color-tertiary: #6B7A84;
+  --mvx-text-accent-color: #177071;
   
   /* Interactive */
-  --mvx-link-color: var(--galactic-teal);
-  --mvx-label-color: var(--galactic-gold);
-  --mvx-hover-color-primary: var(--galactic-ocean-deep);
+  --mvx-link-color: #177071;
+  --mvx-label-color: #8B7849;
+  --mvx-hover-color-primary: #0F3A46;
   
   /* Buttons */
-  --mvx-button-bg-primary: var(--galactic-teal);
-  --mvx-button-bg-secondary: var(--mvx-gray-50);
-  --mvx-button-bg-variant: var(--galactic-gold);
-  --mvx-button-text-primary: var(--mvx-white);
-  --mvx-button-text-secondary: var(--galactic-charcoal);
+  --mvx-button-bg-primary: #177071;
+  --mvx-button-bg-secondary: #E8EBED;
+  --mvx-button-bg-variant: #9B8858;
+  --mvx-button-text-primary: #FFFFFF;
+  --mvx-button-text-secondary: #1A2832;
   
   /* Borders & Icons */
-  --mvx-border-color-secondary: var(--mvx-gray-200);
-  --mvx-icon-bg: var(--mvx-gray-50);
-  --mvx-scrollbar-thumb: var(--mvx-gray-300);
+  --mvx-border-color-secondary: #D5DCE0;
+  --mvx-icon-bg: #F0F2F4;
+  --mvx-scrollbar-thumb: #C5CDD2;
   
   /* Status Colors */
-  --mvx-success-color: var(--mvx-green-success-light);
-  --mvx-error-color: var(--mvx-red-error-light);
+  --mvx-success-color: #10B981;
+  --mvx-error-color: #DC2626;
 }
 
 /* ============================================ */
@@ -148,35 +148,35 @@
 /* ============================================ */
 :root[data-mvx-theme='mvx:vibe-theme'],
 [data-mvx-theme='mvx:vibe-theme'] {
-  /* Background Colors - Plus vibrant */
-  --mvx-bg-color-primary: #0D5F61;
-  --mvx-bg-color-secondary: #1A2832;
-  --mvx-bg-accent-color: #0A4547;
-  --mvx-bg-accent-variant-color: #0D5F61;
-  --mvx-hover-bg-primary: #10787B;
+  /* Background Colors - Optimisés pour meilleur contraste */
+  --mvx-bg-color-primary: #0A4D50;
+  --mvx-bg-color-secondary: #1F3B44;
+  --mvx-bg-accent-color: #156D70;
+  --mvx-bg-accent-variant-color: #0F5A5D;
+  --mvx-hover-bg-primary: #1A8A8D;
   
-  /* Text Colors - Plus clairs pour meilleure lisibilité */
-  --mvx-text-color-primary: #F0FEFF;
-  --mvx-text-color-secondary: #D4E8EA;
-  --mvx-text-color-tertiary: #B0CDD0;
-  --mvx-text-accent-color: #F5D98F;
+  /* Text Colors - Optimisés pour meilleure lisibilité */
+  --mvx-text-color-primary: #F5FEFF;
+  --mvx-text-color-secondary: #E0F2F4;
+  --mvx-text-color-tertiary: #C5DFE2;
+  --mvx-text-accent-color: #FFE49B;
   
   /* Interactive */
-  --mvx-link-color: #F5D98F;
-  --mvx-label-color: #F5D98F;
-  --mvx-hover-color-primary: #10787B;
+  --mvx-link-color: #FFD976;
+  --mvx-label-color: #FFE49B;
+  --mvx-hover-color-primary: #1A8A8D;
   
   /* Buttons */
-  --mvx-button-bg-primary: #0A4547;
-  --mvx-button-bg-secondary: #1A2832;
-  --mvx-button-bg-variant: #D4A55A;
-  --mvx-button-text-primary: #F0FEFF;
-  --mvx-button-text-secondary: #F0FEFF;
+  --mvx-button-bg-primary: #1A8A8D;
+  --mvx-button-bg-secondary: #2A5A64;
+  --mvx-button-bg-variant: #E5B864;
+  --mvx-button-text-primary: #FFFFFF;
+  --mvx-button-text-secondary: #F5FEFF;
   
   /* Borders & Icons */
-  --mvx-border-color-secondary: #2A9A9E;
-  --mvx-icon-bg: #1A2832;
-  --mvx-scrollbar-thumb: #0A4547;
+  --mvx-border-color-secondary: #3AA5A8;
+  --mvx-icon-bg: #1F3B44;
+  --mvx-scrollbar-thumb: #156D70;
   
   /* Status Colors */
   --mvx-success-color: #34D399;
@@ -204,6 +204,95 @@
   }
 }
 
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-100%);
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    transform: scale(1);
+    opacity: 1;
+  }
+  to {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+@keyframes bounceIn {
+  0% {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
 @keyframes zoomIn3D {
   0% {
     opacity: 0;
@@ -213,4 +302,41 @@
     opacity: 1;
     transform: perspective(1000px) translateZ(0) scale(1) rotateX(0deg);
   }
+}
+
+/* Animation Classes */
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-in-out forwards;
+}
+
+.animate-fade-out {
+  animation: fadeOut 0.3s ease-in-out forwards;
+}
+
+.animate-slide-in-left {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+.animate-slide-out-left {
+  animation: slideOutLeft 0.3s ease-in forwards;
+}
+
+.animate-slide-in-right {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-slide-out-right {
+  animation: slideOutRight 0.3s ease-in forwards;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.2s ease-out forwards;
+}
+
+.animate-scale-out {
+  animation: scaleOut 0.2s ease-in forwards;
+}
+
+.animate-bounce-in {
+  animation: bounceIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
 }

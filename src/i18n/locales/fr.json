@@ -7,7 +7,8 @@
     "error": "Erreur",
     "success": "Succès",
     "comingSoon": "Bientôt disponible",
-    "points": "points"
+    "points": "points",
+    "close": "Fermer"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -18,6 +19,10 @@
     "myNFTs": "Mes NFTs",
     "teamOfWeek": "Équipe de la semaine",
     "admin": "Admin"
+  },
+  "sidebar": {
+    "expandMenu": "Développer le menu",
+    "collapseMenu": "Réduire le menu"
   },
   "home": {
     "title": "GalacticX",
@@ -113,7 +118,18 @@
         "rare": "Rare",
         "epic": "Épique",
         "legendary": "Légendaire",
-        "mythic": "Mythique"
+        "mythic": "Mythique",
+        "positions": {
+          "all": "Toutes les Positions"
+        },
+        "nationalities": {
+          "all": "Toutes les Nationalités"
+        },
+        "search": {
+          "placeholder": "Rechercher par nom, position, nationalité...",
+          "clear": "Effacer la recherche",
+          "hint": "Recherche dans tous les attributs"
+        }
       },
       "error": {
         "title": "Échec du chargement des NFTs",
@@ -144,10 +160,6 @@
       "title": "Panel Admin",
       "subtitle": "Gestion des prédictions, war games et leaderboards"
     }
-  },
-  "sidebar": {
-    "expandMenu": "Agrandir le menu",
-    "collapseMenu": "Réduire le menu"
   },
   "themes": {
     "dark": "Sombre",

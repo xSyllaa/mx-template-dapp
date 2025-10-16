@@ -30,10 +30,10 @@ export const NFTStats = ({ nfts, totalCount }: NFTStatsProps) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
       {/* Total NFTs */}
-      <div className="relative overflow-hidden rounded-xl border border-[var(--mvx-border)] bg-gradient-to-br from-[var(--mvx-bg-secondary)] to-[var(--mvx-bg-tertiary)] p-6 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
+      <div className="relative overflow-hidden rounded-xl border border-secondary bg-gradient-to-br from-secondary to-tertiary p-6 shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
         <div className="flex flex-col">
-          <span className="text-sm font-medium text-[var(--mvx-text-secondary)] mb-1">Total NFTs</span>
-          <span className="text-3xl font-bold text-[var(--mvx-text-primary)]">{totalCount}</span>
+          <span className="text-sm font-medium text-secondary mb-1">Total NFTs</span>
+          <span className="text-3xl font-bold text-primary">{totalCount}</span>
         </div>
         <div className="absolute -right-4 -bottom-4 text-6xl opacity-10">🎴</div>
       </div>

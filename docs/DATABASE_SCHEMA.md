@@ -67,7 +67,7 @@ CREATE TABLE users (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet_address TEXT UNIQUE NOT NULL,
   username TEXT,
-  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'king')),
+  role TEXT NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'admin')),
   total_points INTEGER NOT NULL DEFAULT 0,
   current_streak INTEGER NOT NULL DEFAULT 0,
   streak_last_claim TIMESTAMP WITH TIME ZONE,
@@ -84,7 +84,7 @@ CREATE INDEX idx_users_total_points ON users(total_points DESC);
 
 -- Comments
 COMMENT ON TABLE users IS 'User profiles and global stats';
-COMMENT ON COLUMN users.role IS 'User role: user (default) or king (admin)';
+COMMENT ON COLUMN users.role IS 'User role: user (default) or admin';
 COMMENT ON COLUMN users.total_points IS 'Cumulative points across all activities';
 COMMENT ON COLUMN users.current_streak IS 'Current weekly claim streak (0-7)';
 COMMENT ON COLUMN users.nft_count IS 'Cached NFT count from MultiversX';
@@ -94,7 +94,7 @@ COMMENT ON COLUMN users.nft_count IS 'Cached NFT count from MultiversX';
 - `id`: UUID primary key (linked to Supabase auth)
 - `wallet_address`: MultiversX wallet address (erd1...)
 - `username`: Optional display name
-- `role`: `user` (default) or `king` (admin)
+- `role`: `user` (default) or `admin`
 - `total_points`: Lifetime accumulated points
 - `current_streak`: Current consecutive days claimed (0-7)
 - `streak_last_claim`: Last claim timestamp (for validation)
@@ -513,7 +513,7 @@ ON users FOR UPDATE
 TO authenticated
 USING (auth.uid() = id);
 
--- Policy 4: Only admins (role = 'king') can update other users
+-- Policy 4: Only admins (role = 'admin') can update other users
 CREATE POLICY "Admins can update any user"
 ON users FOR UPDATE
 TO authenticated
@@ -521,7 +521,7 @@ USING (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 
@@ -548,7 +548,7 @@ WITH CHECK (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 
@@ -560,7 +560,7 @@ USING (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 
@@ -572,7 +572,7 @@ USING (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 ```
@@ -596,7 +596,7 @@ USING (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 
@@ -726,7 +726,7 @@ WITH CHECK (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 
@@ -738,7 +738,7 @@ USING (
   EXISTS (
     SELECT 1 FROM users
     WHERE users.id = auth.uid()
-    AND users.role = 'king'
+    AND users.role = 'admin'
   )
 );
 ```

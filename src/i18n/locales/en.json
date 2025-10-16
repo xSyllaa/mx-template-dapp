@@ -7,7 +7,8 @@
     "error": "Error",
     "success": "Success",
     "comingSoon": "Coming Soon",
-    "points": "points"
+    "points": "points",
+    "close": "Close"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -18,6 +19,10 @@
     "myNFTs": "My NFTs",
     "teamOfWeek": "Team of the Week",
     "admin": "Admin"
+  },
+  "sidebar": {
+    "expandMenu": "Expand Menu",
+    "collapseMenu": "Collapse Menu"
   },
   "home": {
     "title": "GalacticX",
@@ -113,7 +118,18 @@
         "rare": "Rare",
         "epic": "Epic",
         "legendary": "Legendary",
-        "mythic": "Mythic"
+        "mythic": "Mythic",
+        "positions": {
+          "all": "All Positions"
+        },
+        "nationalities": {
+          "all": "All Nationalities"
+        },
+        "search": {
+          "placeholder": "Search by name, position, nationality...",
+          "clear": "Clear search",
+          "hint": "Searching in all attributes"
+        }
       },
       "error": {
         "title": "Failed to load NFTs",
@@ -144,10 +160,6 @@
       "title": "Admin Panel",
       "subtitle": "Manage predictions, war games and leaderboards"
     }
-  },
-  "sidebar": {
-    "expandMenu": "Expand menu",
-    "collapseMenu": "Collapse menu"
   },
   "themes": {
     "dark": "Dark",

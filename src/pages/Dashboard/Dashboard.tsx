@@ -7,26 +7,26 @@ import { Button } from 'components/Button';
 
 // prettier-ignore
 const styles = {
-  container: 'container max-w-7xl mx-auto',
+  container: 'container max-w-7xl mx-auto px-4 sm:px-6',
   
-  header: 'header mb-8',
-  welcomeTitle: 'welcome-title text-3xl md:text-4xl font-bold text-primary mb-2',
-  welcomeSubtitle: 'welcome-subtitle text-lg text-secondary',
+  header: 'header mb-6 sm:mb-8',
+  welcomeTitle: 'welcome-title text-2xl sm:text-3xl md:text-4xl font-bold text-primary mb-2',
+  welcomeSubtitle: 'welcome-subtitle text-base sm:text-lg text-secondary',
   
-  statsGrid: 'stats-grid grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12',
+  statsGrid: 'stats-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8 sm:mb-12',
   
-  quickActionsSection: 'quick-actions-section mb-12',
-  sectionTitle: 'section-title text-2xl font-bold text-primary mb-6',
+  quickActionsSection: 'quick-actions-section mb-8 sm:mb-12',
+  sectionTitle: 'section-title text-xl sm:text-2xl font-bold text-primary mb-4 sm:mb-6',
   
-  quickActionsGrid: 'quick-actions-grid grid grid-cols-1 md:grid-cols-3 gap-6',
-  quickActionCard: 'quick-action-card bg-secondary rounded-2xl p-6 border border-[var(--mvx-border-color-secondary)] hover:-translate-y-1 transition-all duration-300 cursor-pointer',
-  quickActionIcon: 'quick-action-icon text-4xl mb-3',
-  quickActionTitle: 'quick-action-title text-xl font-bold text-primary mb-2',
-  quickActionDescription: 'quick-action-description text-sm text-secondary mb-4',
+  quickActionsGrid: 'quick-actions-grid grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6',
+  quickActionCard: 'quick-action-card bg-secondary rounded-2xl p-4 sm:p-6 border border-[var(--mvx-border-color-secondary)] hover:-translate-y-1 active:scale-95 transition-all duration-300 cursor-pointer',
+  quickActionIcon: 'quick-action-icon text-3xl sm:text-4xl mb-2 sm:mb-3',
+  quickActionTitle: 'quick-action-title text-lg sm:text-xl font-bold text-primary mb-2',
+  quickActionDescription: 'quick-action-description text-xs sm:text-sm text-secondary mb-4',
   
   activitySection: 'activity-section',
-  activityPlaceholder: 'activity-placeholder bg-secondary rounded-2xl p-8 border border-[var(--mvx-border-color-secondary)] text-center',
-  activityPlaceholderText: 'text-secondary'
+  activityPlaceholder: 'activity-placeholder bg-secondary rounded-2xl p-6 sm:p-8 border border-[var(--mvx-border-color-secondary)] text-center',
+  activityPlaceholderText: 'text-secondary text-sm sm:text-base'
 } satisfies Record<string, string>;
 
 export const Dashboard = () => {

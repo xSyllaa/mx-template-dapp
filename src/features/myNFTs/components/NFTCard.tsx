@@ -57,11 +57,11 @@ export const NFTCard = ({ nft, onClick }: NFTCardProps) => {
   };
   
   return (
-    <div
+      <div
       onClick={handleClick}
       className={`
         group relative overflow-hidden rounded-2xl border-2 ${style.border}
-        bg-gradient-to-br from-[var(--mvx-bg-secondary)] to-[var(--mvx-bg-tertiary)]
+        bg-gradient-to-br from-secondary to-tertiary
         backdrop-blur-md ${style.glow}
         transition-all duration-300 hover:-translate-y-2 cursor-pointer
       `}
@@ -80,7 +80,7 @@ export const NFTCard = ({ nft, onClick }: NFTCardProps) => {
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
           </>
         ) : (
-          <div className="flex h-full w-full items-center justify-center bg-[var(--mvx-bg-secondary)] text-6xl">
+          <div className="flex h-full w-full items-center justify-center bg-secondary text-6xl">
             🎴
           </div>
         )}
@@ -94,17 +94,17 @@ export const NFTCard = ({ nft, onClick }: NFTCardProps) => {
       {/* NFT Info */}
       <div className="p-4">
         {/* Name */}
-        <h3 className="font-bold text-[var(--mvx-text-primary)] text-base mb-2 truncate">
+        <h3 className="font-bold text-primary text-base mb-2 truncate">
           {nft.name}
         </h3>
         
         {/* Position & Number */}
         <div className="flex items-center gap-2 mb-2">
-          <span className="px-2 py-1 rounded-md bg-[var(--mvx-bg-accent)]/20 text-[var(--mvx-text-primary)] text-xs font-semibold">
+          <span className="px-2 py-1 rounded-md bg-tertiary/20 text-primary text-xs font-semibold">
             {nft.position}
           </span>
           {nft.attributes.number && (
-            <span className="px-2 py-1 rounded-md bg-[var(--mvx-bg-accent)]/10 text-[var(--mvx-text-secondary)] text-xs font-medium">
+            <span className="px-2 py-1 rounded-md bg-tertiary/10 text-secondary text-xs font-medium">
               #{nft.attributes.number}
             </span>
           )}
@@ -112,13 +112,13 @@ export const NFTCard = ({ nft, onClick }: NFTCardProps) => {
         
         {/* Nationality */}
         {nft.attributes.nationality && (
-          <p className="text-xs text-[var(--mvx-text-secondary)] mb-2">
+          <p className="text-xs text-secondary mb-2">
             🌍 {nft.attributes.nationality}
           </p>
         )}
         
         {/* NFT ID */}
-        <p className="text-[10px] text-[var(--mvx-text-tertiary)] truncate">
+        <p className="text-[10px] text-tertiary truncate">
           ID: {nft.nonce}
         </p>
       </div>
