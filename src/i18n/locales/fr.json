@@ -101,7 +101,40 @@
     },
     "myNFTs": {
       "title": "Mes NFTs",
-      "subtitle": "Consulte et gère ta collection de NFTs GalacticX"
+      "subtitle": "Consulte et gère ta collection de NFTs GalacticX",
+      "stats": {
+        "totalNFTs": "Total NFTs",
+        "collection": "Collection",
+        "lastSynced": "Dernière Synchro"
+      },
+      "filters": {
+        "all": "Toutes les Raretés",
+        "common": "Commun",
+        "rare": "Rare",
+        "epic": "Épique",
+        "legendary": "Légendaire",
+        "mythic": "Mythique"
+      },
+      "error": {
+        "title": "Échec du chargement des NFTs",
+        "retry": "Réessayer"
+      },
+      "notConnected": {
+        "title": "Wallet non connecté",
+        "subtitle": "Connecte ton wallet pour voir tes NFTs"
+      },
+      "empty": {
+        "title": "Aucun NFT trouvé",
+        "subtitle": "Tu ne possèdes aucun NFT GalacticX pour le moment"
+      },
+      "noResults": "Aucun NFT ne correspond à ce filtre",
+      "refresh": "Actualiser",
+      "testMode": {
+        "show": "🧪 Tester avec une adresse",
+        "hide": "🔒 Masquer le test",
+        "placeholder": "erd1...",
+        "search": "🔍 Rechercher"
+      }
     },
     "teamOfWeek": {
       "title": "Équipe de la semaine",

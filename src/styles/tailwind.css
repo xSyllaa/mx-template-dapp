@@ -182,3 +182,35 @@
   --mvx-success-color: #34D399;
   --mvx-error-color: #F87171;
 }
+
+/* ============================================ */
+/* Custom Animations                           */
+/* ============================================ */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%) skewX(-12deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-12deg);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes zoomIn3D {
+  0% {
+    opacity: 0;
+    transform: perspective(1000px) translateZ(-500px) scale(0.5) rotateX(20deg);
+  }
+  100% {
+    opacity: 1;
+    transform: perspective(1000px) translateZ(0) scale(1) rotateX(0deg);
+  }
+}
