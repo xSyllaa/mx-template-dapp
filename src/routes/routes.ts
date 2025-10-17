@@ -10,7 +10,9 @@ import {
   Streaks,
   MyNFTs,
   TeamOfWeek,
-  Admin
+  Admin,
+  CreatePrediction,
+  ManagePredictions
 } from 'pages';
 import { RouteType } from 'types';
 
@@ -80,6 +82,20 @@ export const routes: RouteWithTitleType[] = [
     path: '/admin',
     title: 'Admin',
     component: Admin,
+    authenticatedRoute: true,
+    adminRoute: true
+  },
+  {
+    path: '/admin/create-prediction',
+    title: 'Create Prediction',
+    component: CreatePrediction,
+    authenticatedRoute: true,
+    adminRoute: true
+  },
+  {
+    path: '/admin/manage-predictions',
+    title: 'Manage Predictions',
+    component: ManagePredictions,
     authenticatedRoute: true,
     adminRoute: true
   },

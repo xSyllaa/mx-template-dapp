@@ -8,7 +8,9 @@
     "success": "Succès",
     "comingSoon": "Bientôt disponible",
     "points": "points",
-    "close": "Fermer"
+    "close": "Fermer",
+    "retry": "Réessayer",
+    "back": "Retour"
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -97,6 +99,78 @@
     "recentActivity": {
       "title": "Activité Récente",
       "noActivity": "Aucune activité récente pour le moment"
+    }
+  },
+  "predictions": {
+    "title": "Prédictions",
+    "subtitle": "Prédis les résultats des matchs et gagne des points",
+    "active": "Prédictions Actives",
+    "history": "Historique",
+    "participate": "Participer",
+    "participated": "Participé",
+    "loadMore": "Charger Plus",
+    "noActive": "Aucune prédiction active",
+    "noHistory": "Aucun historique de prédiction",
+    "submitPrediction": "Soumettre ma Prédiction",
+    "pointsReward": "Récompense en Points",
+    "startDate": "Début du Match",
+    "closeDate": "Ferme le",
+    "result": "Résultat",
+    "winningOption": "Option Gagnante",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "status": {
+      "open": "Ouvert",
+      "closed": "Fermé",
+      "resulted": "Résulté",
+      "cancelled": "Annulé"
+    },
+    "admin": {
+      "createPrediction": "Créer une Prédiction",
+      "managePredictions": "Gérer les Prédictions",
+      "competition": "Compétition",
+      "homeTeam": "Équipe Domicile",
+      "awayTeam": "Équipe Extérieur",
+      "betType": "Type de Pari",
+      "options": "Options",
+      "addOption": "Ajouter une Option",
+      "removeOption": "Supprimer",
+      "optionLabel": "Libellé de l'Option",
+      "optionOdds": "Cotes",
+      "startDate": "Date de Début du Match",
+      "closeDate": "Date Limite des Paris",
+      "pointsReward": "Récompense en Points",
+      "validateResult": "Valider le Résultat",
+      "selectWinner": "Sélectionner l'Option Gagnante",
+      "delete": "Supprimer",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "create": "Créer la Prédiction",
+      "update": "Modifier la Prédiction",
+      "deleteConfirm": "Êtes-vous sûr de vouloir supprimer cette prédiction ?",
+      "validation": {
+        "required": "Ce champ est requis",
+        "minOptions": "Au moins 2 options sont requises",
+        "invalidDates": "La date limite des paris doit être avant le début du match"
+      },
+      "betTypes": {
+        "result": "Résultat du Match",
+        "over_under": "Plus/Moins",
+        "scorer": "Premier Buteur",
+        "both_teams_score": "Les Deux Équipes Marquent"
+      },
+      "success": {
+        "created": "Prédiction créée avec succès",
+        "updated": "Prédiction modifiée avec succès",
+        "deleted": "Prédiction supprimée avec succès",
+        "validated": "Résultat validé avec succès"
+      },
+      "errors": {
+        "createFailed": "Échec de la création de la prédiction",
+        "updateFailed": "Échec de la modification de la prédiction",
+        "deleteFailed": "Échec de la suppression de la prédiction",
+        "validateFailed": "Échec de la validation du résultat"
+      }
     }
   },
   "pages": {

@@ -7,6 +7,7 @@ interface AuthState {
   loading: boolean;
   error: Error | null;
   canRetry: boolean;
+  supabaseUserId: string | null;
 }
 
 // Fonction utilitaire pour nettoyer l'authentification
@@ -24,7 +25,8 @@ export const useSupabaseAuth = () => {
     isAuthenticated: false,
     loading: false,
     error: null,
-    canRetry: false
+    canRetry: false,
+    supabaseUserId: null
   });
 
   useEffect(() => {
@@ -41,7 +43,8 @@ export const useSupabaseAuth = () => {
           isAuthenticated: false,
           loading: false,
           error: null,
-          canRetry: false
+          canRetry: false,
+          supabaseUserId: null
         });
 
         // Emit event for other components to listen
@@ -49,6 +52,31 @@ export const useSupabaseAuth = () => {
           detail: { isAuthenticated: false, userId: null }
         }));
         return;
+      }
+
+      // Vérifier si on a déjà une session valide
+      const existingUser = localStorage.getItem('galacticx.user');
+      const token = localStorage.getItem('supabase.auth.token');
+      const expiresAt = localStorage.getItem('supabase.auth.expires_at');
+      
+      if (existingUser && token && expiresAt) {
+        const userData = JSON.parse(existingUser);
+        const isExpired = Date.now() > parseInt(expiresAt);
+        
+        if (!isExpired && userData.wallet_address === address) {
+          console.log('✅ [SupabaseAuth] Déjà authentifié avec session valide');
+          setAuthState({
+            isAuthenticated: true,
+            loading: false,
+            error: null,
+            canRetry: false,
+            supabaseUserId: userData.id
+          });
+          return;
+        } else {
+          console.log('🕐 [SupabaseAuth] Session expirée ou wallet différent, re-authentification...');
+          clearSupabaseAuth();
+        }
       }
 
       try {
@@ -73,7 +101,8 @@ export const useSupabaseAuth = () => {
               isAuthenticated: true,
               loading: false,
               error: null,
-              canRetry: false
+              canRetry: false,
+              supabaseUserId: user.id
             });
             return;
           } else if (user.wallet_address === address && now >= expiresAt) {
@@ -172,7 +201,8 @@ export const useSupabaseAuth = () => {
           isAuthenticated: true,
           loading: false,
           error: null,
-          canRetry: false
+          canRetry: false,
+          supabaseUserId: data.user_id
         });
 
         // Emit event for other components to listen
@@ -186,7 +216,8 @@ export const useSupabaseAuth = () => {
           isAuthenticated: false,
           loading: false,
           error: error as Error,
-          canRetry: true
+          canRetry: true,
+          supabaseUserId: null
         });
 
         // Emit event for other components to listen
@@ -211,6 +242,9 @@ export const useSupabaseAuth = () => {
     };
   }, [address]);
 
-  return authState;
+  return {
+    ...authState,
+    supabaseUserId: authState.supabaseUserId
+  };
 };
 

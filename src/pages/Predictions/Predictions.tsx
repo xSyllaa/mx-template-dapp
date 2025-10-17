@@ -1,30 +1,23 @@
 import { useTranslation } from 'react-i18next';
-
-// prettier-ignore
-const styles = {
-  container: 'container max-w-7xl mx-auto',
-  header: 'header mb-8',
-  title: 'title text-4xl md:text-5xl font-bold text-primary mb-4',
-  subtitle: 'subtitle text-lg text-secondary',
-  comingSoon: 'coming-soon text-center py-16',
-  comingSoonText: 'text-2xl text-accent font-semibold'
-} satisfies Record<string, string>;
+import { PredictionList } from 'features/predictions';
 
 export const Predictions = () => {
   const { t } = useTranslation();
   
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h1 className={styles.title}>⚽ {t('pages.predictions.title')}</h1>
-        <p className={styles.subtitle}>
-          {t('pages.predictions.subtitle')}
+    <div className="container max-w-7xl mx-auto px-4 py-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-4xl md:text-5xl font-bold text-[var(--mvx-text-color-primary)] mb-4">
+          ⚽ {t('predictions.title')}
+        </h1>
+        <p className="text-lg text-[var(--mvx-text-color-secondary)]">
+          {t('predictions.subtitle')}
         </p>
       </div>
 
-      <div className={styles.comingSoon}>
-        <p className={styles.comingSoonText}>🚧 {t('common.comingSoon')} 🚧</p>
-      </div>
+      {/* Predictions List */}
+      <PredictionList />
     </div>
   );
 };
