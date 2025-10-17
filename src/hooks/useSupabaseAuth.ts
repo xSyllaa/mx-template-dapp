@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useGetAccount, Message, Address, getAccountProvider } from 'lib';
 import { supabase } from 'lib/supabase/client';
-import { useSupabaseAuthSync } from './useSupabaseAuthSync';
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -21,7 +20,6 @@ export const clearSupabaseAuth = () => {
 
 export const useSupabaseAuth = () => {
   const { address } = useGetAccount();
-  const { updateGlobalState } = useSupabaseAuthSync();
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     loading: false,
@@ -45,18 +43,16 @@ export const useSupabaseAuth = () => {
           error: null,
           canRetry: false
         });
-        updateGlobalState({
-          isAuthenticated: false,
-          isLoading: false,
-          hasSigned: false,
-          error: null
-        });
+
+        // Emit event for other components to listen
+        window.dispatchEvent(new CustomEvent('supabaseAuthChanged', {
+          detail: { isAuthenticated: false, userId: null }
+        }));
         return;
       }
 
       try {
         setAuthState(prev => ({ ...prev, loading: true }));
-        updateGlobalState({ isLoading: true, error: null });
         console.log('🔐 [SupabaseAuth] Authentification Supabase pour:', address);
 
         // 1. Vérifier si déjà authentifié avec le bon wallet
@@ -78,12 +74,6 @@ export const useSupabaseAuth = () => {
               loading: false,
               error: null,
               canRetry: false
-            });
-            updateGlobalState({
-              isAuthenticated: true,
-              isLoading: false,
-              hasSigned: true,
-              error: null
             });
             return;
           } else if (user.wallet_address === address && now >= expiresAt) {
@@ -184,12 +174,11 @@ export const useSupabaseAuth = () => {
           error: null,
           canRetry: false
         });
-        updateGlobalState({
-          isAuthenticated: true,
-          isLoading: false,
-          hasSigned: true,
-          error: null
-        });
+
+        // Emit event for other components to listen
+        window.dispatchEvent(new CustomEvent('supabaseAuthChanged', {
+          detail: { isAuthenticated: true, userId: data.user_id }
+        }));
 
       } catch (error) {
         console.error('❌ [SupabaseAuth] Erreur:', error);
@@ -199,12 +188,11 @@ export const useSupabaseAuth = () => {
           error: error as Error,
           canRetry: true
         });
-        updateGlobalState({
-          isAuthenticated: false,
-          isLoading: false,
-          hasSigned: false,
-          error: (error as Error).message
-        });
+
+        // Emit event for other components to listen
+        window.dispatchEvent(new CustomEvent('supabaseAuthChanged', {
+          detail: { isAuthenticated: false, userId: null, error: (error as Error).message }
+        }));
       }
     };
 

@@ -4,4 +4,3 @@ export * from './useUserRole';
 export * from './useSupabaseAuth';
 export * from './useSupabaseAuthStatus';
 export * from './useWalletDisconnect';
-export * from './useSupabaseAuthSync';

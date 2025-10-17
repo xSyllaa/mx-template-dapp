@@ -193,6 +193,49 @@ All components MUST work with:
 - `mvx:light-theme` (Light - Doré & Élégant)
 - `mvx:vibe-theme` (Vibe - Dynamique & Premium)
 
+### Theme Color Variables (MANDATORY)
+**ALWAYS use CSS variables for colors. NEVER hardcode color classes.**
+
+#### Text Colors
+- `text-[var(--mvx-text-color-primary)]` - Main text color
+- `text-[var(--mvx-text-color-secondary)]` - Secondary/muted text
+- `text-[var(--mvx-text-color-tertiary)]` - Disabled text
+- `text-[var(--mvx-text-accent-color)]` - Accent text
+
+#### Background Colors
+- `bg-[var(--mvx-bg-color-primary)]` - Main background
+- `bg-[var(--mvx-bg-color-secondary)]` - Cards, sections
+- `bg-[var(--mvx-bg-accent-color)]` - Hover states, subtle backgrounds
+
+#### Accent Colors
+- `bg-[var(--mvx-text-accent-color)]` - Primary action color
+- `text-[var(--mvx-text-accent-color)]` - Accent text
+- `border-[var(--mvx-text-accent-color)]` - Accent borders
+
+#### Borders
+- `border-[var(--mvx-border-color-secondary)]` - Standard borders
+
+#### Status Colors (use sparingly, prefer semantic CSS vars)
+For success/error states, use opacity with theme colors:
+- Success: `bg-green-500/20 text-[var(--mvx-text-primary)]`
+- Error: `bg-red-500/20 text-[var(--mvx-text-primary)]`
+- Warning: `bg-yellow-500/20 text-[var(--mvx-text-primary)]`
+- Info: `bg-blue-500/20 text-[var(--mvx-text-primary)]`
+
+**BAD Examples:**
+```typescript
+className="text-white bg-blue-500"           // ❌ Hardcoded colors
+className="text-gray-600"                    // ❌ Won't adapt to theme
+className="text-yellow-200"                  // ❌ Fixed color
+```
+
+**GOOD Examples:**
+```typescript
+className="text-[var(--mvx-text-color-primary)]"   // ✅ Theme-aware
+className="bg-[var(--mvx-bg-color-secondary)]"     // ✅ Adapts to theme
+className="bg-green-500/20 text-white" // ✅ Semantic + theme-aware
+```
+
 ## 🔄 Data Fetching Patterns
 
 ### Supabase Query Pattern

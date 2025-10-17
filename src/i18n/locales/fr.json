@@ -114,7 +114,73 @@
     },
     "streaks": {
       "title": "Streaks",
-      "subtitle": "Claim quotidien pour des bonus progressifs"
+      "subtitle": "Claim quotidien pour des bonus progressifs",
+      "weekCalendar": {
+        "title": "Calendrier Hebdomadaire",
+        "monday": "Lundi",
+        "tuesday": "Mardi",
+        "wednesday": "Mercredi",
+        "thursday": "Jeudi",
+        "friday": "Vendredi",
+        "saturday": "Samedi",
+        "sunday": "Dimanche",
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mer",
+        "thu": "Jeu",
+        "fri": "Ven",
+        "sat": "Sam",
+        "sun": "Dim"
+      },
+      "claim": {
+        "button": "Claim {{points}} Points",
+        "claimed": "Réclamé",
+        "locked": "Verrouillé",
+        "available": "Claim Maintenant",
+        "success": "{{points}} points réclamés avec succès !",
+        "error": "Échec du claim. Veuillez réessayer.",
+        "mustWait": "Reviens demain !",
+        "notToday": "Disponible {{day}}"
+      },
+      "stats": {
+        "title": "Progression Hebdomadaire",
+        "daysClaimed": "Jours Réclamés",
+        "totalPoints": "Points Cette Semaine",
+        "currentStreak": "Jours Consécutifs",
+        "completionRate": "Taux de Complétion",
+        "daysOfSeven": "{{count}}/7 jours",
+        "consecutiveDays": "{{count}} consécutifs",
+        "percentComplete": "{{percent}}%"
+      },
+      "rewards": {
+        "title": "Récompenses",
+        "dailyReward": "Récompense Quotidienne",
+        "consecutiveBonus": "Bonus Consécutif",
+        "points": "{{points}} points",
+        "description": "Claim chaque jour pour augmenter tes récompenses !",
+        "missedDay": "Tu as manqué un jour. Streak remis à 10 points."
+      },
+      "history": {
+        "title": "Semaines Récentes",
+        "lastWeek": "Semaine Dernière",
+        "weekOf": "Semaine du {{date}}",
+        "completed": "Complétée",
+        "incomplete": "{{count}}/7 jours",
+        "noHistory": "Pas d'historique"
+      },
+      "info": {
+        "howItWorks": "Comment ça marche ?",
+        "rule1": "Claim chaque jour du lundi au dimanche",
+        "rule2": "Gagne 10 points le premier jour",
+        "rule3": "Gagne +10 points par jour consécutif (max 70 points)",
+        "rule4": "Tu manques un jour ? Streak remis à 10 points",
+        "rule5": "Nouvelle semaine chaque lundi à 00:00"
+      },
+      "empty": {
+        "title": "Démarre Ton Streak",
+        "subtitle": "Claim ta première récompense quotidienne !",
+        "cta": "Claim Aujourd'hui"
+      }
     },
     "myNFTs": {
       "title": "Mes NFTs",

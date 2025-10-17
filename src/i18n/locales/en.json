@@ -114,7 +114,73 @@
     },
     "streaks": {
       "title": "Streaks",
-      "subtitle": "Daily claim for progressive bonuses"
+      "subtitle": "Daily claim for progressive bonuses",
+      "weekCalendar": {
+        "title": "Weekly Streak Calendar",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday",
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      },
+      "claim": {
+        "button": "Claim {{points}} Points",
+        "claimed": "Claimed",
+        "locked": "Locked",
+        "available": "Claim Now",
+        "success": "Successfully claimed {{points}} points!",
+        "error": "Failed to claim reward. Please try again.",
+        "mustWait": "Come back tomorrow!",
+        "notToday": "Available on {{day}}"
+      },
+      "stats": {
+        "title": "Weekly Progress",
+        "daysClaimed": "Days Claimed",
+        "totalPoints": "Points This Week",
+        "currentStreak": "Consecutive Days",
+        "completionRate": "Completion Rate",
+        "daysOfSeven": "{{count}}/7 days",
+        "consecutiveDays": "{{count}} consecutive",
+        "percentComplete": "{{percent}}%"
+      },
+      "rewards": {
+        "title": "Rewards",
+        "dailyReward": "Daily Reward",
+        "consecutiveBonus": "Consecutive Bonus",
+        "points": "{{points}} points",
+        "description": "Claim every day to increase your rewards!",
+        "missedDay": "You missed a day. Streak reset to 10 points."
+      },
+      "history": {
+        "title": "Recent Weeks",
+        "lastWeek": "Last Week",
+        "weekOf": "Week of {{date}}",
+        "completed": "Completed",
+        "incomplete": "{{count}}/7 days",
+        "noHistory": "No history yet"
+      },
+      "info": {
+        "howItWorks": "How it works?",
+        "rule1": "Claim every day from Monday to Sunday",
+        "rule2": "Earn 10 points on your first day",
+        "rule3": "Earn +10 points for each consecutive day (max 70 points)",
+        "rule4": "Miss a day? Streak resets to 10 points",
+        "rule5": "New week starts every Monday at 00:00"
+      },
+      "empty": {
+        "title": "Start Your Streak",
+        "subtitle": "Claim your first daily reward to begin!",
+        "cta": "Claim Today"
+      }
     },
     "myNFTs": {
       "title": "My NFTs",
