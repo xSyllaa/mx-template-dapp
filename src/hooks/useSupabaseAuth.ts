@@ -1,19 +1,32 @@
 import { useEffect, useState } from 'react';
 import { useGetAccount, Message, Address, getAccountProvider } from 'lib';
 import { supabase } from 'lib/supabase/client';
+import { useSupabaseAuthSync } from './useSupabaseAuthSync';
 
 interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   error: Error | null;
+  canRetry: boolean;
 }
+
+// Fonction utilitaire pour nettoyer l'authentification
+export const clearSupabaseAuth = () => {
+  console.log('🧹 [SupabaseAuth] Nettoyage de l\'authentification...');
+  localStorage.removeItem('supabase.auth.token');
+  localStorage.removeItem('galacticx.user');
+  localStorage.removeItem('supabase.auth.expires_at');
+  console.log('✅ [SupabaseAuth] Authentification nettoyée');
+};
 
 export const useSupabaseAuth = () => {
   const { address } = useGetAccount();
+  const { updateGlobalState } = useSupabaseAuthSync();
   const [authState, setAuthState] = useState<AuthState>({
     isAuthenticated: false,
     loading: false,
-    error: null
+    error: null,
+    canRetry: false
   });
 
   useEffect(() => {
@@ -22,9 +35,20 @@ export const useSupabaseAuth = () => {
         console.log('🔌 [SupabaseAuth] Pas de wallet connecté');
         // Clear session si wallet déconnecté
         await supabase.auth.signOut();
+        
+        // Nettoyer tous les tokens et données d'authentification
+        clearSupabaseAuth();
+        
         setAuthState({
           isAuthenticated: false,
           loading: false,
+          error: null,
+          canRetry: false
+        });
+        updateGlobalState({
+          isAuthenticated: false,
+          isLoading: false,
+          hasSigned: false,
           error: null
         });
         return;
@@ -32,25 +56,46 @@ export const useSupabaseAuth = () => {
 
       try {
         setAuthState(prev => ({ ...prev, loading: true }));
+        updateGlobalState({ isLoading: true, error: null });
         console.log('🔐 [SupabaseAuth] Authentification Supabase pour:', address);
 
         // 1. Vérifier si déjà authentifié avec le bon wallet
-        const { data: { session } } = await supabase.auth.getSession();
+        const storedToken = localStorage.getItem('supabase.auth.token');
+        const storedUser = localStorage.getItem('galacticx.user');
+        const tokenExpiry = localStorage.getItem('supabase.auth.expires_at');
         
-        if (session?.user?.user_metadata?.wallet_address === address) {
-          console.log('✅ [SupabaseAuth] Déjà authentifié avec session valide');
-          setAuthState({
-            isAuthenticated: true,
-            loading: false,
-            error: null
-          });
-          return;
+        if (storedToken && storedUser && tokenExpiry) {
+          const user = JSON.parse(storedUser);
+          const now = Date.now();
+          const expiresAt = parseInt(tokenExpiry);
+          
+          if (user.wallet_address === address && now < expiresAt) {
+            console.log('✅ [SupabaseAuth] Déjà authentifié avec session valide');
+            // Note: Supabase client gère automatiquement l'Authorization header
+            // Le JWT sera utilisé automatiquement pour les requêtes authentifiées
+            setAuthState({
+              isAuthenticated: true,
+              loading: false,
+              error: null,
+              canRetry: false
+            });
+            updateGlobalState({
+              isAuthenticated: true,
+              isLoading: false,
+              hasSigned: true,
+              error: null
+            });
+            return;
+          } else if (user.wallet_address === address && now >= expiresAt) {
+            console.log('⏰ [SupabaseAuth] Token expiré, nettoyage...');
+            clearSupabaseAuth();
+          }
         }
 
         // Si connecté avec un autre wallet, se déconnecter d'abord
-        if (session && session.user.user_metadata?.wallet_address !== address) {
+        if (storedToken && storedUser && JSON.parse(storedUser).wallet_address !== address) {
           console.log('🔄 [SupabaseAuth] Changement de wallet détecté, déconnexion...');
-          await supabase.auth.signOut();
+          clearSupabaseAuth();
         }
 
         // 2. Générer un message unique à signer
@@ -78,6 +123,20 @@ export const useSupabaseAuth = () => {
 
         // 4. Envoyer à l'Edge Function pour authentification
         console.log('📡 [SupabaseAuth] Envoi à Edge Function...');
+        console.log('🔍 [SupabaseAuth] Détails de la requête:', {
+          url: `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth-multiversx`,
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY ? '***MASQUÉ***' : 'MANQUANT'
+          },
+          body: {
+            walletAddress: address,
+            signature: signature ? '***MASQUÉ***' : 'MANQUANT',
+            message: messageToSign ? '***MASQUÉ***' : 'MANQUANT'
+          }
+        });
+        
         const response = await fetch(
           `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth-multiversx`,
           {
@@ -108,7 +167,9 @@ export const useSupabaseAuth = () => {
 
         // 5. Stocker le JWT custom dans localStorage
         // Supabase utilisera ce token pour toutes les requêtes
+        const expiresAt = Date.now() + (data.expires_in * 1000); // Convertir en millisecondes
         localStorage.setItem('supabase.auth.token', data.access_token);
+        localStorage.setItem('supabase.auth.expires_at', expiresAt.toString());
         localStorage.setItem('galacticx.user', JSON.stringify({
           id: data.user_id,
           wallet_address: data.wallet_address,
@@ -120,6 +181,13 @@ export const useSupabaseAuth = () => {
         setAuthState({
           isAuthenticated: true,
           loading: false,
+          error: null,
+          canRetry: false
+        });
+        updateGlobalState({
+          isAuthenticated: true,
+          isLoading: false,
+          hasSigned: true,
           error: null
         });
 
@@ -128,12 +196,31 @@ export const useSupabaseAuth = () => {
         setAuthState({
           isAuthenticated: false,
           loading: false,
-          error: error as Error
+          error: error as Error,
+          canRetry: true
+        });
+        updateGlobalState({
+          isAuthenticated: false,
+          isLoading: false,
+          hasSigned: false,
+          error: (error as Error).message
         });
       }
     };
 
     authenticateWithSupabase();
+    
+    // Écouter les événements de retry
+    const handleRetryEvent = () => {
+      console.log('🔄 [SupabaseAuth] Retry demandé via événement');
+      authenticateWithSupabase();
+    };
+    
+    window.addEventListener('retrySupabaseAuth', handleRetryEvent);
+    
+    return () => {
+      window.removeEventListener('retrySupabaseAuth', handleRetryEvent);
+    };
   }, [address]);
 
   return authState;

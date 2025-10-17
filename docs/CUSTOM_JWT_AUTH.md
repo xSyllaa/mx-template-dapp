@@ -343,3 +343,4 @@ RLS vérifie jwt.sub, jwt.wallet_address, jwt.role
 **Wallet = identité unique** 🎯
 
 
+

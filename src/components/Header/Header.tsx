@@ -23,9 +23,10 @@ import {
   useGetIsLoggedIn,
   useGetNetworkConfig
 } from 'lib';
+import { useWalletDisconnect } from 'hooks';
 import { RouteNamesEnum } from 'localConstants';
 
-import { ThemeTooltip } from './components';
+import { SupabaseAuthIndicator, ThemeTooltip } from './components';
 import styles from './header.styles';
 
 interface HeaderBrowseButtonType {
@@ -43,10 +44,11 @@ export const Header = () => {
   const provider = getAccountProvider();
   const navigate = useNavigate();
   const explorerAddress = network.explorerAddress;
+  const { disconnectWallet } = useWalletDisconnect();
 
   const handleLogout = async (event: MouseEvent<HTMLDivElement>) => {
     event.preventDefault();
-    await provider.logout();
+    await disconnectWallet();
     navigate(RouteNamesEnum.home);
   };
 
@@ -97,6 +99,12 @@ export const Header = () => {
         </div>
         
         <ThemeTooltip />
+        
+        {isLoggedIn && (
+          <div className="mr-2">
+            <SupabaseAuthIndicator />
+          </div>
+        )}
 
         <div className={styles.headerNavigationButtons}>
           {headerBrowseButtons.map((headerBrowseButton) => (

@@ -125,7 +125,19 @@ const extractImageUrl = (nft: MultiversXNFT): string | undefined => {
 const parseNFT = (rawNFT: MultiversXNFT): GalacticXNFT => {
   // Skip NFTs with metadata errors
   if (rawNFT.metadata?.error) {
-    console.warn(`Skipping NFT ${rawNFT.identifier} - metadata error:`, rawNFT.metadata.error);
+    console.warn(
+      `Skipping NFT ${rawNFT.identifier} - metadata error:`, 
+      rawNFT.metadata.error,
+      '\n📋 Full metadata object:', 
+      JSON.stringify(rawNFT.metadata, null, 2),
+      '\n🔗 NFT Details:',
+      {
+        identifier: rawNFT.identifier,
+        collection: rawNFT.collection,
+        nonce: rawNFT.nonce,
+        name: rawNFT.name
+      }
+    );
     return null as any; // Will be filtered out
   }
   

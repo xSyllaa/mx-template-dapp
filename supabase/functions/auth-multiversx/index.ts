@@ -5,6 +5,7 @@ import { create, getNumericDate } from 'https://deno.land/x/djwt@v2.8/mod.ts';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
 
 serve(async (req) => {
@@ -13,23 +14,31 @@ serve(async (req) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     console.log('✅ [Edge Function] CORS preflight OK');
-    return new Response('ok', { headers: corsHeaders });
+    return new Response('ok', { 
+      status: 200,
+      headers: corsHeaders 
+    });
   }
 
   try {
     console.log('📝 [Edge Function] Début du traitement...');
+    
     // 1. Parse request body
     const { walletAddress, signature, message } = await req.json();
-
     if (!walletAddress || !signature || !message) {
-      return new Response(
-        JSON.stringify({ error: 'Missing required fields: walletAddress, signature, message' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return new Response(JSON.stringify({
+        error: 'Missing required fields: walletAddress, signature, message'
+      }), {
+        status: 400,
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/json'
+        }
+      });
     }
 
     console.log('🔐 [Auth] Authentification pour wallet:', walletAddress);
-
+    
     // 2. TODO: Verify MultiversX signature (nécessite @multiversx/sdk-core)
     // Pour l'instant, on fait confiance (à sécuriser en production)
     // const isValid = await verifyMultiversXSignature(walletAddress, message, signature);
@@ -39,8 +48,8 @@ serve(async (req) => {
 
     // 3. Create Supabase admin client
     const supabaseAdmin = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
       {
         auth: {
           autoRefreshToken: false,
@@ -90,10 +99,16 @@ serve(async (req) => {
     }
 
     // 5. Generate Custom JWT (no email needed!)
-    const jwtSecret = Deno.env.get('SUPABASE_JWT_SECRET');
+    // Try different JWT secret names (custom and system)
+    const jwtSecret = Deno.env.get('JWT_SECRET') || 
+                     Deno.env.get('LEGACY_JWT_SECRET') || 
+                     Deno.env.get('SUPABASE_JWT_SECRET') || 
+                     Deno.env.get('SUPABASE_LEGACY_JWT_SECRET');
     if (!jwtSecret) {
-      throw new Error('SUPABASE_JWT_SECRET not configured');
+      throw new Error('JWT_SECRET, LEGACY_JWT_SECRET, SUPABASE_JWT_SECRET or SUPABASE_LEGACY_JWT_SECRET not configured');
     }
+    
+    console.log('🔑 [Auth] JWT Secret trouvé:', jwtSecret ? 'OUI' : 'NON');
 
     // Convert secret to CryptoKey
     const encoder = new TextEncoder();
@@ -145,7 +160,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ [Auth] Erreur:', error);
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: error.message || 'Authentication failed',
         details: error.toString()
       }),
@@ -156,4 +171,3 @@ serve(async (req) => {
     );
   }
 });
-

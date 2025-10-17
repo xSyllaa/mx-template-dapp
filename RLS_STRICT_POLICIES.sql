@@ -372,3 +372,4 @@ ORDER BY tablename, policyname;
 -- ✅ Plus aucune policy avec USING (true) sans TO authenticated
 
 
+

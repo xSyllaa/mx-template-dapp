@@ -20,6 +20,18 @@
     "teamOfWeek": "Team of the Week",
     "admin": "Admin"
   },
+  "header": {
+    "supabaseAuth": {
+      "authenticating": "Signing message...",
+      "signed": "JWT received successfully",
+      "retry": "Click to retry authentication",
+      "unknown": "Unknown signature status",
+      "notConnected": "Wallet not connected",
+      "firstAuth": "First Supabase connection",
+      "jwtReceived": "JWT token received",
+      "edgeFunctionFailed": "Edge Function failed"
+    }
+  },
   "sidebar": {
     "expandMenu": "Expand Menu",
     "collapseMenu": "Collapse Menu"
