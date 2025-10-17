@@ -47,6 +47,11 @@ export const PredictionList = () => {
     }
   };
 
+  // Handle load more
+  const handleLoadMore = () => {
+    loadMore();
+  };
+
   return (
     <div className="space-y-6">
       {/* Tabs */}
@@ -127,7 +132,7 @@ export const PredictionList = () => {
           {activeTab === 'history' && hasMore && (
             <div className="flex justify-center pt-4">
               <button
-                onClick={loadMore}
+                onClick={handleLoadMore}
                 disabled={historyLoading}
                 className="px-6 py-3 bg-[var(--mvx-bg-color-secondary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] rounded-lg font-semibold hover:border-[var(--mvx-text-accent-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >

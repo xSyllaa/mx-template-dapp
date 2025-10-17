@@ -5,7 +5,7 @@ import { useGetAccount } from 'lib';
 import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
 import { useToast } from 'hooks/useToast';
 import { ToastContainer } from 'components/Toast';
-import type { BetType, PredictionOption } from 'features/predictions/types';
+import type { BetType, BetCalculationType, PredictionOption } from 'features/predictions/types';
 import { predictionService } from 'features/predictions';
 
 export const CreatePrediction = () => {
@@ -29,6 +29,7 @@ export const CreatePrediction = () => {
   const [homeTeam, setHomeTeam] = useState('');
   const [awayTeam, setAwayTeam] = useState('');
   const [betType, setBetType] = useState<BetType>('result');
+  const [betCalculationType, setBetCalculationType] = useState<BetCalculationType>('pool_ratio');
   const [options, setOptions] = useState<PredictionOption[]>([
     { id: '1', label: '', odds: '' },
     { id: 'X', label: '', odds: '' }
@@ -36,6 +37,8 @@ export const CreatePrediction = () => {
   const [startDate, setStartDate] = useState('');
   const [closeDate, setCloseDate] = useState('');
   const [pointsReward, setPointsReward] = useState('10');
+  const [minBetPoints, setMinBetPoints] = useState('10');
+  const [maxBetPoints, setMaxBetPoints] = useState('1000');
 
   // UI state
   const [submitting, setSubmitting] = useState(false);
@@ -94,6 +97,18 @@ export const CreatePrediction = () => {
       setError('Points reward must be greater than 0');
       return false;
     }
+    if (!minBetPoints || Number(minBetPoints) <= 0) {
+      setError('Minimum bet must be greater than 0');
+      return false;
+    }
+    if (!maxBetPoints || Number(maxBetPoints) <= 0) {
+      setError('Maximum bet must be greater than 0');
+      return false;
+    }
+    if (Number(maxBetPoints) < Number(minBetPoints)) {
+      setError('Maximum bet must be greater than or equal to minimum bet');
+      return false;
+    }
     return true;
   };
 
@@ -112,7 +127,6 @@ export const CreatePrediction = () => {
       });
       const errorMsg = 'User not authenticated. Please refresh the page and try again.';
       setError(errorMsg);
-      toast.error('Authentication Error', errorMsg);
       return;
     }
 
@@ -125,6 +139,7 @@ export const CreatePrediction = () => {
           home_team: homeTeam.trim(),
           away_team: awayTeam.trim(),
           bet_type: betType,
+          bet_calculation_type: betCalculationType,
           options: options.map((opt) => ({
             id: opt.id,
             label: opt.label.trim(),
@@ -132,27 +147,28 @@ export const CreatePrediction = () => {
           })),
           start_date: new Date(startDate).toISOString(),
           close_date: new Date(closeDate).toISOString(),
-          points_reward: Number(pointsReward)
+          points_reward: Number(pointsReward),
+          min_bet_points: Number(minBetPoints),
+          max_bet_points: Number(maxBetPoints)
         },
         supabaseUserId
       );
 
-      // Success - show toast and navigate back to admin
+      // Show success toast
       toast.success(
-        t('predictions.admin.success.created'),
+        'Prédiction Créée !',
         `${homeTeam} vs ${awayTeam} - ${competition}`,
         3000
       );
-      
-      // Navigate after a short delay to let user see the success toast
+
+      // Navigate after a short delay to show toast
       setTimeout(() => {
         navigate('/admin');
-      }, 1500);
+      }, 1000);
     } catch (err) {
       console.error('Error creating prediction:', err);
       const errorMsg = t('predictions.admin.errors.createFailed');
       setError(errorMsg);
-      toast.error('Creation Failed', errorMsg);
     } finally {
       setSubmitting(false);
     }
@@ -239,24 +255,46 @@ export const CreatePrediction = () => {
         </div>
 
         {/* Bet Type */}
-        <div>
-          <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-            {t('predictions.admin.betType')} *
-          </label>
-          <select
-            value={betType}
-            onChange={(e) => setBetType(e.target.value as BetType)}
-            className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
-          >
-            <option value="result">{t('predictions.admin.betTypes.result')}</option>
-            <option value="over_under">
-              {t('predictions.admin.betTypes.over_under')}
-            </option>
-            <option value="scorer">{t('predictions.admin.betTypes.scorer')}</option>
-            <option value="both_teams_score">
-              {t('predictions.admin.betTypes.both_teams_score')}
-            </option>
-          </select>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
+              {t('predictions.admin.betType')} *
+            </label>
+            <select
+              value={betType}
+              onChange={(e) => setBetType(e.target.value as BetType)}
+              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+            >
+              <option value="result">{t('predictions.admin.betTypes.result')}</option>
+              <option value="over_under">
+                {t('predictions.admin.betTypes.over_under')}
+              </option>
+              <option value="scorer">{t('predictions.admin.betTypes.scorer')}</option>
+              <option value="both_teams_score">
+                {t('predictions.admin.betTypes.both_teams_score')}
+              </option>
+            </select>
+          </div>
+          
+          {/* Bet Calculation Type */}
+          <div>
+            <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
+              Type de Calcul des Gains *
+            </label>
+            <select
+              value={betCalculationType}
+              onChange={(e) => setBetCalculationType(e.target.value as BetCalculationType)}
+              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+            >
+              <option value="pool_ratio">Ratio Pool (Twitch-style)</option>
+              <option value="fixed_odds">Cotes Fixes</option>
+            </select>
+            <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
+              {betCalculationType === 'pool_ratio' 
+                ? 'Gains = Mise × (Pool Total / Pool Option Gagnante)'
+                : 'Gains = Mise × Cote Fixe'}
+            </p>
+          </div>
         </div>
 
         {/* Options */}
@@ -350,6 +388,43 @@ export const CreatePrediction = () => {
             onChange={(e) => setPointsReward(e.target.value)}
             className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
           />
+          <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
+            Base reward (legacy field - now uses betting pool system)
+          </p>
+        </div>
+
+        {/* Betting Limits */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
+              Minimum Bet (points) *
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={minBetPoints}
+              onChange={(e) => setMinBetPoints(e.target.value)}
+              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+            />
+            <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
+              Default: 10 points
+            </p>
+          </div>
+          <div>
+            <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
+              Maximum Bet (points) *
+            </label>
+            <input
+              type="number"
+              min="1"
+              value={maxBetPoints}
+              onChange={(e) => setMaxBetPoints(e.target.value)}
+              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+            />
+            <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
+              Default: 1000 points
+            </p>
+          </div>
         </div>
 
         {/* Error Message */}

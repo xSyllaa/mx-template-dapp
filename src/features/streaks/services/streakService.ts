@@ -199,18 +199,25 @@ export const claimDailyReward = async (
       throw error;
     }
 
-    // Also update user's total_points
+    // Record points transaction for the claim
     const { error: userUpdateError } = await supabase.rpc(
-      'update_user_total_points',
+      'record_points_transaction',
       {
         p_user_id: userId,
-        p_points_to_add: pointsEarned
+        p_amount: pointsEarned,
+        p_source_type: 'streak_claim',
+        p_source_id: weekStreak.id,
+        p_metadata: {
+          day_of_week: dayOfWeek,
+          consecutive_days: consecutiveDays,
+          week_start: weekStreak.week_start
+        }
       }
     );
 
     if (userUpdateError) {
       console.warn(
-        '[StreakService] Failed to update user total points:',
+        '[StreakService] Failed to record points transaction:',
         userUpdateError
       );
     }

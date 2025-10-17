@@ -39,13 +39,13 @@ export const ToastComponent = ({ toast, onRemove }: ToastProps) => {
     
     switch (toast.type) {
       case 'success':
-        return `${baseStyles} bg-green-500/10 border-green-500/30 text-green-400`;
+        return `${baseStyles} bg-green-600 border-green-500 text-white`;
       case 'error':
-        return `${baseStyles} bg-red-500/10 border-red-500/30 text-red-400`;
+        return `${baseStyles} bg-red-600 border-red-500 text-white`;
       case 'warning':
-        return `${baseStyles} bg-yellow-500/10 border-yellow-500/30 text-yellow-400`;
+        return `${baseStyles} bg-yellow-600 border-yellow-500 text-white`;
       case 'info':
-        return `${baseStyles} bg-blue-500/10 border-blue-500/30 text-blue-400`;
+        return `${baseStyles} bg-blue-600 border-blue-500 text-white`;
       default:
         return `${baseStyles} bg-[var(--mvx-bg-color-secondary)] border-[var(--mvx-border-color-secondary)] text-[var(--mvx-text-color-primary)]`;
     }
@@ -86,8 +86,8 @@ export const ToastComponent = ({ toast, onRemove }: ToastProps) => {
     <div
       className={`${getToastStyles()} ${
         isVisible 
-          ? 'translate-x-0 opacity-100' 
-          : 'translate-x-full opacity-0'
+          ? 'translate-y-0 opacity-100' 
+          : 'translate-y-full opacity-0'
       }`}
     >
       {getIcon()}

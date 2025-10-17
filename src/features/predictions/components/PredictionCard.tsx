@@ -1,10 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGetAccount } from 'lib';
 import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
+import { useToast } from 'hooks/useToast';
 import type { Prediction } from '../types';
 import { useUserPrediction } from '../hooks/useUserPrediction';
+import { useUserPoints } from '../hooks/useUserPoints';
+import { usePredictionStats } from '../hooks/usePredictionStats';
 import { ParticipationBadge } from './ParticipationBadge';
+import { BetAmountInput } from './BetAmountInput';
+import { PredictionStatsDisplay } from './PredictionStatsDisplay';
 
 interface PredictionCardProps {
   prediction: Prediction;
@@ -18,17 +23,28 @@ export const PredictionCard = ({
   const { t } = useTranslation();
   const { address } = useGetAccount();
   const { supabaseUserId } = useSupabaseAuth();
+  const { toast } = useToast();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
+  const [betAmount, setBetAmount] = useState<number>(prediction.min_bet_points);
 
   // Get user's existing prediction (use Supabase UUID, not wallet address)
   const { userPrediction, hasParticipated, submitting, submit } =
     useUserPrediction(prediction.id, supabaseUserId || null);
+
+  // Get user's point balance
+  const { points: userPoints, loading: pointsLoading } = useUserPoints(
+    supabaseUserId || null
+  );
+
+  // Get prediction stats
+  const { stats, loading: statsLoading } = usePredictionStats(prediction.id);
 
   // Format dates
   const startDate = new Date(prediction.start_date);
   const closeDate = new Date(prediction.close_date);
   const isOpen = prediction.status === 'open';
   const isResulted = prediction.status === 'resulted';
+
 
   // Handle option selection
   const handleSelectOption = (optionId: string) => {
@@ -44,16 +60,63 @@ export const PredictionCard = ({
         supabaseUserId,
         address
       });
+      toast.error('Erreur', 'Veuillez sélectionner une option et vous assurer d\'être connecté');
+      return;
+    }
+
+    // Validate bet amount
+    if (betAmount < prediction.min_bet_points) {
+      toast.error('Montant invalide', `Mise minimum: ${prediction.min_bet_points} points`);
+      return;
+    }
+
+    if (betAmount > prediction.max_bet_points) {
+      toast.error('Montant invalide', `Mise maximum: ${prediction.max_bet_points} points`);
+      return;
+    }
+
+    if (betAmount > userPoints) {
+      toast.error('Points insuffisants', 'Vous n\'avez pas assez de points pour ce pari');
       return;
     }
 
     try {
-      await submit(selectedOption);
+      await submit(selectedOption, betAmount);
       setSelectedOption(null);
+      setBetAmount(prediction.min_bet_points);
+      
+      // Show success toast
+      const selectedOptionLabel = prediction.options.find(opt => opt.id === selectedOption)?.label;
+      toast.success(
+        'Pari enregistré !',
+        `${prediction.home_team} vs ${prediction.away_team} - ${selectedOptionLabel} (${betAmount} pts)`
+      );
+      
       onSubmitSuccess?.();
     } catch (error) {
       console.error('Error submitting prediction:', error);
+      toast.error('Échec', 'Votre prédiction n\'a pas pu être enregistrée. Veuillez réessayer.');
     }
+  };
+
+  // Check if submit button should be disabled
+  const canSubmit = 
+    selectedOption && 
+    address && 
+    supabaseUserId && 
+    betAmount >= prediction.min_bet_points &&
+    betAmount <= prediction.max_bet_points &&
+    betAmount <= userPoints &&
+    !submitting;
+
+  // Get error message for disabled submit button
+  const getSubmitError = (): string | null => {
+    if (!selectedOption) return null;
+    if (!address || !supabaseUserId) return 'Connectez votre portefeuille';
+    if (betAmount < prediction.min_bet_points) return `Mise min: ${prediction.min_bet_points} pts`;
+    if (betAmount > prediction.max_bet_points) return `Mise max: ${prediction.max_bet_points} pts`;
+    if (betAmount > userPoints) return 'Points insuffisants';
+    return null;
   };
 
   // Get the selected/correct option for display
@@ -134,6 +197,18 @@ export const PredictionCard = ({
         </p>
       </div>
 
+      {/* Prediction Stats Display */}
+      {isOpen && (
+        <div className="mb-4">
+          <PredictionStatsDisplay 
+            stats={stats}
+            options={prediction.options}
+            calculationType={prediction.bet_calculation_type}
+            loading={statsLoading}
+          />
+        </div>
+      )}
+
       {/* Options */}
       <div className="space-y-3 mb-4">
         {prediction.options.map((option) => (
@@ -149,6 +224,20 @@ export const PredictionCard = ({
         ))}
       </div>
 
+      {/* Bet Amount Input */}
+      {isOpen && !hasParticipated && selectedOption && (
+        <div className="mb-4">
+          <BetAmountInput
+            minBet={prediction.min_bet_points}
+            maxBet={prediction.max_bet_points}
+            userPoints={userPoints}
+            value={betAmount}
+            onChange={setBetAmount}
+            disabled={submitting || pointsLoading}
+          />
+        </div>
+      )}
+
       {/* Result Display */}
       {isResulted && prediction.winning_option_id && (
         <div className="mb-4 p-4 bg-green-500/10 border border-green-500/30 rounded-lg">
@@ -162,7 +251,7 @@ export const PredictionCard = ({
               )?.label
             }
           </p>
-          {hasParticipated && userPrediction?.is_correct !== null && (
+          {hasParticipated && userPrediction && userPrediction.is_correct !== null && (
             <p
               className={`mt-2 font-semibold ${
                 userPrediction.is_correct
@@ -179,16 +268,24 @@ export const PredictionCard = ({
       )}
 
       {/* Submit Button */}
-      {isOpen && !hasParticipated && selectedOption && address && supabaseUserId && (
-        <button
-          onClick={handleSubmit}
-          disabled={submitting}
-          className="w-full py-3 px-4 bg-[var(--mvx-text-accent-color)] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {submitting
-            ? t('common.loading')
-            : t('predictions.submitPrediction')}
-        </button>
+      {isOpen && !hasParticipated && selectedOption && (
+        <div className="relative">
+          <button
+            onClick={handleSubmit}
+            disabled={!canSubmit}
+            title={getSubmitError() || undefined}
+            className="w-full py-3 px-4 bg-[var(--mvx-text-accent-color)] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {submitting
+              ? t('common.loading')
+              : t('predictions.submitPrediction')}
+          </button>
+          {getSubmitError() && !canSubmit && (
+            <div className="mt-2 p-2 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm text-center">{getSubmitError()}</p>
+            </div>
+          )}
+        </div>
       )}
 
       {/* Debug Info (temporary) */}

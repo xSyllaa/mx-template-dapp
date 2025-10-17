@@ -94,19 +94,23 @@ export const getPredictionById = async (
  * @param userId - User's UUID
  * @param predictionId - Prediction UUID
  * @param selectedOptionId - Selected option ID
+ * @param pointsWagered - Amount of points to wager
  */
 export const submitPrediction = async (
   userId: string,
   predictionId: string,
-  selectedOptionId: string
+  selectedOptionId: string,
+  pointsWagered: number
 ): Promise<UserPrediction> => {
   try {
+    // Insert the user prediction
     const { data, error } = await supabase
       .from('user_predictions')
       .insert({
         user_id: userId,
         prediction_id: predictionId,
         selected_option_id: selectedOptionId,
+        points_wagered: pointsWagered,
         points_earned: 0,
         is_correct: null
       })
@@ -114,6 +118,20 @@ export const submitPrediction = async (
       .single();
 
     if (error) throw error;
+
+    // Deduct wagered points from user's balance via transaction record
+    const { error: updateError } = await supabase.rpc('record_points_transaction', {
+      p_user_id: userId,
+      p_amount: -pointsWagered,
+      p_source_type: 'prediction_bet',
+      p_source_id: predictionId,
+      p_metadata: { selected_option_id: selectedOptionId }
+    });
+
+    if (updateError) {
+      console.error('[PredictionService] Error recording bet transaction:', updateError);
+      // Note: Prediction is already inserted, this is a warning
+    }
 
     return data as UserPrediction;
   } catch (error) {
@@ -258,7 +276,7 @@ export const updatePrediction = async (
 
 /**
  * Validate prediction result (admin only)
- * Sets the winning option and updates all user predictions
+ * Sets the winning option and calculates winnings based on calculation type
  * @param predictionId - Prediction UUID
  * @param winningOptionId - ID of the winning option
  */
@@ -267,10 +285,62 @@ export const validateResult = async (
   winningOptionId: string
 ): Promise<ValidateResultResponse> => {
   try {
-    // Get the prediction to check points_reward
+    // Get the prediction
     const prediction = await getPredictionById(predictionId);
     if (!prediction) {
       throw new Error('Prediction not found');
+    }
+
+    // Get all user predictions
+    const { data: allPredictions, error: fetchError } = await supabase
+      .from('user_predictions')
+      .select('*')
+      .eq('prediction_id', predictionId);
+
+    if (fetchError) throw fetchError;
+
+    if (!allPredictions || allPredictions.length === 0) {
+      throw new Error('No predictions to validate');
+    }
+
+    // Get winning bets
+    const winningBets = allPredictions.filter(
+      (pred) => pred.selected_option_id === winningOptionId
+    );
+
+    // Calculate winnings based on calculation type
+    let winningsMap: Map<string, number> = new Map();
+
+    if (prediction.bet_calculation_type === 'fixed_odds') {
+      // Fixed odds: winnings = bet * odds
+      const winningOption = prediction.options.find(opt => opt.id === winningOptionId);
+      if (!winningOption) {
+        throw new Error('Winning option not found');
+      }
+      const odds = parseFloat(winningOption.odds);
+      
+      for (const winner of winningBets) {
+        const winnings = Math.floor(winner.points_wagered * odds);
+        winningsMap.set(winner.id, winnings);
+      }
+    } else {
+      // Pool ratio (Twitch-style): winnings = bet * (total_pool / winning_option_total)
+      const totalPool = allPredictions.reduce(
+        (sum, pred) => sum + (pred.points_wagered || 0),
+        0
+      );
+      
+      const winningOptionTotal = winningBets.reduce(
+        (sum, pred) => sum + (pred.points_wagered || 0),
+        0
+      );
+      
+      const ratio = winningOptionTotal > 0 ? totalPool / winningOptionTotal : 1;
+      
+      for (const winner of winningBets) {
+        const winnings = Math.floor(winner.points_wagered * ratio);
+        winningsMap.set(winner.id, winnings);
+      }
     }
 
     // Update prediction status and winning option
@@ -286,58 +356,51 @@ export const validateResult = async (
 
     if (updateError) throw updateError;
 
-    // Update user predictions: mark correct predictions and award points
-    const { error: userPredictionsError } = await supabase
-      .from('user_predictions')
-      .update({
-        is_correct: true,
-        points_earned: prediction.points_reward
-      })
-      .eq('prediction_id', predictionId)
-      .eq('selected_option_id', winningOptionId);
+    // Update winners with calculated winnings
+    for (const winner of winningBets) {
+      const winnings = winningsMap.get(winner.id) || 0;
+      
+      // Update user prediction
+      await supabase
+        .from('user_predictions')
+        .update({
+          is_correct: true,
+          points_earned: winnings
+        })
+        .eq('id', winner.id);
 
-    if (userPredictionsError) throw userPredictionsError;
+      // Add winnings to user's total points via transaction record
+      await supabase.rpc('record_points_transaction', {
+        p_user_id: winner.user_id,
+        p_amount: winnings,
+        p_source_type: 'prediction_win',
+        p_source_id: predictionId,
+        p_metadata: {
+          selected_option_id: winner.selected_option_id,
+          points_wagered: winner.points_wagered
+        }
+      });
+    }
 
-    // Mark incorrect predictions
-    const { error: incorrectError } = await supabase
-      .from('user_predictions')
-      .update({
-        is_correct: false,
-        points_earned: 0
-      })
-      .eq('prediction_id', predictionId)
-      .neq('selected_option_id', winningOptionId);
+    // Mark losers (they lose their wagered amount, which was already deducted)
+    const losingBets = allPredictions.filter(
+      (pred) => pred.selected_option_id !== winningOptionId
+    );
 
-    if (incorrectError) throw incorrectError;
-
-    // Get count of users who predicted correctly
-    const { count } = await supabase
-      .from('user_predictions')
-      .select('*', { count: 'exact', head: true })
-      .eq('prediction_id', predictionId)
-      .eq('selected_option_id', winningOptionId);
-
-    // Update user total points for winners using RPC function
-    const { data: winners } = await supabase
-      .from('user_predictions')
-      .select('user_id')
-      .eq('prediction_id', predictionId)
-      .eq('selected_option_id', winningOptionId);
-
-    if (winners && winners.length > 0) {
-      // Update each winner's total points
-      for (const winner of winners) {
-        await supabase.rpc('update_user_total_points', {
-          p_user_id: winner.user_id,
-          p_points_to_add: prediction.points_reward
-        });
-      }
+    for (const loser of losingBets) {
+      await supabase
+        .from('user_predictions')
+        .update({
+          is_correct: false,
+          points_earned: 0
+        })
+        .eq('id', loser.id);
     }
 
     return {
       success: true,
       prediction: updatedPrediction as Prediction,
-      affected_users: count || 0
+      affected_users: allPredictions.length
     };
   } catch (error) {
     console.error('[PredictionService] Error validating result:', error);

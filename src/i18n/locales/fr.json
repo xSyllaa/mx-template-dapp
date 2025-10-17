@@ -119,11 +119,35 @@
     "winningOption": "Option Gagnante",
     "correct": "Correct",
     "incorrect": "Incorrect",
+    "betAmount": "Montant du Pari",
+    "minBet": "Mise Min",
+    "maxBet": "Mise Max",
+    "yourBalance": "Votre Solde",
     "status": {
       "open": "Ouvert",
       "closed": "Fermé",
       "resulted": "Résulté",
       "cancelled": "Annulé"
+    },
+    "stats": {
+      "bettingPool": "Cagnotte",
+      "totalWagered": "Total Parié",
+      "participants": "Participants",
+      "ratio": "Ratio de Gain",
+      "biggestBet": "Plus Grosse Mise",
+      "topBettor": "Meilleur Parieur",
+      "noBetsYet": "Aucun pari placé. Soyez le premier !",
+      "noBets": "Aucun pari",
+      "totalParticipants": "Total des Participants",
+      "betType": {
+        "fixedOdds": "Cotes Fixes",
+        "poolRatio": "Ratio Pool"
+      }
+    },
+    "errors": {
+      "insufficientPoints": "Points insuffisants",
+      "belowMinBet": "La mise minimum est de {{min}} points",
+      "aboveMaxBet": "La mise maximum est de {{max}} points"
     },
     "admin": {
       "createPrediction": "Créer une Prédiction",
@@ -313,10 +337,48 @@
       "subtitle": "Gestion des prédictions, war games et leaderboards"
     }
   },
+  "leaderboard": {
+    "title": "Classements",
+    "subtitle": "Grimpe au sommet et remporte des récompenses exclusives",
+    "tabs": {
+      "allTime": "Tout Temps",
+      "weekly": "Cette Semaine",
+      "monthly": "Ce Mois"
+    },
+    "rankings": "Classements",
+    "yourRank": "Ton Rang",
+    "you": "Toi",
+    "anonymousUser": "Utilisateur Anonyme",
+    "rankPosition": "Rang {{rank}}",
+    "notRanked": "Tu n'es pas encore classé",
+    "startEarning": "Commence à gagner des points pour apparaître dans les classements !",
+    "noData": "Aucune donnée de classement disponible pour cette période"
+  },
   "themes": {
     "dark": "Sombre",
     "light": "Clair",
     "vibe": "Vibe"
+  },
+  "username": {
+    "label": "Pseudo",
+    "placeholder": "Choisis un pseudo",
+    "edit": "Modifier le Pseudo",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "validation": {
+      "tooShort": "Le pseudo doit contenir au moins 3 caractères",
+      "tooLong": "Le pseudo ne peut pas dépasser 20 caractères",
+      "invalidChars": "Seuls les lettres, chiffres et tirets sont autorisés",
+      "taken": "Ce pseudo est déjà pris",
+      "required": "Le pseudo est obligatoire",
+      "available": "Pseudo disponible"
+    },
+    "cooldown": {
+      "active": "Tu pourras changer ton pseudo dans {{days}} jours",
+      "available": "Tu peux changer ton pseudo"
+    },
+    "success": "Pseudo mis à jour avec succès !",
+    "error": "Échec de la mise à jour du pseudo"
   }
 }
 

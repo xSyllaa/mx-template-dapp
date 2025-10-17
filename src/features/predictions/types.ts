@@ -24,6 +24,13 @@ export type PredictionStatus = 'open' | 'closed' | 'resulted' | 'cancelled';
 export type BetType = 'result' | 'over_under' | 'scorer' | 'both_teams_score';
 
 /**
+ * Calculation method for winnings
+ * - fixed_odds: Uses predefined odds, winnings = bet * odds
+ * - pool_ratio: Twitch-style, winnings = bet * (total_pool / winning_option_total)
+ */
+export type BetCalculationType = 'fixed_odds' | 'pool_ratio';
+
+/**
  * Main prediction entity (matches)
  */
 export interface Prediction {
@@ -32,12 +39,15 @@ export interface Prediction {
   home_team: string;
   away_team: string;
   bet_type: BetType;
+  bet_calculation_type: BetCalculationType;
   options: PredictionOption[];
   status: PredictionStatus;
   start_date: string;
   close_date: string;
   winning_option_id: string | null;
   points_reward: number;
+  min_bet_points: number;
+  max_bet_points: number;
   created_at: string;
   updated_at?: string;
   created_by: string | null;
@@ -51,6 +61,7 @@ export interface UserPrediction {
   user_id: string;
   prediction_id: string;
   selected_option_id: string;
+  points_wagered: number;
   points_earned: number;
   is_correct: boolean | null;
   created_at: string;
@@ -64,10 +75,13 @@ export interface CreatePredictionData {
   home_team: string;
   away_team: string;
   bet_type: BetType;
+  bet_calculation_type: BetCalculationType;
   options: PredictionOption[];
   start_date: string;
   close_date: string;
   points_reward: number;
+  min_bet_points?: number;
+  max_bet_points?: number;
 }
 
 /**
@@ -78,12 +92,15 @@ export interface UpdatePredictionData {
   home_team?: string;
   away_team?: string;
   bet_type?: BetType;
+  bet_calculation_type?: BetCalculationType;
   options?: PredictionOption[];
   status?: PredictionStatus;
   start_date?: string;
   close_date?: string;
   winning_option_id?: string | null;
   points_reward?: number;
+  min_bet_points?: number;
+  max_bet_points?: number;
 }
 
 /**
@@ -101,5 +118,27 @@ export interface ValidateResultResponse {
 export interface PredictionWithParticipation extends Prediction {
   user_prediction?: UserPrediction | null;
   has_participated: boolean;
+}
+
+/**
+ * Statistics for a single prediction option
+ */
+export interface PredictionOptionStats {
+  option_id: string;
+  total_wagered: number;
+  participant_count: number;
+  percentage: number;
+  ratio: number; // (total_pool / option_total)
+  biggest_bet: number;
+  top_bettor: string | null;
+}
+
+/**
+ * Aggregated statistics for a prediction
+ */
+export interface PredictionStats {
+  total_pool: number;
+  total_participants: number;
+  options: PredictionOptionStats[];
 }
 

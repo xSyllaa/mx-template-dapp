@@ -66,7 +66,6 @@ export const ManagePredictions = () => {
       fetchPredictions(); // Refresh list
     } catch (err) {
       console.error('Error validating result:', err);
-      alert(t('predictions.admin.errors.validateFailed'));
     } finally {
       setValidating(false);
     }
@@ -89,7 +88,6 @@ export const ManagePredictions = () => {
       fetchPredictions(); // Refresh list
     } catch (err) {
       console.error('Error deleting prediction:', err);
-      alert(t('predictions.admin.errors.deleteFailed'));
     } finally {
       setDeleting(false);
       setDeletingId(null);
@@ -106,7 +104,6 @@ export const ManagePredictions = () => {
       fetchPredictions(); // Refresh list
     } catch (err) {
       console.error('Error changing status:', err);
-      alert('Failed to change status');
     }
   };
 

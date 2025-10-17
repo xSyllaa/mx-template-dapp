@@ -11,7 +11,7 @@ interface UseUserPredictionReturn {
   loading: boolean;
   error: Error | null;
   submitting: boolean;
-  submit: (optionId: string) => Promise<void>;
+  submit: (optionId: string, pointsWagered: number) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -62,7 +62,7 @@ export const useUserPrediction = (
 
   // Submit prediction
   const submit = useCallback(
-    async (optionId: string) => {
+    async (optionId: string, pointsWagered: number) => {
       if (!userId) {
         throw new Error('User must be logged in to submit prediction');
       }
@@ -78,7 +78,8 @@ export const useUserPrediction = (
         const newPrediction = await submitPrediction(
           userId,
           predictionId,
-          optionId
+          optionId,
+          pointsWagered
         );
 
         setUserPrediction(newPrediction);

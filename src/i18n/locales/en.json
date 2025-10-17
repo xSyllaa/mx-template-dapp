@@ -119,11 +119,35 @@
     "winningOption": "Winning Option",
     "correct": "Correct",
     "incorrect": "Incorrect",
+    "betAmount": "Bet Amount",
+    "minBet": "Min Bet",
+    "maxBet": "Max Bet",
+    "yourBalance": "Your Balance",
     "status": {
       "open": "Open",
       "closed": "Closed",
       "resulted": "Resulted",
       "cancelled": "Cancelled"
+    },
+    "stats": {
+      "bettingPool": "Betting Pool",
+      "totalWagered": "Total Wagered",
+      "participants": "Participants",
+      "ratio": "Win Ratio",
+      "biggestBet": "Biggest Bet",
+      "topBettor": "Top Bettor",
+      "noBetsYet": "No bets placed yet. Be the first!",
+      "noBets": "No bets",
+      "totalParticipants": "Total Participants",
+      "betType": {
+        "fixedOdds": "Fixed Odds",
+        "poolRatio": "Pool Ratio"
+      }
+    },
+    "errors": {
+      "insufficientPoints": "Insufficient points",
+      "belowMinBet": "Minimum bet is {{min}} points",
+      "aboveMaxBet": "Maximum bet is {{max}} points"
     },
     "admin": {
       "createPrediction": "Create Prediction",
@@ -313,10 +337,48 @@
       "subtitle": "Manage predictions, war games and leaderboards"
     }
   },
+  "leaderboard": {
+    "title": "Leaderboards",
+    "subtitle": "Climb to the top and win exclusive rewards",
+    "tabs": {
+      "allTime": "All Time",
+      "weekly": "This Week",
+      "monthly": "This Month"
+    },
+    "rankings": "Rankings",
+    "yourRank": "Your Rank",
+    "you": "You",
+    "anonymousUser": "Anonymous User",
+    "rankPosition": "Rank {{rank}}",
+    "notRanked": "You are not ranked yet",
+    "startEarning": "Start earning points to appear in the rankings!",
+    "noData": "No leaderboard data available for this period"
+  },
   "themes": {
     "dark": "Dark",
     "light": "Light",
     "vibe": "Vibe"
+  },
+  "username": {
+    "label": "Username",
+    "placeholder": "Choose a username",
+    "edit": "Edit Username",
+    "save": "Save",
+    "cancel": "Cancel",
+    "validation": {
+      "tooShort": "Username must be at least 3 characters",
+      "tooLong": "Username must be at most 20 characters",
+      "invalidChars": "Only letters, numbers, and hyphens allowed",
+      "taken": "This username is already taken",
+      "required": "Username is required",
+      "available": "Username available"
+    },
+    "cooldown": {
+      "active": "You can change your username again in {{days}} days",
+      "available": "You can change your username"
+    },
+    "success": "Username updated successfully!",
+    "error": "Failed to update username"
   }
 }
 

@@ -6,7 +6,10 @@ import { useTranslation } from 'react-i18next';
 import { RouteNamesEnum } from 'localConstants';
 import { useGetAccount } from 'lib';
 import { useUserRole } from 'hooks';
+import { useToast } from 'hooks/useToast';
 import { Logo } from 'components/Logo';
+import { ToastContainer } from 'components/Toast';
+import { UsernameEditor } from 'features/username';
 
 // prettier-ignore
 const styles = {
@@ -43,9 +46,11 @@ const styles = {
   pointsValue: 'points-value text-xl font-bold text-[var(--galactic-gold)]',
   pointsLabel: 'points-label text-xs text-secondary',
   
-  userWallet: 'user-wallet flex items-center gap-2 bg-primary bg-opacity-5 rounded-lg p-2',
+  userWallet: 'user-wallet flex items-center gap-2 bg-primary bg-opacity-5 rounded-lg p-2 justify-between',
   walletIcon: 'wallet-icon text-sm',
-  walletAddress: 'wallet-address text-xs text-secondary font-mono',
+  walletAddress: 'wallet-address text-xs text-secondary font-mono flex-1 truncate',
+  username: 'username text-sm font-medium text-primary flex-1 truncate',
+  editButton: 'edit-button text-xs hover:scale-110 transition-transform cursor-pointer opacity-70 hover:opacity-100',
   
   // User Info (Collapsed)
   userInfoCollapsed: 'user-info-collapsed p-4 border-t border-[var(--mvx-border-color-secondary)] flex justify-center',
@@ -82,7 +87,9 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
   const { t } = useTranslation();
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
-  const { userProfile, isAdmin } = useUserRole();
+  const [showUsernameEditor, setShowUsernameEditor] = useState(false);
+  const { userProfile, isAdmin, refreshProfile } = useUserRole();
+  const { toasts, removeToast } = useToast();
   
   // Detect screen size
   useEffect(() => {
@@ -112,6 +119,21 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
 
   const formatAddress = (addr: string) => {
     return `${addr.slice(0, 6)}...${addr.slice(-4)}`;
+  };
+
+  const handleEditUsername = () => {
+    console.log('🖊️ [Sidebar] Click on edit username button');
+    console.log('🖊️ [Sidebar] Current userProfile:', userProfile);
+    console.log('🖊️ [Sidebar] showUsernameEditor BEFORE:', showUsernameEditor);
+    setShowUsernameEditor(true);
+    console.log('🖊️ [Sidebar] showUsernameEditor AFTER: true');
+  };
+
+  const handleUsernameSuccess = () => {
+    console.log('✅ [Sidebar] Username updated successfully');
+    console.log('🔄 [Sidebar] Refreshing user profile...');
+    // Refresh the user profile to get the updated username
+    refreshProfile();
   };
 
   const toggleCollapse = () => {
@@ -235,8 +257,21 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
             
             {address && (
               <div className={styles.userWallet}>
-                <span className={styles.walletIcon}>👛</span>
-                <span className={styles.walletAddress}>{formatAddress(address)}</span>
+                <span className={styles.walletIcon}>
+                  {userProfile?.username ? '👤' : '👛'}
+                </span>
+                <span className={userProfile?.username ? styles.username : styles.walletAddress}>
+                  {userProfile?.username ? `@${userProfile.username}` : formatAddress(address)}
+                </span>
+                <button
+                  onClick={handleEditUsername}
+                  className={styles.editButton}
+                  title={t('username.edit')}
+                  type="button"
+                  aria-label={t('username.edit')}
+                >
+                  ✏️
+                </button>
               </div>
             )}
           </div>
@@ -251,6 +286,25 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
           </div>
         )}
       </aside>
+
+      {/* Username Editor Modal */}
+      {showUsernameEditor && userProfile && (
+        <UsernameEditor
+          userId={userProfile.id}
+          currentUsername={userProfile.username}
+          onClose={() => {
+            console.log('❌ [Sidebar] Closing username editor');
+            setShowUsernameEditor(false);
+          }}
+          onSuccess={handleUsernameSuccess}
+        />
+      )}
+      
+      {/* Debug Info */}
+      {console.log('🔍 [Sidebar] Render - showUsernameEditor:', showUsernameEditor, 'userProfile:', userProfile)}
+
+      {/* Toast Container for Notifications */}
+      <ToastContainer toasts={toasts} onRemove={removeToast} />
     </>
   );
 };

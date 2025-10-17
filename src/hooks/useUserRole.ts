@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useGetAccount } from 'lib';
 import { supabase } from 'lib/supabase/client';
 
@@ -6,6 +6,7 @@ interface UserProfile {
   id: string;
   wallet_address: string;
   username: string | null;
+  username_last_modified: string | null;
   role: 'user' | 'admin';
   total_points: number;
   nft_count: number;
@@ -16,6 +17,12 @@ export const useUserRole = () => {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const refreshProfile = useCallback(() => {
+    console.log('🔄 [useUserRole] Manual refresh triggered');
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -35,7 +42,7 @@ export const useUserRole = () => {
         // Étape 1 : Chercher le profil existant
         const { data, error: fetchError } = await supabase
           .from('users')
-          .select('id, wallet_address, username, role, total_points, nft_count')
+          .select('id, wallet_address, username, username_last_modified, role, total_points, nft_count')
           .eq('wallet_address', address)
           .single();
 
@@ -53,7 +60,7 @@ export const useUserRole = () => {
                 total_points: 0,
                 nft_count: 0
               })
-              .select('id, wallet_address, username, role, total_points, nft_count')
+              .select('id, wallet_address, username, username_last_modified, role, total_points, nft_count')
               .single();
 
             if (insertError) throw insertError;
@@ -102,13 +109,14 @@ export const useUserRole = () => {
     };
 
     fetchUserProfile();
-  }, [address]);
+  }, [address, refreshTrigger]);
 
   return {
     userProfile,
     isAdmin: userProfile?.role === 'admin',
     loading,
-    error
+    error,
+    refreshProfile
   };
 };
 
