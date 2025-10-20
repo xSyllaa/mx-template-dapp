@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useGetAccount } from 'lib';
-import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
+import { useAuth } from 'contexts/AuthContext';
 import { ClaimStatus } from '../types';
 import type {
   WeekStreak,
@@ -34,7 +34,7 @@ interface UseWeeklyStreakReturn {
  */
 export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
   const { address } = useGetAccount();
-  const { isAuthenticated, loading: authLoading } = useSupabaseAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const [weekStreak, setWeekStreak] = useState<WeekStreak | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
@@ -196,14 +196,19 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
       let points = 0;
       if (claimed) {
         // Points already earned (need to reconstruct)
-        // Count how many consecutive days up to this day
-        const daysUpToThis = days.slice(0, index + 1);
-        const consecutiveUpToThis = daysUpToThis.filter(
-          (d) => weekStreak.claims[d]
-        ).length;
-        // If this day was part of consecutive streak
-        if (consecutiveUpToThis > 0) {
-          points = consecutiveUpToThis * 10;
+        // Calculate consecutive days from this day backwards
+        const daysFromThisDay = days.slice(index);
+        let consecutiveFromThisDay = 0;
+        for (let i = 0; i < daysFromThisDay.length; i++) {
+          if (weekStreak.claims[daysFromThisDay[i]]) {
+            consecutiveFromThisDay++;
+          } else {
+            break;
+          }
+        }
+        // Points earned for this day (based on consecutive streak at that time)
+        if (consecutiveFromThisDay > 0) {
+          points = consecutiveFromThisDay * 10;
         }
       } else if (isToday) {
         // Points available today

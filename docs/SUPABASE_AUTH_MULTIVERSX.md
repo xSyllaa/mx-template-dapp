@@ -4,7 +4,8 @@
 
 GalacticX utilise un système d'authentification hybride :
 - **MultiversX** : Authentification par signature de wallet
-- **Supabase** : Gestion des sessions JWT et RLS
+- **Supabase** : Gestion des sessions JWT custom et RLS
+- **React Context** : Source unique de vérité pour l'état d'authentification
 
 ## 🔄 Flow d'Authentification
 
@@ -19,15 +20,15 @@ GalacticX utilise un système d'authentification hybride :
    ↓
 5. Edge Function vérifie la signature cryptographique
    ↓
-6. Edge Function crée/récupère user dans auth.users
+6. Edge Function crée/récupère user dans public.users (PAS auth.users)
    ↓
-7. Edge Function crée profil dans public.users
+7. Edge Function génère JWT CUSTOM avec 'sub' = user_id
    ↓
-8. Edge Function génère JWT Supabase
+8. Frontend stocke JWT dans localStorage
    ↓
-9. Frontend reçoit JWT et l'utilise pour toutes les requêtes
+9. AuthContext gère l'état d'authentification React
    ↓
-10. RLS policies utilisent auth.uid() pour vérifier les permissions
+10. Services utilisent userId direct (pas auth.uid())
 ```
 
 ## 📁 Fichiers
@@ -71,9 +72,9 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 - Expire après 1 heure
 - Refresh automatique
 
-### Niveau 3 : RLS Policies
+### Niveau 3 : RLS Policies avec JWT Custom
 - Vérification au niveau PostgreSQL
-- `auth.uid()` = User authentifié
+- `get_current_user_id()` = Extrait 'sub' du JWT custom
 - Impossible à contourner
 
 ## 🚀 Déploiement
@@ -143,6 +144,47 @@ Une fois l'Edge Function déployée, remettre les policies avec `TO authenticate
 🎫 [Auth] Session générée
 ```
 
+## 🔄 RLS avec JWT Custom
+
+### Problème avec auth.uid()
+```sql
+-- ❌ Ne fonctionne PAS avec JWT custom
+CREATE POLICY "Users can insert" ON war_game_teams
+  FOR INSERT WITH CHECK (auth.uid() = user_id);
+```
+
+### Solution avec get_current_user_id()
+```sql
+-- ✅ Fonctionne avec JWT custom
+CREATE OR REPLACE FUNCTION get_current_user_id()
+RETURNS UUID AS $$
+BEGIN
+  -- Extraire 'sub' du JWT custom
+  RETURN COALESCE(
+    (current_setting('request.jwt.claims', true)::json->>'sub')::uuid,
+    auth.uid() -- Fallback
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Policies utilisant la fonction custom
+CREATE POLICY "Users can insert" ON war_game_teams
+  FOR INSERT WITH CHECK (get_current_user_id() = user_id);
+```
+
+### Structure JWT Custom
+```json
+{
+  "sub": "63df3e00-0785-4f4a-a782-bc4ee722f196",  // User ID
+  "wallet_address": "erd1...",
+  "role": "user",
+  "aud": "authenticated",
+  "exp": 1234567890,
+  "iat": 1234567890,
+  "iss": "supabase"
+}
+```
+
 ## 🔄 Migration Temporaire → Sécurisée
 
 ### État actuel (Temporaire)
@@ -153,11 +195,10 @@ CREATE POLICY "Everyone can view" ON users FOR SELECT USING (true);
 
 ### État final (Sécurisé)
 ```sql
--- Policies strictes (authenticated only)
+-- Policies strictes avec JWT custom
 CREATE POLICY "Authenticated can view" ON users 
 FOR SELECT 
-TO authenticated 
-USING (true);
+USING (get_current_user_id() IS NOT NULL);
 ```
 
 ## ✅ Checklist de Déploiement

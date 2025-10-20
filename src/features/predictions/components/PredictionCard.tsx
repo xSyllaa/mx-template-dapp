@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGetAccount } from 'lib';
-import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
+import { useAuth } from 'contexts/AuthContext';
 import { useToast } from 'hooks/useToast';
 import type { Prediction } from '../types';
 import { useUserPrediction } from '../hooks/useUserPrediction';
@@ -10,6 +10,8 @@ import { usePredictionStats } from '../hooks/usePredictionStats';
 import { ParticipationBadge } from './ParticipationBadge';
 import { BetAmountInput } from './BetAmountInput';
 import { PredictionStatsDisplay } from './PredictionStatsDisplay';
+import { BetTypeBadge } from './BetTypeBadge';
+import { CalculationTypeBadge } from './CalculationTypeBadge';
 
 interface PredictionCardProps {
   prediction: Prediction;
@@ -22,7 +24,7 @@ export const PredictionCard = ({
 }: PredictionCardProps) => {
   const { t } = useTranslation();
   const { address } = useGetAccount();
-  const { supabaseUserId } = useSupabaseAuth();
+  const { supabaseUserId } = useAuth();
   const { toast } = useToast();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [betAmount, setBetAmount] = useState<number>(prediction.min_bet_points);
@@ -60,23 +62,23 @@ export const PredictionCard = ({
         supabaseUserId,
         address
       });
-      toast.error('Erreur', 'Veuillez sélectionner une option et vous assurer d\'être connecté');
+      toast.error(t('toasts.predictions.error'), t('toasts.predictions.errorMessage'));
       return;
     }
 
     // Validate bet amount
     if (betAmount < prediction.min_bet_points) {
-      toast.error('Montant invalide', `Mise minimum: ${prediction.min_bet_points} points`);
+      toast.error(t('toasts.predictions.invalidAmount'), t('toasts.predictions.minBetMessage', { min: prediction.min_bet_points }));
       return;
     }
 
     if (betAmount > prediction.max_bet_points) {
-      toast.error('Montant invalide', `Mise maximum: ${prediction.max_bet_points} points`);
+      toast.error(t('toasts.predictions.invalidAmount'), t('toasts.predictions.maxBetMessage', { max: prediction.max_bet_points }));
       return;
     }
 
     if (betAmount > userPoints) {
-      toast.error('Points insuffisants', 'Vous n\'avez pas assez de points pour ce pari');
+      toast.error(t('toasts.predictions.insufficientPoints'), t('toasts.predictions.insufficientPointsMessage'));
       return;
     }
 
@@ -88,14 +90,19 @@ export const PredictionCard = ({
       // Show success toast
       const selectedOptionLabel = prediction.options.find(opt => opt.id === selectedOption)?.label;
       toast.success(
-        'Pari enregistré !',
-        `${prediction.home_team} vs ${prediction.away_team} - ${selectedOptionLabel} (${betAmount} pts)`
+        t('toasts.predictions.betPlaced'),
+        t('toasts.predictions.betPlacedMessage', {
+          homeTeam: prediction.home_team,
+          awayTeam: prediction.away_team,
+          option: selectedOptionLabel,
+          amount: betAmount
+        })
       );
       
       onSubmitSuccess?.();
     } catch (error) {
       console.error('Error submitting prediction:', error);
-      toast.error('Échec', 'Votre prédiction n\'a pas pu être enregistrée. Veuillez réessayer.');
+      toast.error(t('toasts.predictions.betFailed'), t('toasts.predictions.betFailedMessage'));
     }
   };
 
@@ -122,7 +129,7 @@ export const PredictionCard = ({
   // Get the selected/correct option for display
   const getOptionClass = (optionId: string) => {
     const baseClass =
-      'flex items-center justify-between p-4 rounded-lg border-2 transition-all cursor-pointer';
+      'flex items-center justify-between p-3 sm:p-4 rounded-lg border-2 transition-all cursor-pointer w-full';
 
     // If prediction is resulted, highlight winning option
     if (isResulted && prediction.winning_option_id === optionId) {
@@ -154,50 +161,101 @@ export const PredictionCard = ({
     return `${baseClass} bg-[var(--mvx-bg-color-secondary)] border-[var(--mvx-border-color-secondary)] text-[var(--mvx-text-color-secondary)] opacity-60 cursor-not-allowed`;
   };
 
+  // Get border color based on status
+  const getBorderColor = () => {
+    if (prediction.status === 'closed') {
+      return 'border-orange-500/50'; // Orange border for closed predictions
+    }
+    return 'border-[var(--mvx-border-color-secondary)]'; // Default border
+  };
+
   return (
-    <div className="bg-[var(--mvx-bg-color-secondary)] rounded-xl p-6 border border-[var(--mvx-border-color-secondary)]">
-      {/* Header */}
-      <div className="flex items-start justify-between mb-4">
-        <div>
-          <p className="text-sm text-[var(--mvx-text-color-secondary)] mb-1">
-            {prediction.competition}
-          </p>
-          <h3 className="text-xl font-bold text-[var(--mvx-text-color-primary)]">
-            {prediction.home_team} vs {prediction.away_team}
-          </h3>
+    <div className={`bg-[var(--mvx-bg-color-secondary)] rounded-xl p-4 sm:p-6 border ${getBorderColor()}`}>
+      {/* Header avec badges de type de bet */}
+      <div className="flex items-start justify-between mb-4 flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2">
+          <CalculationTypeBadge 
+            calculationType={prediction.bet_calculation_type} 
+            size="lg"
+          />
+          <BetTypeBadge 
+            betType={prediction.bet_type}
+            size="lg"
+          />
+          {/* Status badge for closed predictions */}
+          {prediction.status === 'closed' && (
+            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
+              🔒 Fermé
+            </span>
+          )}
         </div>
         <ParticipationBadge hasParticipated={hasParticipated} />
       </div>
 
-      {/* Match Info */}
-      <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
-        <div>
-          <p className="text-[var(--mvx-text-color-secondary)]">
+      {/* Infos match (équipes, compétition) */}
+      <div className="mb-4">
+        <p className="text-sm text-[var(--mvx-text-color-secondary)] mb-1">
+          🏆 {prediction.competition}
+        </p>
+        <h3 className="text-xl sm:text-2xl font-bold text-[var(--mvx-text-color-primary)]">
+          {prediction.home_team} <span className="text-[var(--mvx-text-accent-color)]">vs</span> {prediction.away_team}
+        </h3>
+      </div>
+
+      {/* Dates + Récompense (grid horizontal compact) */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4 text-sm">
+        <div className="bg-[var(--mvx-bg-color-primary)] p-3 rounded-lg">
+          <p className="text-[var(--mvx-text-color-secondary)] text-xs mb-1">
             {t('predictions.startDate')}
           </p>
           <p className="text-[var(--mvx-text-color-primary)] font-medium">
-            {startDate.toLocaleString()}
+            {startDate.toLocaleString('fr-FR', { 
+              day: 'numeric', 
+              month: 'short', 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
           </p>
         </div>
-        <div>
-          <p className="text-[var(--mvx-text-color-secondary)]">
+        <div className="bg-[var(--mvx-bg-color-primary)] p-3 rounded-lg">
+          <p className="text-[var(--mvx-text-color-secondary)] text-xs mb-1">
             {t('predictions.closeDate')}
           </p>
           <p className="text-[var(--mvx-text-color-primary)] font-medium">
-            {closeDate.toLocaleString()}
+            {closeDate.toLocaleString('fr-FR', { 
+              day: 'numeric', 
+              month: 'short', 
+              hour: '2-digit', 
+              minute: '2-digit' 
+            })}
+          </p>
+        </div>
+        <div className="bg-[var(--mvx-bg-accent-color)] p-3 rounded-lg">
+          <p className="text-[var(--mvx-text-color-secondary)] text-xs mb-1">
+            💰 {t('predictions.pointsReward')}
+          </p>
+          <p className="text-[var(--mvx-text-color-primary)] font-semibold">
+            {prediction.points_reward} {t('common.points')}
           </p>
         </div>
       </div>
 
-      {/* Points Reward */}
-      <div className="mb-4 p-3 bg-[var(--mvx-bg-accent-color)] rounded-lg">
-        <p className="text-[var(--mvx-text-color-primary)] font-semibold">
-          {t('predictions.pointsReward')}: {prediction.points_reward}{' '}
-          {t('common.points')}
-        </p>
+      {/* Options de paris (boutons sélectionnables) */}
+      <div className="space-y-2 mb-4">
+        {prediction.options.map((option) => (
+          <button
+            key={option.id}
+            onClick={() => handleSelectOption(option.id)}
+            disabled={hasParticipated || !isOpen}
+            className={getOptionClass(option.id)}
+          >
+            <span className="font-medium">{option.label}</span>
+            <span className="text-sm font-bold opacity-90">{option.odds}</span>
+          </button>
+        ))}
       </div>
 
-      {/* Prediction Stats Display */}
+      {/* Prediction Stats Display (collapsed par défaut) */}
       {isOpen && (
         <div className="mb-4">
           <PredictionStatsDisplay 
@@ -208,21 +266,6 @@ export const PredictionCard = ({
           />
         </div>
       )}
-
-      {/* Options */}
-      <div className="space-y-3 mb-4">
-        {prediction.options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => handleSelectOption(option.id)}
-            disabled={hasParticipated || !isOpen}
-            className={getOptionClass(option.id)}
-          >
-            <span className="font-medium">{option.label}</span>
-            <span className="text-sm opacity-75">{option.odds}</span>
-          </button>
-        ))}
-      </div>
 
       {/* Bet Amount Input */}
       {isOpen && !hasParticipated && selectedOption && (

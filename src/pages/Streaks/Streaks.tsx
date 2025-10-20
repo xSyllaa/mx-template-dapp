@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next';
 import { useGetAccount } from 'lib';
-import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
+import { useAuth } from 'contexts/AuthContext';
 import {
   WeekStats,
   WeekCalendar,
@@ -32,12 +32,12 @@ const styles = {
 export const Streaks = () => {
   const { t } = useTranslation();
   const { address } = useGetAccount();
-  const { isAuthenticated, loading: authLoading, error: authError } = useSupabaseAuth();
+  const { isAuthenticated, loading: authLoading, error: authError } = useAuth();
   
   const {
     weekStreak,
     loading,
-    error,
+    error: streakError,
     claimDay,
     stats,
     daysState,
@@ -101,9 +101,9 @@ export const Streaks = () => {
       )}
 
       {/* Error State */}
-      {error && (
+      {streakError && (
         <div className={styles.error}>
-          <p className={styles.errorText}>{error.message}</p>
+          <p className={styles.errorText}>{streakError.message}</p>
         </div>
       )}
 

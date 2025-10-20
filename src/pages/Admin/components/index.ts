@@ -1,0 +1,1 @@
+export { ValidatePredictionModal } from './ValidatePredictionModal';

@@ -7,6 +7,8 @@ import type {
   PointsSourceType
 } from '../types';
 
+const DEBUG = import.meta.env.DEV;
+
 // ============================================================
 // RECORD POINTS TRANSACTIONS
 // ============================================================
@@ -58,14 +60,7 @@ export const getLeaderboard = async (
   try {
     const { type, week, month, year, sourceTypes, limit = 100 } = filters;
 
-    console.log('📡 [LeaderboardService] Calling get_leaderboard with:', {
-      type,
-      week,
-      month,
-      year,
-      sourceTypes,
-      limit
-    });
+    // Keep service logs minimal; source logging handled in hook
 
     // Try to call the real Supabase function first
     try {
@@ -83,12 +78,11 @@ export const getLeaderboard = async (
         throw error;
       }
 
-      console.log('📡 [LeaderboardService] Received data from function:', data?.length || 0, 'entries');
       return (data || []) as LeaderboardEntry[];
     } catch (functionError: any) {
       // If function doesn't exist, fallback to direct table query
       if (functionError.code === '42883') { // function does not exist
-        console.log('📡 [LeaderboardService] Function not found, falling back to users table');
+        // Function not found, fallback to users table
         
         // Fallback: Get all users with their total_points
         const { data, error } = await supabase
@@ -113,7 +107,6 @@ export const getLeaderboard = async (
           rank: index + 1
         }));
 
-        console.log('📡 [LeaderboardService] Fallback data:', entries.length, 'entries');
         return entries;
       }
       throw functionError;
@@ -136,14 +129,9 @@ export const getUserRank = async (
   try {
     const { type, week, month, year, sourceTypes } = filters;
 
-    console.log('📡 [LeaderboardService] Calling get_user_rank with:', {
-      userId,
-      type,
-      week,
-      month,
-      year,
-      sourceTypes
-    });
+    if (DEBUG) {
+      console.log('📡 [LeaderboardService] Fetching user rank for', type, 'leaderboard...');
+    }
 
     // Try to call the real Supabase function
     const { data, error } = await supabase.rpc('get_user_rank', {
@@ -159,18 +147,15 @@ export const getUserRank = async (
       console.error('📡 [LeaderboardService] Supabase error:', error);
       // If function doesn't exist yet, return null
       if (error.code === '42883') { // function does not exist
-        console.log('📡 [LeaderboardService] Function not found, returning null');
         return null;
       }
       throw error;
     }
 
     if (!data || data.length === 0) {
-      console.log('📡 [LeaderboardService] No rank data found for user');
       return null;
     }
 
-    console.log('📡 [LeaderboardService] Received rank data:', data[0]);
     return data[0] as UserRankInfo;
   } catch (error) {
     console.error('[LeaderboardService] Error fetching user rank:', error);
@@ -247,14 +232,32 @@ export const getUserPointsForPeriod = async (
 // ============================================================
 
 /**
- * Get current week number (ISO week)
+ * Get current week number (Monday to Sunday, matching PostgreSQL)
  */
 export const getCurrentWeekNumber = (): number => {
   const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const diff = now.getTime() - start.getTime();
+  const year = now.getFullYear();
+  
+  // Get January 1st of current year
+  const jan1 = new Date(Date.UTC(year, 0, 1));
+  const jan1DayOfWeek = jan1.getUTCDay();
+  
+  // Calculate the first Monday of the year
+  const firstMonday = new Date(Date.UTC(year, 0, 1));
+  if (jan1DayOfWeek === 0) {
+    firstMonday.setUTCDate(2); // Sunday -> Monday is next day
+  } else if (jan1DayOfWeek === 1) {
+    firstMonday.setUTCDate(1); // Already Monday
+  } else {
+    firstMonday.setUTCDate(1 + (8 - jan1DayOfWeek)); // Tuesday-Saturday -> next Monday
+  }
+  
+  // Calculate week number based on Monday start
+  const diff = now.getTime() - firstMonday.getTime();
   const oneWeek = 1000 * 60 * 60 * 24 * 7;
-  return Math.ceil(diff / oneWeek);
+  const weekNumber = Math.floor(diff / oneWeek) + 1;
+  
+  return Math.max(1, weekNumber);
 };
 
 /**
@@ -278,5 +281,108 @@ export const calculateTotalPoints = (
   transactions: PointsTransaction[]
 ): number => {
   return transactions.reduce((sum, tx) => sum + tx.amount, 0);
+};
+
+// ============================================================
+// DATE UTILITIES FOR LEADERBOARD PERIODS
+// ============================================================
+
+/**
+ * Get start and end dates for a specific week (Monday to Sunday, UTC)
+ * This matches PostgreSQL's date_trunc('week') behavior
+ * @param week - Week number (1-52)
+ * @param year - Year
+ */
+export const getWeekDateRange = (week: number, year: number): { start: Date; end: Date } => {
+  // Create January 1st of the year
+  const jan1 = new Date(Date.UTC(year, 0, 1));
+  
+  // Get the day of week for January 1st (0 = Sunday, 1 = Monday, etc.)
+  const jan1DayOfWeek = jan1.getUTCDay();
+  
+  // Calculate the first Monday of the year
+  // If Jan 1 is Sunday (0), first Monday is Jan 2
+  // If Jan 1 is Monday (1), first Monday is Jan 1  
+  // If Jan 1 is Tuesday-Saturday (2-6), first Monday is next Monday
+  const firstMonday = new Date(Date.UTC(year, 0, 1));
+  if (jan1DayOfWeek === 0) {
+    firstMonday.setUTCDate(2); // Sunday -> Monday is next day
+  } else if (jan1DayOfWeek === 1) {
+    firstMonday.setUTCDate(1); // Already Monday
+  } else {
+    firstMonday.setUTCDate(1 + (8 - jan1DayOfWeek)); // Tuesday-Saturday -> next Monday
+  }
+  
+  // Calculate the start of the requested week (Monday at 00:00:00 UTC)
+  const weekStart = new Date(firstMonday);
+  weekStart.setUTCDate(firstMonday.getUTCDate() + (week - 1) * 7);
+  weekStart.setUTCHours(0, 0, 0, 0);
+  
+  // Calculate the end of the week (Sunday at 23:59:59.999 UTC)
+  const weekEnd = new Date(weekStart);
+  weekEnd.setUTCDate(weekStart.getUTCDate() + 6);
+  weekEnd.setUTCHours(23, 59, 59, 999);
+  
+  return { start: weekStart, end: weekEnd };
+};
+
+/**
+ * Get start and end dates for a specific month
+ * @param month - Month number (1-12)
+ * @param year - Year
+ */
+export const getMonthDateRange = (month: number, year: number): { start: Date; end: Date } => {
+  const monthStart = new Date(year, month - 1, 1);
+  const monthEnd = new Date(year, month, 0, 23, 59, 59, 999);
+  
+  return { start: monthStart, end: monthEnd };
+};
+
+/**
+ * Get start and end dates for all time (from beginning to now)
+ */
+export const getAllTimeDateRange = (): { start: Date; end: Date } => {
+  const now = new Date();
+  const beginning = new Date('2024-01-01T00:00:00.000Z'); // Adjust this to your app's launch date
+  
+  return { start: beginning, end: now };
+};
+
+/**
+ * Get date range for a leaderboard type
+ * @param type - Leaderboard type
+ * @param week - Week number (for weekly)
+ * @param month - Month number (for monthly)
+ * @param year - Year
+ */
+export const getLeaderboardDateRange = (
+  type: 'all_time' | 'weekly' | 'monthly',
+  week?: number,
+  month?: number,
+  year?: number
+): { start: Date; end: Date } => {
+  const currentYear = year || getCurrentYear();
+  
+  switch (type) {
+    case 'weekly':
+      const weekNum = week || getCurrentWeekNumber();
+      return getWeekDateRange(weekNum, currentYear);
+    
+    case 'monthly':
+      const monthNum = month || getCurrentMonth();
+      return getMonthDateRange(monthNum, currentYear);
+    
+    case 'all_time':
+    default:
+      return getAllTimeDateRange();
+  }
+};
+
+/**
+ * Format date to UTC string for display
+ * @param date - Date to format
+ */
+export const formatDateToUTC = (date: Date): string => {
+  return date.toISOString().replace('T', ' ').replace('Z', ' UTC');
 };
 

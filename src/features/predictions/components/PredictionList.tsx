@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { usePredictions } from '../hooks/usePredictions';
+import { usePredictionFilters } from '../hooks/usePredictionFilters';
 import { PredictionCard } from './PredictionCard';
+import { PredictionFilters } from './PredictionFilters';
 import { Loader } from 'components/Loader';
 
 type Tab = 'active' | 'history';
@@ -32,6 +34,20 @@ export const PredictionList = () => {
   const predictions = isActive ? activePredictions : historyPredictions;
   const loading = isActive ? activeLoading : historyLoading;
   const error = isActive ? activeError : historyError;
+
+  // Apply filters
+  const {
+    filters,
+    filteredPredictions,
+    availableCompetitions,
+    availableBetTypes,
+    toggleBetType,
+    setCalculationType,
+    toggleCompetition,
+    toggleStatus,
+    clearFilters,
+    hasActiveFilters
+  } = usePredictionFilters(predictions);
 
   // Handle tab change
   const handleTabChange = (tab: Tab) => {
@@ -84,6 +100,25 @@ export const PredictionList = () => {
         </button>
       </div>
 
+      {/* Filters */}
+      {!loading && !error && predictions.length > 0 && (
+        <PredictionFilters
+          betTypes={filters.betTypes}
+          calculationType={filters.calculationType}
+          competitions={filters.competitions}
+          statuses={filters.statuses}
+          availableCompetitions={availableCompetitions}
+          availableBetTypes={availableBetTypes}
+          toggleBetType={toggleBetType}
+          setCalculationType={setCalculationType}
+          toggleCompetition={toggleCompetition}
+          toggleStatus={toggleStatus}
+          clearFilters={clearFilters}
+          hasActiveFilters={hasActiveFilters}
+          totalResults={filteredPredictions.length}
+        />
+      )}
+
       {/* Loading State */}
       {loading && predictions.length === 0 && (
         <div className="flex items-center justify-center py-16">
@@ -115,11 +150,26 @@ export const PredictionList = () => {
         </div>
       )}
 
+      {/* No Results After Filtering */}
+      {!loading && !error && predictions.length > 0 && filteredPredictions.length === 0 && (
+        <div className="text-center py-16">
+          <p className="text-[var(--mvx-text-color-secondary)] text-lg mb-4">
+            {t('predictions.filters.noResults', { defaultValue: 'No predictions match your filters' })}
+          </p>
+          <button
+            onClick={clearFilters}
+            className="px-4 py-2 bg-[var(--mvx-text-accent-color)] text-white rounded-lg hover:opacity-90 transition-opacity"
+          >
+            {t('predictions.filters.clearAll', { defaultValue: 'Clear All' })}
+          </button>
+        </div>
+      )}
+
       {/* Predictions Grid */}
-      {!loading && !error && predictions.length > 0 && (
+      {!loading && !error && filteredPredictions.length > 0 && (
         <>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {predictions.map((prediction) => (
+            {filteredPredictions.map((prediction) => (
               <PredictionCard
                 key={prediction.id}
                 prediction={prediction}

@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { PredictionStats, PredictionOption, BetCalculationType } from '../types';
 
@@ -15,6 +16,7 @@ export const PredictionStatsDisplay = ({
   loading = false
 }: PredictionStatsDisplayProps) => {
   const { t } = useTranslation();
+  const [isExpanded, setIsExpanded] = useState(false);
   const showOdds = calculationType === 'fixed_odds';
 
   if (loading) {
@@ -33,36 +35,114 @@ export const PredictionStatsDisplay = ({
 
   if (!stats || stats.total_participants === 0) {
     return (
-      <div className="p-6 bg-[var(--mvx-bg-color-secondary)] rounded-xl border border-[var(--mvx-border-color-secondary)]">
-        <p className="text-center text-[var(--mvx-text-color-secondary)]">
+      <div className="p-4 bg-[var(--mvx-bg-color-secondary)] rounded-xl border border-[var(--mvx-border-color-secondary)]">
+        <p className="text-center text-[var(--mvx-text-color-secondary)] text-sm">
           {t('predictions.stats.noBetsYet', { defaultValue: 'No bets placed yet. Be the first!' })}
         </p>
       </div>
     );
   }
 
-  return (
-    <div className="p-6 bg-[var(--mvx-bg-color-secondary)] rounded-xl border border-[var(--mvx-border-color-secondary)] space-y-4">
-      {/* Header with Bet Type Badge */}
-      <div className="flex items-center justify-between pb-3 border-b border-[var(--mvx-border-color-secondary)]">
-        <div className="flex items-center gap-3">
-          <h4 className="text-lg font-semibold text-[var(--mvx-text-color-primary)]">
-            {t('predictions.stats.bettingPool', { defaultValue: 'Betting Pool' })}
-          </h4>
-          {/* Bet Type Badge */}
-          <div className={`px-3 py-1 rounded-full text-xs font-semibold ${
-            showOdds 
-              ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30' 
-              : 'bg-green-500/20 text-green-400 border border-green-500/30'
-          }`}>
-            {showOdds 
-              ? `🎯 ${t('predictions.stats.betType.fixedOdds')}` 
-              : `📊 ${t('predictions.stats.betType.poolRatio')}`
-            }
+  // Collapsed version (compact)
+  if (!isExpanded) {
+    return (
+      <div className="p-4 bg-[var(--mvx-bg-color-secondary)] rounded-xl border border-[var(--mvx-border-color-secondary)]">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-[var(--mvx-text-color-primary)]">
+              {t('predictions.stats.bettingPool', { defaultValue: 'Betting Pool' })}
+            </span>
+          </div>
+          <div className="text-right">
+            <p className="text-lg font-bold text-[var(--mvx-text-accent-color)]">
+              {stats.total_pool.toLocaleString()} pts
+            </p>
+            <p className="text-xs text-[var(--mvx-text-color-secondary)]">
+              {stats.total_participants} {t('predictions.stats.participants', { defaultValue: 'participants' })}
+            </p>
           </div>
         </div>
+
+        {/* Compact Progress Bar */}
+        <div className="mb-3">
+          <div className="h-3 bg-[var(--mvx-bg-color-primary)] rounded-full overflow-hidden flex">
+            {options.map((option, index) => {
+              const optionStats = stats.options.find(s => s.option_id === option.id);
+              const percentage = optionStats?.percentage || 0;
+              
+              // Colors for different options
+              const colors = [
+                'bg-blue-500',
+                'bg-purple-500',
+                'bg-green-500',
+                'bg-orange-500'
+              ];
+              const color = colors[index % colors.length];
+
+              return (
+                <div
+                  key={option.id}
+                  className={`${color} transition-all duration-500`}
+                  style={{ width: `${percentage}%` }}
+                  title={`${option.label}: ${percentage.toFixed(1)}%`}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Option Labels */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
+          {options.map((option, index) => {
+            const optionStats = stats.options.find(s => s.option_id === option.id);
+            const percentage = optionStats?.percentage || 0;
+            
+            const colors = [
+              'text-blue-400',
+              'text-purple-400',
+              'text-green-400',
+              'text-orange-400'
+            ];
+            const color = colors[index % colors.length];
+
+            return (
+              <div key={option.id} className="flex items-center gap-1.5">
+                <div className={`w-2 h-2 rounded-full ${colors[index % colors.length].replace('text-', 'bg-')}`} />
+                <span className="text-xs text-[var(--mvx-text-color-primary)] truncate">
+                  {option.label}
+                </span>
+                <span className={`text-xs font-semibold ${color}`}>
+                  {percentage.toFixed(0)}%
+                </span>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Expand Button */}
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="w-full py-2 text-xs font-medium text-[var(--mvx-text-accent-color)] hover:text-[var(--mvx-text-color-primary)] transition-colors border-t border-[var(--mvx-border-color-secondary)] pt-3"
+        >
+          {t('predictions.stats.viewDetails', { defaultValue: 'View Details' })} ↓
+        </button>
+      </div>
+    );
+  }
+
+  // Expanded version (detailed)
+  return (
+    <div className="p-4 bg-[var(--mvx-bg-color-secondary)] rounded-xl border border-[var(--mvx-border-color-secondary)] space-y-3">
+      {/* Header with Bet Type Badge */}
+      <div className="flex items-center justify-between pb-3 border-b border-[var(--mvx-border-color-secondary)]">
+        <div className="flex items-center gap-2">
+          <h4 className="text-base font-semibold text-[var(--mvx-text-color-primary)]">
+            {t('predictions.stats.bettingPool', { defaultValue: 'Betting Pool' })}
+          </h4>
+        </div>
         <div className="text-right">
-          <p className="text-2xl font-bold text-[var(--mvx-text-accent-color)]">
+          <p className="text-xl font-bold text-[var(--mvx-text-accent-color)]">
             {stats.total_pool.toLocaleString()}
           </p>
           <p className="text-xs text-[var(--mvx-text-color-secondary)]">
@@ -72,7 +152,7 @@ export const PredictionStatsDisplay = ({
       </div>
 
       {/* Options Stats */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {options.map((option) => {
           const optionStats = stats.options.find(
             (s) => s.option_id === option.id
@@ -82,10 +162,10 @@ export const PredictionStatsDisplay = ({
             return (
               <div
                 key={option.id}
-                className="p-4 bg-[var(--mvx-bg-color-primary)] rounded-lg border border-[var(--mvx-border-color-secondary)] opacity-50"
+                className="p-3 bg-[var(--mvx-bg-color-primary)] rounded-lg border border-[var(--mvx-border-color-secondary)] opacity-50"
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-semibold text-[var(--mvx-text-color-primary)]">
+                  <span className="font-semibold text-[var(--mvx-text-color-primary)] text-sm">
                     {option.label}
                   </span>
                   <span className="text-sm text-[var(--mvx-text-color-secondary)]">
@@ -108,20 +188,20 @@ export const PredictionStatsDisplay = ({
           return (
             <div
               key={option.id}
-              className="p-4 bg-[var(--mvx-bg-color-primary)] rounded-lg border border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50 transition-colors"
+              className="p-3 bg-[var(--mvx-bg-color-primary)] rounded-lg border border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50 transition-colors"
             >
               {/* Option Header */}
               <div className="flex items-center justify-between mb-2">
-                <span className="font-semibold text-[var(--mvx-text-color-primary)]">
+                <span className="font-semibold text-[var(--mvx-text-color-primary)] text-sm">
                   {option.label}
                 </span>
-                <span className="text-lg font-bold" style={{ color: accentColor }}>
+                <span className="text-base font-bold" style={{ color: accentColor }}>
                   {percentage.toFixed(1)}%
                 </span>
               </div>
 
               {/* Progress Bar */}
-              <div className="h-2 bg-[var(--mvx-bg-color-secondary)] rounded-full overflow-hidden mb-3">
+              <div className="h-2 bg-[var(--mvx-bg-color-secondary)] rounded-full overflow-hidden mb-2">
                 <div
                   className="h-full transition-all duration-500"
                   style={{
@@ -131,10 +211,10 @@ export const PredictionStatsDisplay = ({
                 />
               </div>
 
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-3 text-sm">
+              {/* Stats Grid - 2 columns */}
+              <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <p className="text-[var(--mvx-text-color-secondary)] text-xs">
+                  <p className="text-[var(--mvx-text-color-secondary)]">
                     {t('predictions.stats.totalWagered')}
                   </p>
                   <p className="text-[var(--mvx-text-color-primary)] font-semibold">
@@ -143,8 +223,8 @@ export const PredictionStatsDisplay = ({
                 </div>
                 {!showOdds && (
                   <div>
-                    <p className="text-[var(--mvx-text-color-secondary)] text-xs">
-                      📊 {t('predictions.stats.betType.poolRatio')}
+                    <p className="text-[var(--mvx-text-color-secondary)]">
+                      Ratio
                     </p>
                     <p className="text-[var(--mvx-text-accent-color)] font-semibold">
                       {optionStats.ratio.toFixed(2)}x
@@ -153,8 +233,8 @@ export const PredictionStatsDisplay = ({
                 )}
                 {showOdds && (
                   <div>
-                    <p className="text-[var(--mvx-text-color-secondary)] text-xs">
-                      🎯 {t('predictions.stats.betType.fixedOdds')}
+                    <p className="text-[var(--mvx-text-color-secondary)]">
+                      Odds
                     </p>
                     <p className="text-[var(--mvx-text-accent-color)] font-semibold">
                       {option.odds}
@@ -162,7 +242,7 @@ export const PredictionStatsDisplay = ({
                   </div>
                 )}
                 <div>
-                  <p className="text-[var(--mvx-text-color-secondary)] text-xs">
+                  <p className="text-[var(--mvx-text-color-secondary)]">
                     {t('predictions.stats.participants')}
                   </p>
                   <p className="text-[var(--mvx-text-accent-color)] font-semibold">
@@ -170,7 +250,7 @@ export const PredictionStatsDisplay = ({
                   </p>
                 </div>
                 <div>
-                  <p className="text-[var(--mvx-text-color-secondary)] text-xs">
+                  <p className="text-[var(--mvx-text-color-secondary)]">
                     {t('predictions.stats.biggestBet')}
                   </p>
                   <p className="text-[var(--mvx-text-color-primary)] font-semibold">
@@ -181,7 +261,7 @@ export const PredictionStatsDisplay = ({
 
               {/* Top Bettor */}
               {optionStats.top_bettor && (
-                <div className="mt-3 pt-3 border-t border-[var(--mvx-border-color-secondary)]">
+                <div className="mt-2 pt-2 border-t border-[var(--mvx-border-color-secondary)]">
                   <p className="text-xs text-[var(--mvx-text-color-secondary)]">
                     {t('predictions.stats.topBettor')}:{' '}
                     <span className="text-[var(--mvx-text-accent-color)] font-semibold">
@@ -196,7 +276,7 @@ export const PredictionStatsDisplay = ({
       </div>
 
       {/* Total Participants */}
-      <div className="pt-3 border-t border-[var(--mvx-border-color-secondary)] text-center">
+      <div className="pt-2 border-t border-[var(--mvx-border-color-secondary)] text-center">
         <p className="text-sm text-[var(--mvx-text-color-secondary)]">
           {t('predictions.stats.totalParticipants', { count: stats.total_participants })}:{' '}
           <span className="text-[var(--mvx-text-color-primary)] font-semibold">
@@ -204,6 +284,14 @@ export const PredictionStatsDisplay = ({
           </span>
         </p>
       </div>
+
+      {/* Collapse Button */}
+      <button
+        onClick={() => setIsExpanded(false)}
+        className="w-full py-2 text-xs font-medium text-[var(--mvx-text-accent-color)] hover:text-[var(--mvx-text-color-primary)] transition-colors border-t border-[var(--mvx-border-color-secondary)] pt-2"
+      >
+        {t('predictions.stats.hideDetails', { defaultValue: 'Hide Details' })} ↑
+      </button>
     </div>
   );
 };

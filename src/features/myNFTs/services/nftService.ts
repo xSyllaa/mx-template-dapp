@@ -3,6 +3,7 @@
  */
 import axios from 'axios';
 import type { MultiversXNFT, GalacticXNFT, NFTAttributes, NFTOwnershipResult } from '../types';
+import { getRealPlayerName } from '../../../data/playerDataService';
 
 // Collection identifier for GalacticX NFTs
 const GALACTIC_COLLECTION_ID = 'MAINSEASON-3db9f8';
@@ -122,23 +123,52 @@ const extractImageUrl = (nft: MultiversXNFT): string | undefined => {
 /**
  * Parse raw MultiversX NFT to GalacticX NFT format
  */
-const parseNFT = (rawNFT: MultiversXNFT): GalacticXNFT => {
-  // Skip NFTs with metadata errors
+const parseNFT = (rawNFT: MultiversXNFT, includeErrors: boolean = false): GalacticXNFT | null => {
+  // Handle NFTs with metadata errors
   if (rawNFT.metadata?.error) {
-    console.warn(
-      `Skipping NFT ${rawNFT.identifier} - metadata error:`, 
-      rawNFT.metadata.error,
-      '\n📋 Full metadata object:', 
-      JSON.stringify(rawNFT.metadata, null, 2),
-      '\n🔗 NFT Details:',
-      {
+    if (!includeErrors) {
+      console.warn(
+        `Skipping NFT ${rawNFT.identifier} - metadata error:`, 
+        rawNFT.metadata.error,
+        '\n📋 Full metadata object:', 
+        JSON.stringify(rawNFT.metadata, null, 2),
+        '\n🔗 NFT Details:',
+        {
+          identifier: rawNFT.identifier,
+          collection: rawNFT.collection,
+          nonce: rawNFT.nonce,
+          name: rawNFT.name
+        }
+      );
+      return null; // Will be filtered out
+    } else {
+      // Include NFT with error but use fallback values
+      console.warn(
+        `Including NFT ${rawNFT.identifier} with metadata error for War Games`
+      );
+      
+      // Try to get real player name even for error NFTs
+      const realPlayerName = getRealPlayerName({
+        identifier: rawNFT.identifier,
+        nonce: rawNFT.nonce,
+        name: rawNFT.name
+      });
+      
+      return {
         identifier: rawNFT.identifier,
         collection: rawNFT.collection,
         nonce: rawNFT.nonce,
-        name: rawNFT.name
-      }
-    );
-    return null as any; // Will be filtered out
+        name: rawNFT.name || `Main Season #${rawNFT.nonce}`,
+        realPlayerName: realPlayerName || undefined,
+        owner: rawNFT.owner || '',
+        imageUrl: undefined,
+        attributes: {},
+        rarity: 'Common' as const,
+        position: 'Unknown',
+        score: rawNFT.score,
+        rank: rawNFT.rank
+      };
+    }
   }
   
   const attributes = parseNFTAttributes(rawNFT.metadata);
@@ -146,11 +176,19 @@ const parseNFT = (rawNFT: MultiversXNFT): GalacticXNFT => {
   const rarity = determineRarity(attributes, rawNFT);
   const imageUrl = extractImageUrl(rawNFT);
   
+  // Get real player name from playersData.json
+  const realPlayerName = getRealPlayerName({
+    identifier: rawNFT.identifier,
+    nonce: rawNFT.nonce,
+    name: rawNFT.name
+  });
+  
   return {
     identifier: rawNFT.identifier,
     collection: rawNFT.collection,
     nonce: rawNFT.nonce,
     name: rawNFT.name || `Main Season #${rawNFT.nonce}`,
+    realPlayerName: realPlayerName || undefined,
     owner: rawNFT.owner || '',
     imageUrl,
     attributes,
@@ -165,7 +203,8 @@ const parseNFT = (rawNFT: MultiversXNFT): GalacticXNFT => {
  * Fetch NFTs for a given wallet address from MultiversX API
  */
 export const fetchUserNFTs = async (
-  walletAddress: string
+  walletAddress: string,
+  includeErrors: boolean = false
 ): Promise<NFTOwnershipResult> => {
   try {
     const response = await axios.get<MultiversXNFT[]>(
@@ -186,8 +225,23 @@ export const fetchUserNFTs = async (
     
     // Parse NFTs and filter out any with errors
     const parsedNFTs = rawNFTs
-      .map(parseNFT)
+      .map(nft => parseNFT(nft, includeErrors))
       .filter(nft => nft !== null);
+    
+    // Count errors for logging
+    const errorCount = rawNFTs.filter(nft => nft.metadata?.error).length;
+    const totalRawNFTs = rawNFTs.length;
+    const validNFTs = parsedNFTs.length;
+    
+    console.log(`🎴 NFT Fetch Results for ${walletAddress}:`);
+    console.log(`📊 Total raw NFTs: ${totalRawNFTs}`);
+    console.log(`❌ NFTs with errors: ${errorCount}`);
+    console.log(`✅ Valid NFTs: ${validNFTs}`);
+    console.log(`🔧 Include errors mode: ${includeErrors}`);
+    
+    if (errorCount > 0) {
+      console.log(`⚠️  ${errorCount} NFTs had metadata errors and were ${includeErrors ? 'included with fallback values' : 'excluded'}`);
+    }
     
     return {
       hasNFTs: parsedNFTs.length > 0,

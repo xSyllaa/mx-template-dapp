@@ -22,7 +22,12 @@ export {
   getCurrentWeekNumber,
   getCurrentMonth,
   getCurrentYear,
-  calculateTotalPoints
+  calculateTotalPoints,
+  getWeekDateRange,
+  getMonthDateRange,
+  getAllTimeDateRange,
+  getLeaderboardDateRange,
+  formatDateToUTC
 } from './services/leaderboardService';
 
 // Hooks

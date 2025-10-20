@@ -1,6 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
+import { useAuth } from 'contexts/AuthContext';
 import {
   LeaderboardTabs,
   LeaderboardTable,
@@ -10,9 +10,14 @@ import { useLeaderboard, useUserRank } from 'features/leaderboard/hooks';
 import {
   getCurrentWeekNumber,
   getCurrentMonth,
-  getCurrentYear
+  getCurrentYear,
+  getLeaderboardDateRange,
+  formatDateToUTC
 } from 'features/leaderboard';
 import type { LeaderboardType } from 'features/leaderboard/types';
+
+// Enable debug logs in development only
+const DEBUG = import.meta.env.DEV;
 
 // prettier-ignore
 const styles = {
@@ -28,7 +33,7 @@ const styles = {
 
 export const Leaderboard = () => {
   const { t } = useTranslation();
-  const { supabaseUserId } = useSupabaseAuth();
+  const { supabaseUserId } = useAuth();
   const [activeTab, setActiveTab] = useState<LeaderboardType>('all_time');
 
   // Get current period info (memoized to prevent re-calculations)
@@ -37,6 +42,50 @@ export const Leaderboard = () => {
     currentMonth: getCurrentMonth(),
     currentYear: getCurrentYear()
   }), []);
+
+  // Get date range for current active tab (memoized)
+  const dateRange = useMemo(() => {
+    if (activeTab === 'weekly') {
+      return getLeaderboardDateRange('weekly', periodInfo.currentWeek, undefined, periodInfo.currentYear);
+    } else if (activeTab === 'monthly') {
+      return getLeaderboardDateRange('monthly', undefined, periodInfo.currentMonth, periodInfo.currentYear);
+    } else {
+      return getLeaderboardDateRange('all_time');
+    }
+  }, [activeTab, periodInfo]);
+
+  // Format dates for display
+  const formattedDates = useMemo(() => {
+    const startDate = formatDateToUTC(dateRange.start);
+    const endDate = formatDateToUTC(dateRange.end);
+    
+    if (activeTab === 'weekly') {
+      return t('leaderboard.periodDates.weekly', {
+        week: periodInfo.currentWeek,
+        year: periodInfo.currentYear,
+        start: startDate,
+        end: endDate
+      });
+    } else if (activeTab === 'monthly') {
+      const monthNames = [
+        t('common.months.january'), t('common.months.february'), t('common.months.march'), 
+        t('common.months.april'), t('common.months.may'), t('common.months.june'),
+        t('common.months.july'), t('common.months.august'), t('common.months.september'),
+        t('common.months.october'), t('common.months.november'), t('common.months.december')
+      ];
+      return t('leaderboard.periodDates.monthly', {
+        month: monthNames[periodInfo.currentMonth - 1],
+        year: periodInfo.currentYear,
+        start: startDate,
+        end: endDate
+      });
+    } else {
+      return t('leaderboard.periodDates.allTime', {
+        start: startDate,
+        end: endDate
+      });
+    }
+  }, [activeTab, dateRange, periodInfo, t]);
 
   // Build filters based on active tab (memoized to prevent re-renders)
   const filters = useMemo(() => {
@@ -54,29 +103,15 @@ export const Leaderboard = () => {
     setActiveTab(newTab);
   }, []);
 
-  // Debug logs (only log when values actually change)
-  console.log('🏆 [Leaderboard] Render:', {
-    activeTab,
-    supabaseUserId: supabaseUserId ? 'authenticated' : 'null',
-    filtersType: filters.type
-  });
-
-  // Fetch leaderboard and user rank (temporarily disable real-time to debug)
-  const { entries, loading, error, refresh } = useLeaderboard(filters, false);
+  // Fetch leaderboard and user rank (real-time enabled)
+  const { entries, loading, error, refresh } = useLeaderboard(filters, true);
   const {
     rank: userRank,
     loading: rankLoading,
     refresh: refreshRank
-  } = useUserRank(supabaseUserId, filters, false);
+  } = useUserRank(supabaseUserId, filters, true);
 
-  // Debug logs for hooks (reduced frequency)
-  console.log('🏆 [Leaderboard] Hooks state:', {
-    entriesCount: entries.length,
-    loading,
-    hasError: !!error,
-    rankLoading,
-    hasUserRank: !!userRank
-  });
+  // Logs handled centrally in useLeaderboard
 
   const handleRefresh = useCallback(() => {
     refresh();
@@ -89,6 +124,11 @@ export const Leaderboard = () => {
       <div className={styles.header}>
         <h1 className={styles.title}>🏆 {t('leaderboard.title')}</h1>
         <p className={styles.subtitle}>{t('leaderboard.subtitle')}</p>
+        <div className="mt-4 p-3 bg-[var(--mvx-bg-color-secondary)] rounded-lg border border-[var(--mvx-border-color-secondary)]">
+          <p className="text-sm text-[var(--mvx-text-color-secondary)]">
+            📅 {formattedDates}
+          </p>
+        </div>
       </div>
 
           {/* Tabs */}

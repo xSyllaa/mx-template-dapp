@@ -19,6 +19,7 @@ type FilterOption = 'all' | 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic';
 export const MyNFTs = () => {
   const { t } = useTranslation();
   const { address } = useGetAccount();
+  
   const { nfts, nftCount, hasNFTs, loading, error, lastSynced, refetch, fetchNFTsForAddress } = useMyNFTs();
   
   const [filterRarity, setFilterRarity] = useState<FilterOption>('all');

@@ -91,6 +91,7 @@ export interface GalacticXNFT {
   collection: string;
   nonce: number;
   name: string;
+  realPlayerName?: string; // Real player name from playersData.json
   owner: string;
   imageUrl?: string;
   attributes: NFTAttributes;

@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useGetAccount, getAccountProvider } from 'lib';
-import { clearSupabaseAuth } from './useSupabaseAuth';
+import { clearAuthData } from 'contexts/AuthContext';
 
 export const useWalletDisconnect = () => {
   const { address } = useGetAccount();
@@ -11,7 +11,7 @@ export const useWalletDisconnect = () => {
       console.log('🔌 [WalletDisconnect] Déconnexion du wallet...');
       
       // 1. Nettoyer l'authentification Supabase
-      clearSupabaseAuth();
+      clearAuthData();
       
       // 2. Déconnecter le wallet MultiversX
       if (provider && address) {

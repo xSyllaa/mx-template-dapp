@@ -10,7 +10,23 @@
     "points": "points",
     "close": "Fermer",
     "retry": "Réessayer",
-    "back": "Retour"
+    "back": "Retour",
+    "all": "Tous",
+    "anonymous": "Anonyme",
+    "months": {
+      "january": "Janvier",
+      "february": "Février",
+      "march": "Mars",
+      "april": "Avril",
+      "may": "Mai",
+      "june": "Juin",
+      "july": "Juillet",
+      "august": "Août",
+      "september": "Septembre",
+      "october": "Octobre",
+      "november": "Novembre",
+      "december": "Décembre"
+    }
   },
   "nav": {
     "dashboard": "Tableau de bord",
@@ -101,6 +117,162 @@
       "noActivity": "Aucune activité récente pour le moment"
     }
   },
+  "pages": {
+    "warGames": {
+      "title": "War Games",
+      "subtitle": "Construis ton équipe ultime et défie les autres",
+      "activeCount": "{{count}} war game(s) actif(s)",
+      "field": {
+        "title": "Ton Équipe",
+        "formation": "Formation: 4-4-2",
+        "playersPlaced": "joueurs placés",
+        "empty": "Glisse les NFTs pour construire ton équipe",
+        "complete": "Complète",
+        "authRequired": "Signer pour sauvegarder"
+      },
+      "nftList": {
+        "title": "Tes NFTs",
+        "search": "Rechercher des NFTs...",
+        "noNFTs": "Aucun NFT disponible",
+        "total": "{{total}} au total • {{placed}} placés"
+      },
+      "actions": {
+        "saveTeam": "Sauvegarder l'Équipe",
+        "clearTeam": "Tout Effacer",
+        "challenge": "Défier un Joueur",
+        "teamNamePlaceholder": "Entrez le nom de l'équipe...",
+        "teamNameRequired": "Le nom de l'équipe est requis",
+        "showTeams": "Afficher les Équipes",
+        "hideTeams": "Masquer les Équipes"
+      },
+      "cardDesign": {
+        "label": "Design des Cartes",
+        "vertical": "Vertical",
+        "horizontal": "Horizontal"
+      },
+      "savedTeams": {
+        "title": "Équipes Sauvegardées",
+        "empty": "Aucune équipe sauvegardée",
+        "players": "joueurs",
+        "load": "Charger",
+        "confirmDelete": "Êtes-vous sûr de vouloir supprimer \"{{teamName}}\" ?"
+      },
+      "errors": {
+        "notEnoughNFTs": "Tu as besoin d'au moins 11 NFTs pour créer une équipe",
+        "needMoreNFTs": "Tu as {{current}} NFTs, mais il en faut {{needed}} pour créer une équipe",
+        "incompatiblePosition": "Ce NFT ne peut pas être placé ici",
+        "loadingError": "Échec du chargement des NFTs"
+      },
+      "mode": {
+        "title": "Sélectionne le Mode de War Game",
+        "subtitle": "Choisis comment tu veux jouer",
+        "create": {
+          "title": "Créer un War Game",
+          "description": "Crée un nouveau war game et attends qu'un adversaire te rejoigne",
+          "features": {
+            "selectTeam": "Sélectionne ton équipe de 11 joueurs",
+            "setPoints": "Définis les points en jeu",
+            "setDeadline": "Fixe la date limite d'inscription"
+          },
+          "button": "Créer une Partie"
+        },
+        "join": {
+          "title": "Rejoindre un War Game",
+          "description": "Parcours les war games disponibles et défie d'autres joueurs",
+          "features": {
+            "browseGames": "Parcours les war games disponibles",
+            "selectTeam": "Choisis ton équipe",
+            "challengeOpponent": "Défie l'adversaire"
+          },
+          "button": "Rejoindre une Partie",
+          "noGamesAvailable": "Aucun war game disponible pour le moment"
+        }
+      },
+      "messages": {
+        "teamIncomplete": "Complète ton équipe (11 joueurs) avant de valider",
+        "authRequired": "Signe le message pour t'authentifier",
+        "createSuccess": "War Game créé avec succès ! En attente d'un adversaire.",
+        "joinSuccess": "Tu as rejoint le war game avec succès ! Bonne chance !",
+        "genericError": "Échec de l'envoi. Réessaye.",
+        "loadWarGamesError": "Échec du chargement des war games disponibles"
+      },
+      "create": {
+        "title": "Créer un War Game",
+        "subtitle": "Configure ton war game et attends un adversaire",
+        "button": "Créer le War Game",
+        "fields": {
+          "team": {
+            "label": "Sélectionne Ton Équipe",
+            "noTeams": "Tu n'as aucune équipe sauvegardée. Crée d'abord une équipe.",
+            "description": "Choisis quelle équipe tu veux utiliser pour ce war game"
+          },
+          "points": {
+            "label": "Points en Jeu",
+            "description": "Combien de points sont en jeu ? Le gagnant remporte tout !"
+          },
+          "deadline": {
+            "label": "Date Limite d'Inscription",
+            "description": "Les adversaires doivent rejoindre avant cette date"
+          }
+        },
+        "summary": {
+          "title": "Résumé du War Game",
+          "team": "Équipe",
+          "stake": "Points en Jeu",
+          "deadline": "Date Limite"
+        },
+        "errors": {
+          "loadTeams": "Échec du chargement des équipes",
+          "selectTeam": "Veuillez sélectionner une équipe",
+          "invalidPoints": "Les points doivent être supérieurs à 0",
+          "invalidDeadline": "Veuillez sélectionner une date limite valide",
+          "createFailed": "Échec de la création du war game"
+        }
+      },
+      "join": {
+        "title": "Rejoindre un War Game",
+        "subtitle": "Sélectionne un war game et défie ton adversaire",
+        "button": "Rejoindre le War Game",
+        "fields": {
+          "warGame": {
+            "label": "Sélectionne le War Game",
+            "noGames": "Aucun war game disponible pour le moment. Crée-en un !",
+            "description": "Choisis quel war game tu veux rejoindre",
+            "anonymous": "Anonyme"
+          },
+          "team": {
+            "label": "Sélectionne Ton Équipe",
+            "noTeams": "Tu n'as aucune équipe sauvegardée. Crée d'abord une équipe.",
+            "description": "Choisis quelle équipe tu veux utiliser"
+          }
+        },
+        "warGameDetails": {
+          "title": "Détails du War Game",
+          "creator": "Créateur",
+          "stake": "Points en Jeu",
+          "deadline": "Date Limite",
+          "created": "Créé le"
+        },
+        "summary": {
+          "title": "Important",
+          "message": "Tu mises {{points}} points. Le gagnant remporte tout !"
+        },
+        "errors": {
+          "loadData": "Échec du chargement des données",
+          "selectWarGame": "Veuillez sélectionner un war game",
+          "selectTeam": "Veuillez sélectionner une équipe",
+          "joinFailed": "Échec de la participation au war game"
+        }
+      },
+      "testMode": {
+        "show": "Utiliser une Adresse de Test",
+        "hide": "Masquer l'Adresse de Test",
+        "placeholder": "Entrez l'adresse du portefeuille à tester...",
+        "search": "Charger les NFTs",
+        "loading": "Chargement des NFTs pour l'adresse de test..."
+      }
+    }
+  },
   "predictions": {
     "title": "Prédictions",
     "subtitle": "Prédis les résultats des matchs et gagne des points",
@@ -129,6 +301,26 @@
       "resulted": "Résulté",
       "cancelled": "Annulé"
     },
+    "betTypes": {
+      "result": "Résultat du Match",
+      "over_under": "Plus/Moins",
+      "scorer": "Premier Buteur",
+      "both_teams_score": "Les Deux Équipes Marquent"
+    },
+    "calculationTypes": {
+      "fixedOdds": "Cotes Fixes",
+      "poolRatio": "Ratio Pool"
+    },
+    "filters": {
+      "title": "Filtres",
+      "betType": "Type de Pari",
+      "calculation": "Type de Calcul",
+      "competition": "Compétition",
+      "status": "Statut",
+      "clearAll": "Tout Effacer",
+      "noResults": "Aucune prédiction ne correspond à vos filtres",
+      "results": "{{count}} résultat(s)"
+    },
     "stats": {
       "bettingPool": "Cagnotte",
       "totalWagered": "Total Parié",
@@ -139,6 +331,8 @@
       "noBetsYet": "Aucun pari placé. Soyez le premier !",
       "noBets": "Aucun pari",
       "totalParticipants": "Total des Participants",
+      "viewDetails": "Voir les Détails",
+      "hideDetails": "Masquer les Détails",
       "betType": {
         "fixedOdds": "Cotes Fixes",
         "poolRatio": "Ratio Pool"
@@ -201,10 +395,6 @@
     "predictions": {
       "title": "Prédictions",
       "subtitle": "Parie sur les résultats des matchs et gagne des points"
-    },
-    "warGames": {
-      "title": "War Games",
-      "subtitle": "Affronte d'autres joueurs avec tes 11 NFTs"
     },
     "leaderboards": {
       "title": "Classements",
@@ -326,6 +516,10 @@
         "hide": "🔒 Masquer le test",
         "placeholder": "erd1...",
         "search": "🔍 Rechercher"
+      },
+      "detail": {
+        "viewOnExplorer": "Voir sur l'Explorer",
+        "viewOnTransfermarkt": "Voir sur Transfermarkt"
       }
     },
     "teamOfWeek": {
@@ -352,7 +546,18 @@
     "rankPosition": "Rang {{rank}}",
     "notRanked": "Tu n'es pas encore classé",
     "startEarning": "Commence à gagner des points pour apparaître dans les classements !",
-    "noData": "Aucune donnée de classement disponible pour cette période"
+    "noData": "Aucune donnée de classement disponible pour cette période",
+    "periodDates": {
+      "allTime": "Du {{start}} au {{end}}",
+      "weekly": "Semaine {{week}} de {{year}} ({{start}} au {{end}})",
+      "monthly": "{{month}} {{year}} ({{start}} au {{end}})"
+    },
+    "dateFormat": {
+      "from": "Du",
+      "to": "au",
+      "week": "Semaine",
+      "of": "de"
+    }
   },
   "themes": {
     "dark": "Sombre",
@@ -379,6 +584,69 @@
     },
     "success": "Pseudo mis à jour avec succès !",
     "error": "Échec de la mise à jour du pseudo"
+  },
+  "toasts": {
+    "predictions": {
+      "betPlaced": "Pari enregistré !",
+      "betPlacedMessage": "{{homeTeam}} vs {{awayTeam}} - {{option}} ({{amount}} pts)",
+      "error": "Erreur",
+      "errorMessage": "Veuillez sélectionner une option et vous assurer d'être connecté",
+      "invalidAmount": "Montant invalide",
+      "minBetMessage": "Mise minimum: {{min}} points",
+      "maxBetMessage": "Mise maximum: {{max}} points",
+      "insufficientPoints": "Points insuffisants",
+      "insufficientPointsMessage": "Vous n'avez pas assez de points pour ce pari",
+      "betFailed": "Échec",
+      "betFailedMessage": "Votre prédiction n'a pas pu être enregistrée. Veuillez réessayer."
+    },
+    "admin": {
+      "resultValidated": "Résultat Validé",
+      "resultValidatedMessage": "Le résultat a été validé avec succès",
+      "validationError": "Erreur de Validation",
+      "validationErrorMessage": "Échec de la validation du résultat",
+      "predictionDeleted": "Prédiction Supprimée",
+      "predictionDeletedMessage": "La prédiction a été supprimée avec succès",
+      "deletionError": "Erreur de Suppression",
+      "deletionErrorMessage": "Échec de la suppression de la prédiction",
+      "statusChanged": "Statut Modifié",
+      "statusChangedMessage": "Le statut a été modifié avec succès",
+      "statusError": "Erreur de Modification",
+      "statusErrorMessage": "Échec de la modification du statut",
+      "predictionCreated": "Prédiction Créée !",
+      "predictionCreatedMessage": "{{homeTeam}} vs {{awayTeam}} - {{competition}}",
+      "managePredictions": "Gérer les Prédictions",
+      "managePredictionsSubtitle": "Gérer, valider ou supprimer des prédictions",
+      "failedToLoad": "Échec du chargement des prédictions",
+      "noPredictionsYet": "Aucune prédiction créée pour le moment",
+      "tableHeaders": {
+        "match": "Match",
+        "participants": "Participants",
+        "poolTotal": "Cagnotte Totale",
+        "topOption": "Option Populaire",
+        "status": "Statut",
+        "startDate": "Date de Début",
+        "actions": "Actions"
+      },
+      "statusMessages": {
+        "closed": "Prédiction Fermée - Plus de paris acceptés",
+        "open": "Prédiction Rouverte - Paris acceptés",
+        "cancelled": "Prédiction Annulée"
+      },
+      "participants": {
+        "none": "Aucun pari",
+        "one": "{{count}} joueur",
+        "other": "{{count}} joueurs"
+      },
+      "refunded": "{{count}} joueurs remboursés ({{amount}} points)",
+      "topOption": {
+        "none": "Aucun pari",
+        "unknown": "Inconnu"
+      },
+      "actions": {
+        "close": "Fermer",
+        "cannotDelete": "Impossible de supprimer les prédictions validées"
+      }
+    }
   }
 }
 

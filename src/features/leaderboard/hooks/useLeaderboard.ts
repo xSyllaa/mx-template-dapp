@@ -3,12 +3,18 @@ import { supabase } from 'lib/supabase/client';
 import { getLeaderboard } from '../services/leaderboardService';
 import type { LeaderboardEntry, LeaderboardFilters } from '../types';
 
+const DEBUG = import.meta.env.DEV;
+
 interface UseLeaderboardReturn {
   entries: LeaderboardEntry[];
   loading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
 }
+
+// Cache for leaderboard data (5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes in milliseconds
+const cache = new Map<string, { data: LeaderboardEntry[]; timestamp: number }>();
 
 /**
  * Custom hook to fetch and subscribe to leaderboard updates
@@ -25,32 +31,65 @@ export const useLeaderboard = (
   const lastFetchRef = useRef<string>('');
 
   // Memoize filters to prevent unnecessary re-renders
-  const memoizedFilters = useMemo(() => filters, [
+  const memoizedFilters = useMemo(() => {
+    return {
+      type: filters.type,
+      week: filters.week,
+      month: filters.month,
+      year: filters.year,
+      sourceTypes: filters.sourceTypes
+    };
+  }, [
     filters.type,
     filters.week,
     filters.month,
     filters.year,
-    JSON.stringify(filters.sourceTypes || [])
+    // Use stable reference for sourceTypes
+    filters.sourceTypes?.join(',') ?? ''
   ]);
 
-  // Fetch leaderboard data
+  // Fetch leaderboard data with cache
   const fetchLeaderboard = useCallback(async () => {
     const filterKey = JSON.stringify(memoizedFilters);
     
+    // Check cache first
+    const cached = cache.get(filterKey);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      if (DEBUG) console.log('🔁 [Leaderboard] Source: cache');
+      if (DEBUG && cached.data.length) {
+        console.log('🏆 [Leaderboard] Current rankings:', cached.data.map(entry =>
+          `${entry.rank}. ${entry.username || 'Anonymous'} - ${entry.points} points`
+        ).join(', '));
+      }
+      setEntries(cached.data);
+      setLoading(false);
+      return;
+    }
+    
     // Prevent duplicate fetches
     if (lastFetchRef.current === filterKey) {
-      console.log('🔄 [useLeaderboard] Skipping duplicate fetch:', filterKey);
       return;
     }
 
     try {
-      console.log('🏆 [useLeaderboard] Fetching leaderboard:', memoizedFilters);
       setLoading(true);
       setError(null);
       lastFetchRef.current = filterKey;
 
       const data = await getLeaderboard(memoizedFilters);
-      console.log('🏆 [useLeaderboard] Received data:', data.length, 'entries');
+      
+      // Cache the data
+      cache.set(filterKey, { data, timestamp: now });
+      
+      if (DEBUG) console.log('🔁 [Leaderboard] Source: supabase');
+      if (DEBUG && data.length) {
+        console.log('🏆 [Leaderboard] Current rankings:', data.map(entry =>
+          `${entry.rank}. ${entry.username || 'Anonymous'} - ${entry.points} points`
+        ).join(', '));
+      }
+      
       setEntries(data);
     } catch (err) {
       console.error('[useLeaderboard] Error fetching leaderboard:', err);
@@ -71,7 +110,6 @@ export const useLeaderboard = (
   useEffect(() => {
     if (!enableRealtime) return;
 
-    console.log('🔔 [useLeaderboard] Setting up real-time subscription');
     const channel = supabase
       .channel(`leaderboard-updates-${memoizedFilters.type}`)
       .on(
@@ -82,21 +120,21 @@ export const useLeaderboard = (
           table: 'points_transactions'
         },
         (payload) => {
-          console.log('🔔 [useLeaderboard] Real-time update received:', payload);
-          // Debounce: wait 2s before refreshing
+          // Clear cache and force refresh
+          const filterKey = JSON.stringify(memoizedFilters);
+          cache.delete(filterKey);
+          lastFetchRef.current = ''; // Force refresh
           setTimeout(() => {
-            lastFetchRef.current = ''; // Force refresh
             fetchLeaderboard();
-          }, 2000);
+          }, 1000); // Reduced debounce time
         }
       )
       .subscribe();
 
     return () => {
-      console.log('🔔 [useLeaderboard] Cleaning up real-time subscription');
       supabase.removeChannel(channel);
     };
-  }, [enableRealtime, memoizedFilters.type]); // Only depend on type, not full filters
+  }, [enableRealtime, memoizedFilters.type, fetchLeaderboard]);
 
   return {
     entries,

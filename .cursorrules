@@ -128,10 +128,70 @@ if (user?.role !== 'king') {
 }
 ```
 
+### Supabase Authentication avec JWT Custom
+
+#### AuthContext Pattern (RECOMMANDÉ)
+```typescript
+// ✅ Utiliser AuthContext comme source unique de vérité
+const { isAuthenticated, supabaseUserId, signIn } = useAuth();
+
+// Services avec userId direct
+await TeamService.createTeam(teamData, supabaseUserId!);
+```
+
+#### JWT Custom Structure
+```json
+{
+  "sub": "63df3e00-0785-4f4a-a782-bc4ee722f196",  // User ID
+  "wallet_address": "erd1...",
+  "role": "user",
+  "aud": "authenticated",
+  "exp": 1234567890,
+  "iat": 1234567890,
+  "iss": "supabase"
+}
+```
+
+#### RLS avec JWT Custom
+```sql
+-- ✅ Fonction pour extraire user_id du JWT custom
+CREATE OR REPLACE FUNCTION get_current_user_id()
+RETURNS UUID AS $$
+BEGIN
+  RETURN COALESCE(
+    (current_setting('request.jwt.claims', true)::json->>'sub')::uuid,
+    auth.uid() -- Fallback
+  );
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- ✅ Policies utilisant la fonction custom
+CREATE POLICY "Users can insert" ON war_game_teams
+  FOR INSERT WITH CHECK (get_current_user_id() = user_id);
+```
+
+#### Service Pattern avec userId Direct
+```typescript
+// ✅ Service avec userId en paramètre
+export class TeamService {
+  static async createTeam(teamData: CreateTeamData, userId: string): Promise<SavedTeam> {
+    if (!userId) throw new Error('User ID is required');
+    
+    const { data, error } = await supabase
+      .from('war_game_teams')
+      .insert({ user_id: userId, ...teamData });
+    
+    if (error) throw error;
+    return data;
+  }
+}
+```
+
 ### Supabase RLS Policies
 - **NEVER bypass RLS** in client code
 - **Trust the database**: Let PostgreSQL RLS handle permissions
-- **Validate on server**: Use Edge Functions for sensitive operations
+- **Use get_current_user_id()** for JWT custom authentication
+- **Pass userId directly** to services (don't rely on auth.uid())
 
 ## 📊 State Management
 

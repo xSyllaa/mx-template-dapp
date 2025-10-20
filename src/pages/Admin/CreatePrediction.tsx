@@ -2,7 +2,7 @@ import { useState, FormEvent, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { useGetAccount } from 'lib';
-import { useSupabaseAuth } from 'hooks/useSupabaseAuth';
+import { useAuth } from 'contexts/AuthContext';
 import { useToast } from 'hooks/useToast';
 import { ToastContainer } from 'components/Toast';
 import type { BetType, BetCalculationType, PredictionOption } from 'features/predictions/types';
@@ -12,7 +12,7 @@ export const CreatePrediction = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { address } = useGetAccount();
-  const { supabaseUserId, loading: authLoading } = useSupabaseAuth();
+  const { supabaseUserId, loading: authLoading } = useAuth();
   const { toasts, toast, removeToast } = useToast();
 
   // Debug auth status
@@ -156,8 +156,12 @@ export const CreatePrediction = () => {
 
       // Show success toast
       toast.success(
-        'Prédiction Créée !',
-        `${homeTeam} vs ${awayTeam} - ${competition}`,
+        t('toasts.admin.predictionCreated'),
+        t('toasts.admin.predictionCreatedMessage', {
+          homeTeam,
+          awayTeam,
+          competition
+        }),
         3000
       );
 

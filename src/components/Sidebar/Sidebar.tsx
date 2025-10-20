@@ -299,9 +299,6 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
           onSuccess={handleUsernameSuccess}
         />
       )}
-      
-      {/* Debug Info */}
-      {console.log('🔍 [Sidebar] Render - showUsernameEditor:', showUsernameEditor, 'userProfile:', userProfile)}
 
       {/* Toast Container for Notifications */}
       <ToastContainer toasts={toasts} onRemove={removeToast} />

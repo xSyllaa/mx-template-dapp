@@ -37,26 +37,29 @@ export const getCurrentDayOfWeek = (): DayOfWeek => {
 };
 
 /**
- * Calculate consecutive days from the start of the week
- * Returns the number of consecutive days claimed from Monday onwards
+ * Calculate consecutive days from the most recent claimed day backwards
+ * Returns the number of consecutive days claimed from the end of the streak
  */
 export const calculateConsecutiveDays = (claims: WeekClaims): number => {
   const daysOrder: DayOfWeek[] = [
-    'monday',
-    'tuesday',
-    'wednesday',
-    'thursday',
-    'friday',
+    'sunday',
     'saturday',
-    'sunday'
+    'friday',
+    'thursday',
+    'wednesday',
+    'tuesday',
+    'monday'
   ];
 
   let consecutive = 0;
+  let foundClaimedDay = false;
+  
   for (const day of daysOrder) {
     if (claims[day]) {
       consecutive++;
-    } else {
-      // Stop at first non-claimed day
+      foundClaimedDay = true;
+    } else if (foundClaimedDay) {
+      // Stop at first non-claimed day after finding claimed days
       break;
     }
   }
@@ -76,63 +79,30 @@ export const getClaimReward = (consecutiveDays: number): number => {
 };
 
 /**
- * Get user's JWT token from localStorage
- */
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('supabase.auth.token');
-};
-
-/**
- * Get or create the current week's streak record for a user
+ * Get the current week's streak record for a user (READ ONLY)
+ * Returns null if no streak exists yet - creation happens only on claim
  */
 export const getCurrentWeekStreak = async (
   userId: string
 ): Promise<WeekStreak | null> => {
   try {
     const weekStart = getCurrentWeekStart();
-    const token = getAuthToken();
 
-    if (!token) {
-      throw new Error('Authentication token not found. Please sign in.');
-    }
-
-    // Try to get existing record
+    // Read existing record only, do NOT create
     const { data, error } = await supabase
       .from('weekly_streaks')
       .select('*')
       .eq('user_id', userId)
       .eq('week_start', weekStart)
-      .single();
+      .maybeSingle();
 
-    if (error && error.code !== 'PGRST116') {
-      // PGRST116 = not found, which is ok
+    if (error) {
+      console.error('[StreakService] Error getting current week streak:', error);
       throw error;
     }
 
-    // If record exists, return it
-    if (data) {
-      return data as WeekStreak;
-    }
-
-    // Create new record for this week
-    const { data: newRecord, error: insertError } = await supabase
-      .from('weekly_streaks')
-      .insert({
-        user_id: userId,
-        week_start: weekStart,
-        claims: {},
-        total_points: 0,
-        bonus_tokens: 0,
-        completed: false
-      })
-      .select()
-      .single();
-
-    if (insertError) {
-      throw insertError;
-    }
-
-    return newRecord as WeekStreak;
+    // Return data or null (creation happens only on claim)
+    return data ? (data as WeekStreak) : null;
   } catch (error) {
     console.error('[StreakService] Error getting current week streak:', error);
     throw error;
@@ -141,23 +111,41 @@ export const getCurrentWeekStreak = async (
 
 /**
  * Claim daily reward for a specific day
+ * Creates the week streak record if it doesn't exist yet
  */
 export const claimDailyReward = async (
   userId: string,
   dayOfWeek: DayOfWeek
 ): Promise<ClaimRewardResponse> => {
   try {
-    const token = getAuthToken();
-
-    if (!token) {
-      throw new Error('Authentication token not found. Please sign in.');
-    }
-
-    // Get current week streak
-    const weekStreak = await getCurrentWeekStreak(userId);
-
+    // Get current week streak (may be null if first claim)
+    let weekStreak = await getCurrentWeekStreak(userId);
+    
+    // Create week streak only if it doesn't exist (first claim of the week)
     if (!weekStreak) {
-      throw new Error('Failed to get or create week streak record');
+      const weekStart = getCurrentWeekStart();
+      console.log('[StreakService] First claim of the week - Creating streak record');
+      
+      const { data: created, error: createError } = await supabase
+        .from('weekly_streaks')
+        .insert({
+          user_id: userId,
+          week_start: weekStart,
+          claims: {},
+          total_points: 0,
+          bonus_tokens: 0,
+          completed: false
+        })
+        .select()
+        .single();
+        
+      if (createError) {
+        console.error('[StreakService] Error creating streak record:', createError);
+        throw createError;
+      }
+      
+      weekStreak = created as WeekStreak;
+      console.log('[StreakService] Streak record created:', weekStreak.id);
     }
 
     // Check if already claimed
@@ -236,19 +224,13 @@ export const claimDailyReward = async (
 };
 
 /**
- * Get streak history for the last N weeks
+ * Get streak history for the last N weeks (READ ONLY)
  */
 export const getStreakHistory = async (
   userId: string,
   weeksCount = 4
 ): Promise<WeekStreak[]> => {
   try {
-    const token = getAuthToken();
-
-    if (!token) {
-      throw new Error('Authentication token not found. Please sign in.');
-    }
-
     const { data, error } = await supabase
       .from('weekly_streaks')
       .select('*')
@@ -257,6 +239,7 @@ export const getStreakHistory = async (
       .limit(weeksCount);
 
     if (error) {
+      console.error('[StreakService] Error getting streak history:', error);
       throw error;
     }
 

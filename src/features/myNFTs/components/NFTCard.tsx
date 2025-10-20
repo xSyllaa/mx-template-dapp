@@ -93,10 +93,17 @@ export const NFTCard = ({ nft, onClick }: NFTCardProps) => {
       
       {/* NFT Info */}
       <div className="p-4">
-        {/* Name */}
+        {/* Name - Show real player name if available */}
         <h3 className="font-bold text-primary text-base mb-2 truncate">
-          {nft.name}
+          {nft.realPlayerName || nft.name}
         </h3>
+        
+        {/* Show original name if we have a real player name */}
+        {nft.realPlayerName && nft.name !== nft.realPlayerName && (
+          <p className="text-[10px] text-tertiary mb-2 truncate">
+            {nft.name}
+          </p>
+        )}
         
         {/* Position & Number */}
         <div className="flex items-center gap-2 mb-2">

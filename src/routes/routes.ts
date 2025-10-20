@@ -12,7 +12,8 @@ import {
   TeamOfWeek,
   Admin,
   CreatePrediction,
-  ManagePredictions
+  ManagePredictions,
+  SelectTeamOfWeek
 } from 'pages';
 import { RouteType } from 'types';
 
@@ -96,6 +97,13 @@ export const routes: RouteWithTitleType[] = [
     path: '/admin/manage-predictions',
     title: 'Manage Predictions',
     component: ManagePredictions,
+    authenticatedRoute: true,
+    adminRoute: true
+  },
+  {
+    path: '/admin/select-team-of-week',
+    title: 'Select Team of Week',
+    component: SelectTeamOfWeek,
     authenticatedRoute: true,
     adminRoute: true
   },

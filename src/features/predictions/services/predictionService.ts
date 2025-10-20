@@ -12,14 +12,15 @@ import type {
 // ============================================================
 
 /**
- * Get all active predictions (status = 'open')
+ * Get all active predictions (status = 'open' or 'closed')
+ * Closed predictions are shown but users can't bet on them
  */
 export const getActivePredictions = async (): Promise<Prediction[]> => {
   try {
     const { data, error } = await supabase
       .from('predictions')
       .select('*')
-      .eq('status', 'open')
+      .in('status', ['open', 'closed'])
       .order('start_date', { ascending: true });
 
     if (error) throw error;
@@ -421,6 +422,52 @@ export const deletePrediction = async (predictionId: string): Promise<void> => {
     if (error) throw error;
   } catch (error) {
     console.error('[PredictionService] Error deleting prediction:', error);
+    throw error;
+  }
+};
+
+/**
+ * Delete a prediction with automatic refund of all bets (admin only)
+ * Cannot delete predictions that have been validated (status = 'resulted')
+ */
+export const deletePredictionWithRefund = async (
+  predictionId: string
+): Promise<{ refunded_users: number; refunded_amount: number }> => {
+  try {
+    // Check if prediction can be deleted (not resulted)
+    const prediction = await getPredictionById(predictionId);
+    if (!prediction) {
+      throw new Error('Prediction not found');
+    }
+    
+    if (prediction.status === 'resulted') {
+      throw new Error('Cannot delete a validated prediction');
+    }
+    
+    // Refund all bets using the RPC function
+    const { data: refundResult, error: refundError } = await supabase
+      .rpc('refund_prediction_bets', { p_prediction_id: predictionId });
+    
+    if (refundError) {
+      console.error('[PredictionService] Error refunding bets:', refundError);
+      throw refundError;
+    }
+    
+    // Delete prediction
+    await deletePrediction(predictionId);
+    
+    console.log('[PredictionService] Successfully deleted prediction with refund:', {
+      predictionId,
+      refundedUsers: refundResult.users_refunded,
+      refundedAmount: refundResult.total_refunded
+    });
+    
+    return {
+      refunded_users: refundResult.users_refunded,
+      refunded_amount: refundResult.total_refunded
+    };
+  } catch (error) {
+    console.error('[PredictionService] Error deleting prediction with refund:', error);
     throw error;
   }
 };

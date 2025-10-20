@@ -35,6 +35,13 @@ export const Admin = () => {
       path: '/admin/leaderboards',
       color: 'bg-yellow-500/20 border-yellow-500/30 hover:border-yellow-500',
       disabled: true
+    },
+    {
+      title: 'Select Team of the Week',
+      description: 'Sélectionner l\'équipe de la semaine et récupérer les holders',
+      icon: '⭐',
+      path: '/admin/select-team-of-week',
+      color: 'bg-purple-500/20 border-purple-500/30 hover:border-purple-500'
     }
   ];
 
@@ -84,6 +91,7 @@ export const Admin = () => {
           </button>
         ))}
       </div>
+
 
       {/* Info Box */}
       <div className="mt-8 p-6 bg-[var(--mvx-bg-accent-color)] rounded-xl border border-[var(--mvx-border-color-secondary)]">

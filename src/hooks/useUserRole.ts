@@ -39,43 +39,27 @@ export const useUserRole = () => {
       try {
         setLoading(true);
         
-        // Étape 1 : Chercher le profil existant
+        // Chercher le profil existant (créé par l'Edge Function auth-multiversx)
         const { data, error: fetchError } = await supabase
           .from('users')
           .select('id, wallet_address, username, username_last_modified, role, total_points, nft_count')
           .eq('wallet_address', address)
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to avoid error on 0 rows
 
         if (fetchError) {
-          // Profil n'existe pas (code PGRST116 = no rows returned)
-          if (fetchError.code === 'PGRST116') {
-            console.log('👤 [useUserRole] Profil non trouvé → Création d\'un nouveau profil');
-            
-            // Étape 2 : Créer un nouveau profil
-            const { data: newUser, error: insertError } = await supabase
-              .from('users')
-              .insert({
-                wallet_address: address,
-                role: 'user',
-                total_points: 0,
-                nft_count: 0
-              })
-              .select('id, wallet_address, username, username_last_modified, role, total_points, nft_count')
-              .single();
+          console.error('❌ [useUserRole] Erreur lors de la récupération:', fetchError);
+          throw fetchError;
+        }
 
-            if (insertError) throw insertError;
-            
-            console.log('✅ [useUserRole] Nouveau profil créé:', {
-              id: newUser.id,
-              wallet: newUser.wallet_address,
-              role: newUser.role,
-              points: newUser.total_points
-            });
-            
-            setUserProfile(newUser);
-          } else {
-            throw fetchError;
-          }
+        if (!data) {
+          // User n'existe pas encore (Edge Function n'a pas été appelée)
+          console.warn('⚠️ [useUserRole] Profil non trouvé - L\'Edge Function n\'a peut-être pas créé l\'user');
+          console.log('💡 [useUserRole] Vérifiez que l\'authentification MultiversX a bien été effectuée');
+          
+          // Ne pas créer ici - laisser l'Edge Function gérer la création
+          // L'user doit d'abord s'authentifier via AuthContext
+          setUserProfile(null);
+          setError(new Error('User not authenticated. Please sign in first.'));
         } else {
           // Profil existe
           console.log('✅ [useUserRole] Profil trouvé:', {
@@ -95,9 +79,8 @@ export const useUserRole = () => {
           }
           
           setUserProfile(data);
+          setError(null);
         }
-
-        setError(null);
       } catch (err) {
         console.error('❌ [useUserRole] Erreur:', err);
         setError(err as Error);

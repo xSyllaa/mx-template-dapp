@@ -20,8 +20,9 @@ interface UseMyNFTsReturn {
 /**
  * Hook to fetch and manage user's GalacticX NFTs
  * @param customAddress - Optional custom address to fetch NFTs for (for testing)
+ * @param includeErrors - Whether to include NFTs with metadata errors (for War Games)
  */
-export const useMyNFTs = (customAddress?: string): UseMyNFTsReturn => {
+export const useMyNFTs = (customAddress?: string, includeErrors: boolean = false): UseMyNFTsReturn => {
   const { address: connectedAddress } = useGetAccount();
   
   // Use custom address if provided, otherwise use connected wallet address
@@ -53,7 +54,13 @@ export const useMyNFTs = (customAddress?: string): UseMyNFTsReturn => {
     setLoading(true);
     
     try {
-      const result: NFTOwnershipResult = await fetchUserNFTs(address);
+      console.log(`🔍 useMyNFTs: Fetching NFTs for address: ${address}`);
+      console.log(`🔧 useMyNFTs: Include errors mode: ${includeErrors}`);
+      
+      const result: NFTOwnershipResult = await fetchUserNFTs(address, includeErrors);
+      
+      console.log(`✅ useMyNFTs: Successfully fetched ${result.nftCount} NFTs`);
+      console.log(`📋 useMyNFTs: NFTs array length: ${result.nfts.length}`);
       
       setNFTs(result.nfts);
       setNFTCount(result.nftCount);
@@ -100,7 +107,13 @@ export const useMyNFTs = (customAddress?: string): UseMyNFTsReturn => {
     setLoading(true);
     
     try {
-      const result: NFTOwnershipResult = await fetchUserNFTs(testAddress);
+      console.log(`🔍 fetchNFTsForAddress: Fetching NFTs for test address: ${testAddress}`);
+      console.log(`🔧 fetchNFTsForAddress: Include errors mode: ${includeErrors}`);
+      
+      const result: NFTOwnershipResult = await fetchUserNFTs(testAddress, includeErrors);
+      
+      console.log(`✅ fetchNFTsForAddress: Successfully fetched ${result.nftCount} NFTs`);
+      console.log(`📋 fetchNFTsForAddress: NFTs array length: ${result.nfts.length}`);
       
       setNFTs(result.nfts);
       setNFTCount(result.nftCount);

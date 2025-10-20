@@ -11,6 +11,7 @@ export type LeaderboardType = 'all_time' | 'weekly' | 'monthly';
 export type PointsSourceType =
   | 'prediction_win'
   | 'prediction_bet'
+  | 'prediction_refund'  // NOUVEAU pour remboursements
   | 'streak_claim'
   | 'war_game_win'
   | 'totw_bonus'
