@@ -196,4 +196,36 @@ export class TeamService {
     
     return updatedSlots;
   }
+
+  /**
+   * Get team details for war game history display
+   */
+  static async getTeamDetails(teamId: string): Promise<{
+    teamName: string;
+    formation: string;
+    playerCount: number;
+    players: Array<{
+      position: string;
+      nftIdentifier: string;
+      playerName?: string;
+    }>;
+  } | null> {
+    const team = await this.getTeam(teamId);
+    if (!team) return null;
+
+    const players = team.slots
+      .filter(slot => slot.nftIdentifier)
+      .map(slot => ({
+        position: slot.position,
+        nftIdentifier: slot.nftIdentifier,
+        playerName: slot.playerName || slot.nftIdentifier.split('-').pop() || 'Unknown'
+      }));
+
+    return {
+      teamName: team.team_name,
+      formation: team.formation,
+      playerCount: players.length,
+      players
+    };
+  }
 }

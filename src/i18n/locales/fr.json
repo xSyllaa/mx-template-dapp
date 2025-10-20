@@ -185,14 +185,18 @@
             "challengeOpponent": "Défie l'adversaire"
           },
           "button": "Rejoindre une Partie",
-          "noGamesAvailable": "Aucun war game disponible pour le moment"
-        }
+          "noGamesAvailable": "Aucun war game disponible pour le moment",
+          "noGamesTooltip": "Aucun war game actif disponible"
+        },
+        "notEnoughNFTs": "Tu as besoin de {needed} NFTs (tu en as {current})",
+        "needMoreNFTsTooltip": "Tu as besoin d'au moins {needed} NFTs pour participer aux War Games. Tu en as actuellement {current}."
       },
       "messages": {
         "teamIncomplete": "Complète ton équipe (11 joueurs) avant de valider",
         "authRequired": "Signe le message pour t'authentifier",
         "createSuccess": "War Game créé avec succès ! En attente d'un adversaire.",
         "joinSuccess": "Tu as rejoint le war game avec succès ! Bonne chance !",
+        "teamSavedSuccess": "Équipe sauvegardée avec succès !",
         "genericError": "Échec de l'envoi. Réessaye.",
         "loadWarGamesError": "Échec du chargement des war games disponibles"
       },
@@ -270,6 +274,36 @@
         "placeholder": "Entrez l'adresse du portefeuille à tester...",
         "search": "Charger les NFTs",
         "loading": "Chargement des NFTs pour l'adresse de test..."
+      },
+      "activeGames": {
+        "title": "War Games Actifs",
+        "stake": "Mise",
+        "deadline": "Date Limite",
+        "joinButton": "Rejoindre ce War Game",
+        "ownWarGame": "Ton War Game"
+      },
+      "history": {
+        "title": "Historique War Games",
+        "loading": "Chargement de l'historique...",
+        "noHistory": "Aucun War Game",
+        "noHistoryDescription": "Les war games terminés apparaîtront ici",
+        "stake": "Mise",
+        "completed": "Terminé",
+        "creator": "Créateur",
+        "opponent": "Adversaire",
+        "username": "Pseudo",
+        "address": "Adresse",
+        "score": "Score",
+        "teamId": "ID Équipe",
+        "teamComposition": "Composition d'Équipe",
+        "loadingTeam": "Chargement des détails de l'équipe",
+        "timeline": "Chronologie",
+        "created": "Créé",
+        "started": "Démarré",
+        "completedAt": "Terminé",
+        "winner": "Vainqueur",
+        "youWon": "Tu as gagné",
+        "noWinner": "Aucun Vainqueur"
       }
     }
   },
@@ -492,9 +526,9 @@
           "all": "Toutes les Nationalités"
         },
         "search": {
-          "placeholder": "Rechercher par nom, position, nationalité...",
+          "placeholder": "Rechercher par nom de joueur, position, nationalité...",
           "clear": "Effacer la recherche",
-          "hint": "Recherche dans tous les attributs"
+          "hint": "Recherche par nom de joueur et tous les attributs"
         }
       },
       "error": {

@@ -9,3 +9,8 @@ export { DragPreview } from './DragPreview';
 export { WarGameModeSelector } from './WarGameModeSelector';
 export { CreateWarGameModal } from './CreateWarGameModal';
 export { JoinWarGameModal } from './JoinWarGameModal';
+export { WarGameHistory } from './WarGameHistory';
+export { WarGameModeButtons } from './WarGameModeButtons';
+export { ActiveWarGamesList } from './ActiveWarGamesList';
+export { WarGameConfiguration } from './WarGameConfiguration';
+export { TeamBuildingInterface } from './TeamBuildingInterface';

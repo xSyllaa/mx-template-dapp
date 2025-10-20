@@ -2,7 +2,15 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGetAccount } from 'lib/sdkDapp';
 import { useMyNFTs } from 'features/myNFTs';
-import { FootballField, NFTListPanel, useWarGameTeam, SavedTeamsList, WarGameService } from 'features/warGames';
+import { 
+  useWarGameTeam, 
+  WarGameService, 
+  WarGameHistory,
+  WarGameModeButtons,
+  ActiveWarGamesList,
+  WarGameConfiguration,
+  TeamBuildingInterface
+} from 'features/warGames';
 import { TeamService } from 'features/warGames/services/teamService';
 import type { WarGameWithDetails } from 'features/warGames/types';
 import { Button } from 'components/Button';
@@ -15,14 +23,23 @@ export const WarGames = () => {
   const { address } = useGetAccount();
   const { isAuthenticated, supabaseUserId, signIn } = useAuth();
   
+  // War Game mode state (must be declared early for conditional NFT loading)
+  const [warGameMode, setWarGameMode] = useState<WarGameMode>('select');
+  
   // Test address functionality
   const [testAddress, setTestAddress] = useState('erd1z563juvyfl7etnev8ua65vzhx65ln0rp0m783hq2m2wgdxx6z83s9t2cmv');
   const [showTestInput, setShowTestInput] = useState(false);
   const [isLoadingTestAddress, setIsLoadingTestAddress] = useState(false);
   
   // Use test address by default, fallback to connected address
-  const currentAddress = testAddress;
-  const { nfts, hasNFTs, loading, error, fetchNFTsForAddress } = useMyNFTs(currentAddress, true);
+  const currentAddress = address || testAddress;
+  
+  // Only load NFTs when in create/join mode
+  const shouldLoadNFTs = warGameMode !== 'select';
+  const { nfts, loading, error, fetchNFTsForAddress } = useMyNFTs(
+    shouldLoadNFTs ? currentAddress : '', 
+    shouldLoadNFTs
+  );
   
   const {
     slots,
@@ -38,40 +55,23 @@ export const WarGames = () => {
     canDropOnSlot
   } = useWarGameTeam();
   
-  // Saved teams state
-  const [showSavedTeams, setShowSavedTeams] = useState(false);
-  const [teamName, setTeamName] = useState('');
-  const [showTeamNameError, setShowTeamNameError] = useState(false);
-  
-  // War Game mode state
-  const [warGameMode, setWarGameMode] = useState<WarGameMode>('select');
+  // War Games state
+  const [allWarGames, setAllWarGames] = useState<WarGameWithDetails[]>([]);
   const [openWarGames, setOpenWarGames] = useState<WarGameWithDetails[]>([]);
+  const [completedWarGames, setCompletedWarGames] = useState<WarGameWithDetails[]>([]);
+  const [loadingWarGames, setLoadingWarGames] = useState(false);
+  
+  // Form state
   const [selectedWarGameId, setSelectedWarGameId] = useState<string>('');
   const [pointsStake, setPointsStake] = useState<number>(100);
   const [entryDeadline, setEntryDeadline] = useState<string>('');
-  const [loadingWarGames, setLoadingWarGames] = useState(false);
-  const [activeWarGamesCount, setActiveWarGamesCount] = useState<number>(0);
+  const [teamName, setTeamName] = useState('');
+  const [showTeamNameError, setShowTeamNameError] = useState(false);
 
-  // Load active war games count on mount
+  // Load all war games on mount
   useEffect(() => {
-    loadActiveWarGamesCount();
+    loadAllWarGames();
   }, []);
-
-  // Load open war games when entering join mode
-  useEffect(() => {
-    if (warGameMode === 'join') {
-      loadOpenWarGames();
-    }
-  }, [warGameMode]);
-
-  const loadActiveWarGamesCount = async () => {
-    try {
-      const games = await WarGameService.getOpenWarGames();
-      setActiveWarGamesCount(games.length);
-    } catch (error) {
-      console.error('Failed to load active war games count:', error);
-    }
-  };
 
   // Set default deadline when entering create mode
   useEffect(() => {
@@ -82,30 +82,80 @@ export const WarGames = () => {
     }
   }, [warGameMode]);
 
-  // Debug logs (only on initial mount and key changes)
-  useEffect(() => {
-    console.log('⚔️ WarGames Debug:');
-    console.log('- Connected Address:', address);
-    console.log('- Test Address:', testAddress);
-    console.log('- Current Address:', currentAddress);
-    console.log('- NFTs count:', nfts.length);
-    console.log('- Has NFTs:', hasNFTs);
-    console.log('- Loading:', loading);
-    console.log('- Wallet connected:', !!address);
-    console.log('- Supabase authenticated:', isAuthenticated);
-    console.log('- Supabase user ID:', supabaseUserId);
-  }, [address, isAuthenticated]); // Ne se déclenche que si l'auth change
-
-  const loadOpenWarGames = async () => {
+  /**
+   * Load all war games and filter them
+   */
+  const loadAllWarGames = async () => {
+    console.log('🔄 Starting to load all war games...');
     setLoadingWarGames(true);
     try {
-      const games = await WarGameService.getOpenWarGames();
-      setOpenWarGames(games);
-      if (games.length > 0) {
-        setSelectedWarGameId(games[0].id);
+      const games = await WarGameService.getAllUserVisibleWarGames();
+      
+      console.log('📊 ALL WAR GAMES RETRIEVED:', games.length);
+      console.log('📊 Full list of war games:', games.map(g => ({
+        id: g.id,
+        status: g.status,
+        creatorId: g.creatorId,
+        opponentId: g.opponentId,
+        creatorUsername: g.creatorUsername,
+        opponentUsername: g.opponentUsername
+      })));
+      
+      setAllWarGames(games);
+      
+      // Filter games into 3 categories
+      const open = WarGameService.filterOpenWarGames(games);
+      
+      // In progress: in_progress status
+      const inProgress = games.filter(game => 
+        game.status === 'in_progress' &&
+        (game.creatorId === supabaseUserId || game.opponentId === supabaseUserId)
+      );
+      
+      // Completed: completed games where user participated
+      const completed = games.filter(game => 
+        game.status === 'completed' &&
+        (game.creatorId === supabaseUserId || game.opponentId === supabaseUserId)
+      );
+      
+      // History: combine in_progress and completed for history section
+      const history = [...inProgress, ...completed].sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+      
+      setOpenWarGames(open);
+      setCompletedWarGames(history); // Use history (in_progress + completed)
+      
+      console.log('✅ War games filtered:');
+      console.log('  📗 OPEN games (can join):', open.length);
+      console.log('  📗 Open games details:', open.map(g => ({
+        id: g.id,
+        status: g.status,
+        creatorUsername: g.creatorUsername,
+        pointsStake: g.pointsStake
+      })));
+      console.log('  📘 IN PROGRESS games:', inProgress.length);
+      console.log('  📘 In progress games details:', inProgress.map(g => ({
+        id: g.id,
+        status: g.status,
+        creatorUsername: g.creatorUsername,
+        opponentUsername: g.opponentUsername
+      })));
+      console.log('  📕 COMPLETED games:', completed.length);
+      console.log('  📕 Completed games details:', completed.map(g => ({
+        id: g.id,
+        status: g.status,
+        creatorUsername: g.creatorUsername,
+        opponentUsername: g.opponentUsername
+      })));
+      console.log('  📜 HISTORY games (in_progress + completed):', history.length);
+      
+      // Set first game as selected if available
+      if (open.length > 0) {
+        setSelectedWarGameId(open[0].id);
       }
     } catch (error) {
-      console.error('Failed to load open war games:', error);
+      console.error('Failed to load war games:', error);
       alert(t('pages.warGames.messages.loadWarGamesError'));
     } finally {
       setLoadingWarGames(false);
@@ -123,14 +173,6 @@ export const WarGames = () => {
     }
   };
 
-  const handleDropNFT = (slotId: string, nft: any) => {
-    placeNFT(slotId, nft);
-  };
-
-  const handleRemoveNFT = (slotId: string) => {
-    removeNFT(slotId);
-  };
-
   const handleSaveTeam = async () => {
     if (!teamName.trim()) {
       setShowTeamNameError(true);
@@ -140,7 +182,6 @@ export const WarGames = () => {
     if (!isAuthenticated) {
       try {
         await signIn();
-        // After successful sign in, try saving again
         setTimeout(() => handleSaveTeam(), 1000);
         return;
       } catch (error) {
@@ -160,22 +201,11 @@ export const WarGames = () => {
       }, supabaseUserId!);
       
       setTeamName('');
-      setShowSavedTeams(true);
-      console.log('Team saved successfully!');
+      alert('✅ ' + t('pages.warGames.messages.teamSavedSuccess'));
     } catch (error) {
       console.error('Failed to save team:', error);
-      
-      // Show user-friendly error message
       if (error instanceof Error) {
-        if (error.message.includes('Database table not found')) {
-          alert('Database setup required: Please run the migration script in Supabase dashboard to create the teams table.');
-        } else if (error.message.includes('User not authenticated')) {
-          alert('Please sign the message to authenticate and save your team.');
-        } else if (error.message.includes('Authentication error')) {
-          alert('Authentication error. Please refresh the page and try again.');
-        } else {
-          alert(`Failed to save team: ${error.message}`);
-        }
+        alert(`Failed to save team: ${error.message}`);
       } else {
         alert('Failed to save team. Please try again.');
       }
@@ -200,16 +230,16 @@ export const WarGames = () => {
     }
 
     try {
-      // First, save the team
+      // Save the team
       const savedSlots = TeamService.convertSlotsToSavedSlots(slots);
-      const teamName = `War Game Team - ${new Date().toLocaleDateString()}`;
+      const generatedTeamName = `War Game Team - ${new Date().toLocaleDateString()}`;
       const savedTeam = await TeamService.createTeam({
-        teamName,
+        teamName: generatedTeamName,
         formation: '4-4-2',
         slots: savedSlots
       }, supabaseUserId!);
 
-      // Then create or join the war game
+      // Create or join the war game
       if (warGameMode === 'create') {
         if (pointsStake <= 0) {
           alert(t('pages.warGames.create.errors.invalidPoints'));
@@ -227,12 +257,8 @@ export const WarGames = () => {
         }, supabaseUserId!);
 
         alert('✅ ' + t('pages.warGames.messages.createSuccess'));
-        // Reset to selection mode and reload count
-        clearTeam();
-        setWarGameMode('select');
-        setPointsStake(100);
-        setEntryDeadline('');
-        loadActiveWarGamesCount();
+        resetToSelectMode();
+        loadAllWarGames();
       } else if (warGameMode === 'join') {
         if (!selectedWarGameId) {
           alert(t('pages.warGames.join.errors.selectWarGame'));
@@ -245,11 +271,8 @@ export const WarGames = () => {
         }, supabaseUserId!);
 
         alert('✅ ' + t('pages.warGames.messages.joinSuccess'));
-        // Reset to selection mode and reload count
-        clearTeam();
-        setWarGameMode('select');
-        setSelectedWarGameId('');
-        loadActiveWarGamesCount();
+        resetToSelectMode();
+        loadAllWarGames();
       }
     } catch (error) {
       console.error('Failed to submit war game:', error);
@@ -263,24 +286,29 @@ export const WarGames = () => {
 
   const handleLoadTeam = (team: any) => {
     try {
-      // Clear current team first
       clearTeam();
-      
-      // Load the team using the new loadTeam function
       loadTeam(team.slots, nfts);
-      
       console.log('Team loaded successfully:', team.teamName);
     } catch (error) {
       console.error('Failed to load team:', error);
     }
   };
 
-  const handleClearTeam = () => {
-    clearTeam();
+  const handleJoinFromCard = (gameId: string) => {
+    setSelectedWarGameId(gameId);
+    setWarGameMode('join');
   };
 
-  // Loading state
-  if (loading || isLoadingTestAddress) {
+  const resetToSelectMode = () => {
+    clearTeam();
+    setWarGameMode('select');
+    setPointsStake(100);
+    setEntryDeadline('');
+    setSelectedWarGameId('');
+  };
+
+  // Loading state (only if loading in create/join mode)
+  if ((loading || isLoadingTestAddress) && warGameMode !== 'select') {
     return (
       <div className="container max-w-7xl mx-auto px-4 py-8">
         <div className="text-center py-16">
@@ -288,21 +316,6 @@ export const WarGames = () => {
           <p className="text-lg text-[var(--mvx-text-color-secondary)]">
             {isLoadingTestAddress ? t('pages.warGames.testMode.loading') : t('common.loading')}
           </p>
-        </div>
-      </div>
-    );
-  }
-
-  // Error state
-  if (error) {
-    return (
-      <div className="container max-w-7xl mx-auto px-4 py-8">
-        <div className="text-center py-16">
-          <div className="text-6xl mb-4">❌</div>
-          <p className="text-2xl mb-4 text-[var(--mvx-text-color-primary)] font-bold">
-            {t('pages.warGames.errors.loadingError')}
-          </p>
-          <p className="text-sm mb-6 text-[var(--mvx-text-color-secondary)]">{error.message}</p>
         </div>
       </div>
     );
@@ -325,76 +338,22 @@ export const WarGames = () => {
     );
   }
 
-  // Not enough NFTs state
-  if (!hasNFTs || nfts.length < 11) {
-    return (
-      <div className="container max-w-7xl mx-auto px-4 py-8">
-        <div className="text-center py-16">
-          <div className="text-8xl mb-6">📭</div>
-          <p className="text-2xl text-[var(--mvx-text-color-primary)] mb-2 font-bold">
-            {t('pages.warGames.errors.notEnoughNFTs')}
-          </p>
-          <p className="text-md text-[var(--mvx-text-color-secondary)] mb-6">
-            {t('pages.warGames.errors.needMoreNFTs', { current: nfts.length, needed: 11 })}
-          </p>
-          
-          {/* Test Address Input */}
-          <div className="max-w-md mx-auto">
-            <button
-              onClick={() => setShowTestInput(!showTestInput)}
-              className="text-sm text-[var(--mvx-text-color-secondary)] hover:text-[var(--mvx-text-color-primary)] underline mb-4"
-            >
-              {showTestInput ? t('pages.warGames.testMode.hide') : t('pages.warGames.testMode.show')}
-            </button>
-            
-            {showTestInput && (
-              <div className="flex gap-2 p-4 rounded-lg bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)]">
-                <input
-                  type="text"
-                  value={testAddress}
-                  onChange={(e) => setTestAddress(e.target.value)}
-                  placeholder={t('pages.warGames.testMode.placeholder')}
-                  className="flex-1 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' && testAddress.trim() && !isLoadingTestAddress) {
-                      handleTestAddressSearch();
-                    }
-                  }}
-                />
-                <button
-                  onClick={handleTestAddressSearch}
-                  disabled={!testAddress.trim() || isLoadingTestAddress}
-                  className="px-4 py-2 rounded-lg bg-[var(--mvx-text-accent-color)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-                >
-                  {t('pages.warGames.testMode.search')}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-        <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[var(--mvx-text-color-primary)] to-[var(--mvx-text-accent-color)] bg-clip-text text-transparent">
-          ⚔️ {t('pages.warGames.title')}
-        </h1>
-        <p className="text-lg text-[var(--mvx-text-color-secondary)]">
-          {t('pages.warGames.subtitle')}
-        </p>
-      </div>
+            <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-[var(--mvx-text-color-primary)] to-[var(--mvx-text-accent-color)] bg-clip-text text-transparent">
+              ⚔️ {t('pages.warGames.title')}
+            </h1>
+            <p className="text-lg text-[var(--mvx-text-color-secondary)]">
+              {t('pages.warGames.subtitle')}
+            </p>
+          </div>
           {warGameMode !== 'select' && (
             <Button
-              onClick={() => {
-                clearTeam();
-                setWarGameMode('select');
-              }}
+              onClick={resetToSelectMode}
               variant="secondary"
             >
               ← {t('common.back')}
@@ -406,50 +365,33 @@ export const WarGames = () => {
       {/* War Game Mode Selection */}
       {warGameMode === 'select' && (
         <div className="flex flex-col items-center justify-center min-h-[500px]">
-          {/* Active War Games Counter */}
-          <div className="mb-8 text-center">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-full">
-              <span className="text-2xl">⚔️</span>
-              <span className="text-[var(--mvx-text-color-primary)] font-semibold">
-                {t('pages.warGames.activeCount', { count: activeWarGamesCount })}
+          <WarGameModeButtons
+            activeWarGamesCount={openWarGames.length}
+            onCreateClick={() => setWarGameMode('create')}
+            onJoinClick={() => setWarGameMode('join')}
+          />
+
+          {/* Active War Games Badge */}
+          {openWarGames.length > 0 && (
+            <div className="mb-4">
+              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] text-[var(--mvx-text-color-primary)] font-medium">
+                ⚔️ {openWarGames.length} active war game{openWarGames.length > 1 ? 's' : ''}
               </span>
             </div>
-          </div>
+          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
-            {/* Create War Game */}
-            <button
-              onClick={() => setWarGameMode('create')}
-              className="bg-[var(--mvx-bg-color-secondary)] border-2 border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)] rounded-xl p-8 transition-all group"
-            >
-              <div className="text-5xl mb-4">🎮</div>
-              <h3 className="text-2xl font-bold text-[var(--mvx-text-color-primary)] mb-3 group-hover:text-[var(--mvx-text-accent-color)] transition-colors">
-                {t('pages.warGames.mode.create.title')}
-              </h3>
-              <p className="text-[var(--mvx-text-color-secondary)]">
-                {t('pages.warGames.mode.create.description')}
-              </p>
-            </button>
+          <ActiveWarGamesList
+            warGames={openWarGames}
+            currentUserId={supabaseUserId}
+            onJoinClick={handleJoinFromCard}
+          />
 
-            {/* Join War Game */}
-            <button
-              onClick={() => setWarGameMode('join')}
-              className="bg-[var(--mvx-bg-color-secondary)] border-2 border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)] rounded-xl p-8 transition-all group disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:border-[var(--mvx-border-color-secondary)]"
-              disabled={activeWarGamesCount === 0}
-            >
-              <div className="text-5xl mb-4">🤝</div>
-              <h3 className="text-2xl font-bold text-[var(--mvx-text-color-primary)] mb-3 group-hover:text-[var(--mvx-text-accent-color)] transition-colors">
-                {t('pages.warGames.mode.join.title')}
-              </h3>
-              <p className="text-[var(--mvx-text-color-secondary)]">
-                {t('pages.warGames.mode.join.description')}
-              </p>
-              {activeWarGamesCount === 0 && (
-                <p className="text-yellow-500 text-sm mt-2">
-                  {t('pages.warGames.mode.join.noGamesAvailable')}
-                </p>
-              )}
-            </button>
+          {/* War Games History */}
+          <div className="mt-8 w-full max-w-4xl">
+            <WarGameHistory 
+              userId={supabaseUserId} 
+              completedGames={completedWarGames}
+            />
           </div>
         </div>
       )}
@@ -457,180 +399,100 @@ export const WarGames = () => {
       {/* Create/Join War Game Interface */}
       {warGameMode !== 'select' && (
         <>
-          {/* War Game Configuration */}
-          {warGameMode === 'create' && (
-            <div className="mb-6 bg-[var(--mvx-bg-color-secondary)] rounded-lg p-6 border border-[var(--mvx-border-color-secondary)]">
-              <h3 className="text-xl font-bold text-[var(--mvx-text-color-primary)] mb-4">
-                {t('pages.warGames.create.title')}
-              </h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-                    {t('pages.warGames.create.fields.points.label')}
-                  </label>
-                  <input
-                    type="number"
-                    min="1"
-                    step="10"
-                    value={pointsStake}
-                    onChange={(e) => setPointsStake(parseInt(e.target.value) || 0)}
-                    className="w-full px-4 py-2 bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-                    {t('pages.warGames.create.fields.deadline.label')}
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={entryDeadline}
-                    onChange={(e) => setEntryDeadline(e.target.value)}
-                    min={new Date().toISOString().slice(0, 16)}
-                    className="w-full px-4 py-2 bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Join War Game - Dropdown */}
-          {warGameMode === 'join' && (
-            <div className="mb-6 bg-[var(--mvx-bg-color-secondary)] rounded-lg p-6 border border-[var(--mvx-border-color-secondary)]">
-              <h3 className="text-xl font-bold text-[var(--mvx-text-color-primary)] mb-4">
-                {t('pages.warGames.join.title')}
-              </h3>
-              {loadingWarGames ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[var(--mvx-text-accent-color)] mx-auto"></div>
-                </div>
-              ) : openWarGames.length === 0 ? (
-                <div className="bg-yellow-500/20 border border-yellow-500 rounded-lg p-4">
-                  <p className="text-yellow-500 text-sm">
-                    {t('pages.warGames.join.fields.warGame.noGames')}
+          {/* Not enough NFTs warning */}
+          {shouldLoadNFTs && !loading && nfts.length < 11 && (
+            <div className="mb-6 bg-yellow-500/20 border-2 border-yellow-500 rounded-lg p-6">
+              <div className="flex items-center gap-4">
+                <div className="text-5xl">📭</div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-[var(--mvx-text-color-primary)] mb-2">
+                    {t('pages.warGames.errors.notEnoughNFTs')}
+                  </h3>
+                  <p className="text-[var(--mvx-text-color-secondary)]">
+                    {t('pages.warGames.errors.needMoreNFTs', { current: nfts.length, needed: 11 })}
                   </p>
-                </div>
-              ) : (
-                <div>
-                  <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-                    {t('pages.warGames.join.fields.warGame.label')}
-                  </label>
-                  <select
-                    value={selectedWarGameId}
-                    onChange={(e) => setSelectedWarGameId(e.target.value)}
-                    className="w-full px-4 py-2 bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
-                  >
-                    {openWarGames.map((game) => (
-                      <option key={game.id} value={game.id}>
-                        {game.creatorUsername || t('common.anonymous')} - {game.pointsStake} {t('common.points')} - {new Date(game.entryDeadline).toLocaleDateString()}
-                      </option>
-                    ))}
-                  </select>
-                  {selectedWarGameId && openWarGames.find(g => g.id === selectedWarGameId) && (
-                    <div className="mt-4 p-4 bg-[var(--mvx-bg-color-primary)] rounded-lg border border-[var(--mvx-border-color-secondary)]">
-                      <h4 className="font-semibold text-[var(--mvx-text-color-primary)] mb-2">
-                        {t('pages.warGames.join.warGameDetails.title')}
-                      </h4>
-                      {(() => {
-                        const game = openWarGames.find(g => g.id === selectedWarGameId)!;
-                        return (
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-[var(--mvx-text-color-secondary)]">{t('pages.warGames.join.warGameDetails.creator')}:</span>
-                              <span className="text-[var(--mvx-text-color-primary)]">{game.creatorUsername || t('common.anonymous')}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-[var(--mvx-text-color-secondary)]">{t('pages.warGames.join.warGameDetails.stake')}:</span>
-                              <span className="text-[var(--mvx-text-accent-color)] font-bold">{game.pointsStake} {t('common.points')}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-[var(--mvx-text-color-secondary)]">{t('pages.warGames.join.warGameDetails.deadline')}:</span>
-                              <span className="text-[var(--mvx-text-color-primary)]">{new Date(game.entryDeadline).toLocaleString()}</span>
-                            </div>
-                          </div>
-                        );
-                      })()}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Team Building Interface - Only show if not in select mode */}
-      <div className="flex flex-col lg:flex-row gap-6 h-[calc(100vh-180px)] max-h-[800px] min-h-[500px]">
-        {/* Football Field - Left side */}
-        <div className="flex-1 lg:flex-[2] min-h-0">
-          <div className="h-full bg-[var(--mvx-bg-color-secondary)] rounded-lg p-4 flex flex-col">
-            <div className="mb-4 flex items-center justify-between flex-shrink-0">
-              <div>
-                <h3 className="text-lg font-bold text-[var(--mvx-text-color-primary)]">
-                  {t('pages.warGames.field.title')}
-                </h3>
-                <p className="text-sm text-[var(--mvx-text-color-secondary)]">
-                  {t('pages.warGames.field.formation')} • {placedCount}/11 {t('pages.warGames.field.playersPlaced')}
-                  {isTeamComplete && (
-                    <span className="ml-2 px-2 py-1 bg-green-500/20 text-green-500 rounded-full text-xs font-bold">
-                      ✓ {t('pages.warGames.field.complete')}
-                    </span>
-                  )}
-                  {!isAuthenticated && (
-                    <span className="ml-2 px-2 py-1 bg-yellow-500/20 text-yellow-500 rounded-full text-xs font-bold">
-                      ⚠️ {t('pages.warGames.field.authRequired')}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  onClick={handleClearTeam}
-                  variant="secondary"
-                  size="small"
-                  disabled={placedCount === 0}
-                >
-                  {t('pages.warGames.actions.clearTeam')}
-                </Button>
-                
-                  <Button
-                      onClick={handleSubmitWarGame}
-                    variant="primary"
-                    size="small"
-                      disabled={!isTeamComplete}
-                      title={warGameMode === 'create' ? t('pages.warGames.create.button') : t('pages.warGames.join.button')}
+                  {/* Test Address Input */}
+                  <div className="mt-4">
+                    <button
+                      onClick={() => setShowTestInput(!showTestInput)}
+                      className="text-sm text-[var(--mvx-text-color-secondary)] hover:text-[var(--mvx-text-color-primary)] underline"
                     >
-                      {warGameMode === 'create' ? t('pages.warGames.create.button') : t('pages.warGames.join.button')}
-                </Button>
+                      {showTestInput ? t('pages.warGames.testMode.hide') : t('pages.warGames.testMode.show')}
+                    </button>
+                    
+                    {showTestInput && (
+                      <div className="flex gap-2 mt-2">
+                        <input
+                          type="text"
+                          value={testAddress}
+                          onChange={(e) => setTestAddress(e.target.value)}
+                          placeholder={t('pages.warGames.testMode.placeholder')}
+                          className="flex-1 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && testAddress.trim() && !isLoadingTestAddress) {
+                              handleTestAddressSearch();
+                            }
+                          }}
+                        />
+                        <button
+                          onClick={handleTestAddressSearch}
+                          disabled={!testAddress.trim() || isLoadingTestAddress}
+                          className="px-4 py-2 rounded-lg bg-[var(--mvx-text-accent-color)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
+                        >
+                          {t('pages.warGames.testMode.search')}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </div>
-            
-            <div className="flex-1 min-h-0">
-              <FootballField
-                slots={slots}
-                draggedNFT={draggedNFT}
-                onDropNFT={handleDropNFT}
-                onRemoveNFT={handleRemoveNFT}
-                canDropOnSlot={canDropOnSlot}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* NFT List Panel - Right side */}
-        <div className="lg:w-80 lg:flex-shrink-0 min-h-0">
-          <NFTListPanel
-            placedNFTs={getPlacedNFTs}
-            onDragStart={setDraggedNFT}
-            onDragEnd={() => setDraggedNFT(null)}
-            testAddress={testAddress}
-          />
-        </div>
-      </div>
-      
-          {/* Saved Teams Section - Always show in create/join mode */}
-            <div className="mt-6">
-              <SavedTeamsList userId={supabaseUserId} onLoadTeam={handleLoadTeam} />
-            </div>
-        </>
           )}
+
+          {/* War Game Configuration (Create/Join forms) */}
+          <WarGameConfiguration
+            mode={warGameMode}
+            pointsStake={pointsStake}
+            entryDeadline={entryDeadline}
+            selectedWarGameId={selectedWarGameId}
+            openWarGames={openWarGames}
+            loadingWarGames={loadingWarGames}
+            onPointsStakeChange={setPointsStake}
+            onEntryDeadlineChange={setEntryDeadline}
+            onSelectedWarGameChange={setSelectedWarGameId}
+          />
+
+          {/* Team Building Interface - Only show if has enough NFTs */}
+          {nfts.length >= 11 && (
+            <TeamBuildingInterface
+              slots={slots}
+              draggedNFT={draggedNFT}
+              placedCount={placedCount}
+              isTeamComplete={isTeamComplete}
+              isAuthenticated={isAuthenticated}
+              warGameMode={warGameMode}
+              testAddress={testAddress}
+              teamName={teamName}
+              showTeamNameError={showTeamNameError}
+              supabaseUserId={supabaseUserId}
+              onDragStart={setDraggedNFT}
+              onDragEnd={() => setDraggedNFT(null)}
+              onDropNFT={(slotId, nft) => placeNFT(slotId, nft)}
+              onRemoveNFT={removeNFT}
+              onClearTeam={clearTeam}
+              onSaveTeam={handleSaveTeam}
+              onSubmitWarGame={handleSubmitWarGame}
+              onLoadTeam={handleLoadTeam}
+              onTeamNameChange={(name) => {
+                setTeamName(name);
+                setShowTeamNameError(false);
+              }}
+              canDropOnSlot={canDropOnSlot}
+              getPlacedNFTs={() => getPlacedNFTs}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 };

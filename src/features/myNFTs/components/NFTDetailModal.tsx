@@ -54,6 +54,7 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
   
   // Handle mouse move for parallax effect
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.stopPropagation(); // Prevent event bubbling
     const rect = e.currentTarget.getBoundingClientRect();
     const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
     const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
@@ -66,7 +67,7 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
     setMousePosition({ x: 0, y: 0 });
   };
   
-  // Close on ESC key
+  // Close on ESC key and add custom scrollbar styles
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -75,6 +76,51 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
     if (isOpen) {
       document.addEventListener('keydown', handleEsc);
       document.body.style.overflow = 'hidden'; // Prevent background scroll
+      
+      // Add custom scrollbar styles
+      const style = document.createElement('style');
+      style.textContent = `
+        .custom-scrollbar {
+          scrollbar-width: thin;
+          scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
+          scroll-behavior: smooth;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 10px;
+          height: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 5px;
+          margin: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: rgba(156, 163, 175, 0.4);
+          border-radius: 5px;
+          border: 2px solid transparent;
+          background-clip: padding-box;
+          transition: background-color 0.2s ease;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: rgba(156, 163, 175, 0.6);
+          border-radius: 5px;
+          border: 2px solid transparent;
+          background-clip: padding-box;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:active {
+          background: rgba(156, 163, 175, 0.8);
+        }
+        .custom-scrollbar::-webkit-scrollbar-corner {
+          background: transparent;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      return () => {
+        document.removeEventListener('keydown', handleEsc);
+        document.body.style.overflow = 'unset';
+        document.head.removeChild(style);
+      };
     }
     
     return () => {
@@ -116,42 +162,46 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
         onClick={onClose}
       />
       
-      {/* Modal Container with 3D perspective */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div
-          className="relative w-full max-w-4xl max-h-[90vh] overflow-y-auto pointer-events-auto animate-[zoomIn3D_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Card with 3D effect */}
-          <div className={`
-            relative rounded-3xl overflow-hidden
-            bg-gradient-to-br ${style.gradient}
-            backdrop-blur-xl ${style.glow}
-            border-2 border-[var(--mvx-border-color-secondary)]
-          `}>
-            {/* Close Button */}
-            <button
-              onClick={onClose}
-              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all hover:scale-110 flex items-center justify-center"
-              aria-label="Close"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-            
-            {/* Content Grid */}
-            <div className="grid md:grid-cols-2 gap-6 p-6 md:p-8">
+       {/* Modal Container with 3D perspective */}
+       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
+         <div
+           className="relative w-full max-w-4xl max-h-[90vh] pointer-events-auto animate-[zoomIn3D_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
+           onClick={(e) => e.stopPropagation()}
+         >
+           {/* Card with 3D effect */}
+           <div className={`
+             relative rounded-3xl overflow-hidden
+             backdrop-blur-xl ${style.glow}
+             border-2 border-[var(--mvx-border-color-secondary)]
+           `}>
+             {/* Background with proper rounding */}
+             <div className={`
+               absolute inset-0 rounded-3xl
+               bg-gradient-to-br ${style.gradient}
+             `} />
+             {/* Close Button */}
+             <button
+               onClick={onClose}
+               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all hover:scale-110 flex items-center justify-center"
+               aria-label="Close"
+             >
+               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+               </svg>
+             </button>
+             
+             {/* Content Grid */}
+             <div className="grid md:grid-cols-2 gap-6 p-6 md:p-8 items-center max-h-[90vh] overflow-y-auto custom-scrollbar relative z-0">
               {/* Left: Image with Parallax */}
               <div 
-                className="relative"
+                className="relative flex items-center justify-center"
                 style={{
                   perspective: '1000px'
                 }}
               >
                 {/* NFT Image with 3D Parallax */}
                 <div 
-                  className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--mvx-bg-color-secondary)]"
+                  className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-[var(--mvx-bg-color-secondary)] max-w-sm w-full"
                   onMouseMove={handleMouseMove}
                   onMouseEnter={handleMouseEnter}
                   onMouseLeave={handleMouseLeave}
@@ -165,7 +215,7 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                 >
                   {/* Rarity Badge with Parallax - collé sur la carte */}
                   <div 
-                    className={`absolute top-4 left-4 z-10 ${style.badge} text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm`}
+                    className={`absolute top-4 left-4 z-10 ${style.badge} text-white px-4 py-2 rounded-full text-sm font-bold shadow-lg backdrop-blur-sm pointer-events-none`}
                     style={{
                       transform: isHovering
                         ? 'translateZ(40px)'
@@ -218,7 +268,7 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
               </div>
               
               {/* Right: Details */}
-              <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-6 relative z-10">
                 {/* Header */}
                 <div>
                   <h2 className="text-3xl font-bold text-[var(--mvx-text-color-primary)] mb-2">
@@ -232,13 +282,14 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                     </p>
                   )}
                   
-                  {/* NFT ID with Explorer Link */}
-                  <div className="flex items-center gap-2 mb-3">
+                  {/* NFT ID with Explorer Link and Transfermarkt */}
+                  <div className="flex items-center justify-between gap-3 mb-3">
+                    {/* Explorer Link - Full width hover */}
                     <a
                       href={`https://explorer.multiversx.com/nfts/${nft.identifier}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[var(--mvx-text-color-secondary)] hover:text-[var(--mvx-text-accent-color)] transition-colors flex items-center gap-1 group"
+                      className="flex-1 text-sm text-[var(--mvx-text-color-secondary)] hover:text-[var(--mvx-text-accent-color)] transition-colors flex items-center gap-1 group cursor-pointer px-2 py-1 -mx-2 rounded-lg hover:bg-[var(--mvx-bg-accent-color)]"
                     >
                       <span className="font-mono">{nft.identifier}</span>
                       <svg 
@@ -255,33 +306,18 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                         />
                       </svg>
                     </a>
-                  </div>
-                  
-                  {/* External Links */}
-                  <div className="flex gap-2">
-                    <a
-                      href={`https://explorer.multiversx.com/nfts/${nft.identifier}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-secondary)] hover:bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)] text-[var(--mvx-text-color-primary)] hover:text-[var(--mvx-text-accent-color)] text-xs font-medium transition-all"
-                    >
-                      <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M12 2L2 7v10c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-10-5z"/>
-                      </svg>
-                      {t('pages.myNFTs.detail.viewOnExplorer')}
-                    </a>
                     
-                    {/* Only show Transfermarkt link if we have a real player name */}
+                    {/* Transfermarkt button */}
                     {nft.realPlayerName && (
                       <a
                         href={getTransfermarktURL(nft.realPlayerName)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-secondary)] hover:bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)] text-[var(--mvx-text-color-primary)] hover:text-[var(--mvx-text-accent-color)] text-xs font-medium transition-all"
+                        className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-secondary)] hover:bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)] text-[var(--mvx-text-color-primary)] hover:text-[var(--mvx-text-accent-color)] text-xs font-medium transition-all cursor-pointer whitespace-nowrap"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                        }}
                       >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                        </svg>
                         {t('pages.myNFTs.detail.viewOnTransfermarkt')}
                       </a>
                     )}
@@ -294,13 +330,6 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                     <div className="p-4 rounded-xl bg-[var(--mvx-bg-color-secondary)] backdrop-blur-sm">
                       <p className="text-xs text-[var(--mvx-text-color-secondary)] mb-1">Position</p>
                       <p className="text-xl font-bold text-[var(--mvx-text-color-primary)]">{nft.position}</p>
-                    </div>
-                  )}
-                  
-                  {nft.attributes.number && (
-                    <div className="p-4 rounded-xl bg-[var(--mvx-bg-color-secondary)] backdrop-blur-sm">
-                      <p className="text-xs text-[var(--mvx-text-color-secondary)] mb-1">Number</p>
-                      <p className="text-xl font-bold text-[var(--mvx-text-color-primary)]">#{nft.attributes.number}</p>
                     </div>
                   )}
                   

@@ -171,8 +171,10 @@ export interface WarGame {
 export interface WarGameWithDetails extends WarGame {
   creatorUsername?: string;
   creatorAvatarUrl?: string;
+  creatorAddress?: string;
   opponentUsername?: string;
   opponentAvatarUrl?: string;
+  opponentAddress?: string;
 }
 
 /**

@@ -107,8 +107,13 @@ export const MyNFTs = () => {
       if (searchQuery.trim()) {
         const query = searchQuery.toLowerCase();
         
-        // Search in name
+        // Search in NFT name
         if (nft.name.toLowerCase().includes(query)) {
+          return true;
+        }
+        
+        // Search in real player name (mapped from playersData.json)
+        if (nft.realPlayerName && nft.realPlayerName.toLowerCase().includes(query)) {
           return true;
         }
         
@@ -117,7 +122,7 @@ export const MyNFTs = () => {
           return true;
         }
         
-        // Search in all attributes
+        // Search in all attributes (including player name in attributes)
         for (const [key, value] of Object.entries(nft.attributes)) {
           if (value && String(value).toLowerCase().includes(query)) {
             return true;

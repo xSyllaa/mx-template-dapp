@@ -1,7 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TeamOfWeekService } from 'features/teamOfWeek/services';
+import { useBatchNFTDetails } from 'features/teamOfWeek/hooks';
+import { NFTDetailModal } from 'features/myNFTs/components/NFTDetailModal';
 import type { TeamOfWeek as TeamOfWeekType } from 'features/teamOfWeek/types';
+import type { NFTDetails } from 'features/teamOfWeek/hooks';
+import type { GalacticXNFT } from 'features/myNFTs';
 
 export const TeamOfWeek = () => {
   const { t } = useTranslation();
@@ -9,6 +13,10 @@ export const TeamOfWeek = () => {
   const [selectedTeam, setSelectedTeam] = useState<TeamOfWeekType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedNFT, setSelectedNFT] = useState<GalacticXNFT | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [nftDetailsMap, setNftDetailsMap] = useState<Map<string, NFTDetails>>(new Map());
+  const [nftLoading, setNftLoading] = useState(false);
 
   const loadTeams = async () => {
     try {
@@ -90,9 +98,113 @@ export const TeamOfWeek = () => {
     return `Semaine ${weekNumber} (${start.getFullYear()}) - ${start.toLocaleDateString('fr-FR')} au ${end.toLocaleDateString('fr-FR')}`;
   };
 
+  // Charger les détails des NFTs quand une team est sélectionnée
+  const loadNFTDetails = async (nftIds: string[]) => {
+    if (nftIds.length === 0) return;
+    
+    setNftLoading(true);
+    const detailsMap = new Map<string, NFTDetails>();
+    
+    try {
+      // Récupérer les détails depuis le cache ou l'API
+      const promises = nftIds.map(async (nftId) => {
+        try {
+          const response = await fetch(
+            `https://api.multiversx.com/nfts/${nftId}`,
+            {
+              headers: {
+                'accept': 'application/json'
+              }
+            }
+          );
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch NFT ${nftId}`);
+          }
+
+          const data: NFTDetails = await response.json();
+          detailsMap.set(nftId, data);
+        } catch (err) {
+          console.error(`Error fetching NFT ${nftId}:`, err);
+        }
+      });
+
+      await Promise.all(promises);
+      setNftDetailsMap(detailsMap);
+    } catch (error) {
+      console.error('Error loading NFT details:', error);
+    } finally {
+      setNftLoading(false);
+    }
+  };
+
+  // Convertir NFTDetails en GalacticXNFT pour le modal
+  const convertToGalacticXNFT = (nftDetails: NFTDetails): GalacticXNFT => {
+    const playerName = nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Name')?.value || '';
+    
+    return {
+      identifier: nftDetails.identifier,
+      collection: nftDetails.collection,
+      nonce: nftDetails.nonce,
+      name: nftDetails.name,
+      rarity: getRarityFromMetadata(nftDetails.metadata),
+      position: getPositionFromMetadata(nftDetails.metadata),
+      imageUrl: nftDetails.media[0]?.thumbnailUrl || nftDetails.url || '',
+      videoUrl: nftDetails.media[0]?.url || '',
+      score: 0,
+      rank: 0,
+      realPlayerName: playerName, // Pour le lien Transfermarkt
+      attributes: {
+        playerName: playerName,
+        number: nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Number')?.value || '',
+        nationality: nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Nationality')?.value || '',
+        performance1: nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Performance 1')?.value || '',
+        performance2: nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Performance 2')?.value || '',
+        performance3: nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Performance 3')?.value || '',
+        performance4: nftDetails.metadata.attributes.find(attr => attr.trait_type === 'Performance 4')?.value || ''
+      }
+    };
+  };
+
+  const getRarityFromMetadata = (metadata: any): GalacticXNFT['rarity'] => {
+    // Logic to determine rarity, could be based on attributes or other metadata
+    return 'Common'; // Default, adjust based on your logic
+  };
+
+  const getPositionFromMetadata = (metadata: any): string => {
+    return metadata.attributes.find((attr: any) => attr.trait_type === 'Position')?.value || '';
+  };
+
+  const handleNFTClick = (nftId: string) => {
+    const nftDetails = nftDetailsMap.get(nftId);
+    if (nftDetails) {
+      const galacticNFT = convertToGalacticXNFT(nftDetails);
+      setSelectedNFT(galacticNFT);
+      setIsModalOpen(true);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedNFT(null), 300);
+  };
+
   useEffect(() => {
     loadTeams();
   }, []);
+
+  // Charger les NFT details quand une team est sélectionnée
+  useEffect(() => {
+    if (selectedTeam && selectedTeam.players.length > 0) {
+      const nftIds = selectedTeam.players
+        .map(player => player.nftId)
+        .filter(Boolean) as string[];
+      
+      if (nftIds.length > 0) {
+        loadNFTDetails(nftIds);
+      }
+    }
+  }, [selectedTeam]);
 
   if (loading) {
     return (
@@ -204,48 +316,82 @@ export const TeamOfWeek = () => {
           </div>
 
           {/* Liste des joueurs */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {selectedTeam.players.map((player, index) => (
-              <div
-                key={`${player.id}-${index}`}
-                className="relative bg-gradient-to-br from-[var(--mvx-bg-color-secondary)] to-[var(--mvx-bg-color-primary)] p-0.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-xl"
-              >
-                <div className="bg-[var(--mvx-bg-color-secondary)] rounded-xl p-6 h-full">
-                  {/* Badge de rareté */}
-                  {player.rarity && (
-                    <div className="absolute top-3 right-3">
-                      <span className={`px-2 py-1 text-xs font-bold rounded-full ${
-                        player.rarity === 'Legendary' ? 'bg-yellow-400 text-yellow-900' :
-                        player.rarity === 'Epic' ? 'bg-purple-400 text-purple-900' :
-                        player.rarity === 'Rare' ? 'bg-blue-400 text-blue-900' :
-                        'bg-gray-400 text-gray-900'
-                      }`}>
-                        {player.rarity}
-                      </span>
-                    </div>
-                  )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+            {selectedTeam.players.map((player, index) => {
+              const nftDetails = nftDetailsMap.get(player.nftId);
+              const thumbnailUrl = nftDetails?.media[0]?.thumbnailUrl || nftDetails?.url;
+              
+              return (
+                <button
+                  key={`${player.id}-${index}`}
+                  onClick={() => player.nftId && handleNFTClick(player.nftId)}
+                  className="relative group bg-gradient-to-br from-[var(--mvx-bg-color-secondary)] to-[var(--mvx-bg-color-primary)] p-0.5 rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-2xl cursor-pointer"
+                >
+                  <div className="bg-[var(--mvx-bg-color-secondary)] rounded-xl overflow-hidden h-full">
+                    {/* Image NFT */}
+                    {thumbnailUrl ? (
+                      <div className="relative aspect-square overflow-hidden flex items-center justify-center">
+                        <img
+                          src={thumbnailUrl}
+                          alt={player.name}
+                          className="w-full h-full object-cover object-center transition-transform duration-300 group-hover:scale-110"
+                          loading="lazy"
+                        />
+                        
+                        {/* Overlay gradient */}
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        
+                        {/* Badge de rareté */}
+                        {player.rarity && (
+                          <div className="absolute top-2 right-2">
+                            <span className={`px-2 py-1 text-xs font-bold rounded-full backdrop-blur-sm ${
+                              player.rarity === 'Legendary' ? 'bg-yellow-500/90 text-yellow-900' :
+                              player.rarity === 'Epic' ? 'bg-purple-500/90 text-white' :
+                              player.rarity === 'Rare' ? 'bg-blue-500/90 text-white' :
+                              'bg-gray-500/90 text-white'
+                            }`}>
+                              {player.rarity}
+                            </span>
+                          </div>
+                        )}
 
-                  {/* Nom du joueur */}
-                  <div className="mb-4">
-                    <h3 className="text-lg font-bold text-[var(--mvx-text-color-primary)] mb-2 pr-16">
-                      {player.name}
-                    </h3>
-                    <p className="text-sm text-[var(--mvx-text-color-secondary)] font-mono break-all">
-                      {player.nftId}
-                    </p>
+                        {/* Position badge */}
+                        {player.position && (
+                          <div className="absolute top-2 left-2">
+                            <span className="px-2 py-1 text-xs font-bold rounded-full bg-[var(--mvx-text-accent-color)]/90 text-white backdrop-blur-sm">
+                              {player.position}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="aspect-square bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center">
+                        <div className="text-center flex flex-col items-center justify-center h-full">
+                          <div className="text-4xl mb-2">🎴</div>
+                          {nftLoading && <div className="text-sm text-gray-400">Chargement...</div>}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Informations du joueur */}
+                    <div className="p-3">
+                      <h3 className="text-sm font-bold text-[var(--mvx-text-color-primary)] mb-1 truncate">
+                        {player.name}
+                      </h3>
+                    </div>
+                    
+                    {/* Fullscreen icon */}
+                    <div className="absolute bottom-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                      <div className="bg-black/50 backdrop-blur-sm rounded-full p-2 hover:bg-[var(--mvx-text-accent-color)]/80 transition-colors duration-200">
+                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                        </svg>
+                      </div>
+                    </div>
                   </div>
-
-                  {/* Position */}
-                  {player.position && (
-                    <div className="mb-4">
-                      <span className="px-3 py-1 bg-[var(--mvx-text-accent-color)]/20 text-[var(--mvx-text-accent-color)] text-sm font-medium rounded-full">
-                        {player.position}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ))}
+                </button>
+              );
+            })}
           </div>
 
           {/* Footer avec informations */}
@@ -257,6 +403,13 @@ export const TeamOfWeek = () => {
           </div>
         </div>
       )}
+
+      {/* NFT Detail Modal */}
+      <NFTDetailModal
+        nft={selectedNFT}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 };

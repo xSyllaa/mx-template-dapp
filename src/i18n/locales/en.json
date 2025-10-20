@@ -336,9 +336,9 @@
           "all": "All Nationalities"
         },
         "search": {
-          "placeholder": "Search by name, position, nationality...",
+          "placeholder": "Search by player name, position, nationality...",
           "clear": "Clear search",
-          "hint": "Searching in all attributes"
+          "hint": "Searching by player name and all attributes"
         }
       },
       "error": {
@@ -445,14 +445,18 @@
             "challengeOpponent": "Challenge opponent"
           },
           "button": "Join Game",
-          "noGamesAvailable": "No war games available at the moment"
-        }
+          "noGamesAvailable": "No war games available at the moment",
+          "noGamesTooltip": "No active war games available to join"
+        },
+        "notEnoughNFTs": "You need {needed} NFTs (you have {current})",
+        "needMoreNFTsTooltip": "You need at least {needed} NFTs to participate in War Games. You currently have {current} NFT(s)."
       },
       "messages": {
         "teamIncomplete": "Please complete your team (11 players) before submitting",
         "authRequired": "Please sign the message to authenticate",
         "createSuccess": "War Game created successfully! Waiting for an opponent to join.",
         "joinSuccess": "Successfully joined the war game! Good luck!",
+        "teamSavedSuccess": "Team saved successfully!",
         "genericError": "Failed to submit war game. Please try again.",
         "loadWarGamesError": "Failed to load available war games"
       },
@@ -530,6 +534,36 @@
         "placeholder": "Enter wallet address to test...",
         "search": "Load NFTs",
         "loading": "Loading NFTs for test address..."
+      },
+      "activeGames": {
+        "title": "Active War Games",
+        "stake": "Stake",
+        "deadline": "Deadline",
+        "joinButton": "Join This War Game",
+        "ownWarGame": "Your War Game"
+      },
+      "history": {
+        "title": "War Games History",
+        "loading": "Loading history...",
+        "noHistory": "No War Games Yet",
+        "noHistoryDescription": "Complete war games will appear here",
+        "stake": "Stake",
+        "completed": "Completed",
+        "creator": "Creator",
+        "opponent": "Opponent",
+        "username": "Username",
+        "address": "Address",
+        "score": "Score",
+        "teamId": "Team ID",
+        "teamComposition": "Team Composition",
+        "loadingTeam": "Loading team details",
+        "timeline": "Timeline",
+        "created": "Created",
+        "started": "Started",
+        "completedAt": "Completed",
+        "winner": "Winner",
+        "youWon": "You Won",
+        "noWinner": "No Winner"
       }
     }
   },
