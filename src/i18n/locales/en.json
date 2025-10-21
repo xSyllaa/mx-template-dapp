@@ -8,11 +8,17 @@
     "success": "Success",
     "comingSoon": "Coming Soon",
     "points": "points",
+    "pts": "pts",
     "close": "Close",
     "retry": "Retry",
     "back": "Back",
     "all": "All",
+    "show": "Show",
+    "hide": "Hide",
+    "delete": "Delete",
+    "vs": "vs",
     "anonymous": "Anonymous",
+    "placed": "PLACED",
     "months": {
       "january": "January",
       "february": "February",
@@ -90,6 +96,8 @@
       "days": "days",
       "myNFTs": "My NFTs",
       "globalRank": "Global Rank",
+      "noRank": "Unranked",
+      "claimAvailable": "Claim available today",
       "todayChange": "+{{value}} today",
       "dayChange": "+{{value}} day",
       "positionChange": "+{{value}} positions"
@@ -377,7 +385,8 @@
     "warGames": {
       "title": "War Games",
       "subtitle": "Build your ultimate team and challenge others",
-      "activeCount": "{{count}} active war game(s)",
+      "activeCount_one": "{{count}} active war game",
+      "activeCount_other": "{{count}} active war games",
       "field": {
         "title": "Your Team",
         "formation": "Formation: 4-4-2",
@@ -549,6 +558,8 @@
         "noHistoryDescription": "Complete war games will appear here",
         "stake": "Stake",
         "completed": "Completed",
+        "inProgress": "In Progress",
+        "statusCompleted": "Completed",
         "creator": "Creator",
         "opponent": "Opponent",
         "username": "Username",
@@ -563,7 +574,8 @@
         "completedAt": "Completed",
         "winner": "Winner",
         "youWon": "You Won",
-        "noWinner": "No Winner"
+        "noWinner": "No Winner",
+        "players": "players"
       }
     }
   },

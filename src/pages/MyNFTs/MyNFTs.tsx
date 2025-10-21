@@ -54,14 +54,18 @@ export const MyNFTs = () => {
     console.log('Attributes:', nft.attributes);
     console.groupEnd();
     
+    // If modal is already open, just update the NFT (smooth transition)
+    // If modal is closed, open it with the new NFT
     setSelectedNFT(nft);
-    setIsModalOpen(true);
+    if (!isModalOpen) {
+      setIsModalOpen(true);
+    }
   };
   
   const handleCloseModal = () => {
     setIsModalOpen(false);
     // Delay clearing selectedNFT to allow exit animation
-    setTimeout(() => setSelectedNFT(null), 300);
+    setTimeout(() => setSelectedNFT(null), 500);
   };
   
   // Extract unique positions and nationalities

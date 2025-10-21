@@ -68,10 +68,12 @@ export const WarGames = () => {
   const [teamName, setTeamName] = useState('');
   const [showTeamNameError, setShowTeamNameError] = useState(false);
 
-  // Load all war games on mount
+  // Load all war games on mount and when user changes
   useEffect(() => {
-    loadAllWarGames();
-  }, []);
+    if (supabaseUserId) {
+      loadAllWarGames();
+    }
+  }, [supabaseUserId]);
 
   // Set default deadline when entering create mode
   useEffect(() => {
@@ -87,6 +89,11 @@ export const WarGames = () => {
    */
   const loadAllWarGames = async () => {
     console.log('🔄 Starting to load all war games...');
+    console.log('🔍 loadAllWarGames called with supabaseUserId:', supabaseUserId);
+    console.log('🔍 supabaseUserId type:', typeof supabaseUserId);
+    console.log('🔍 supabaseUserId === null:', supabaseUserId === null);
+    console.log('🔍 supabaseUserId === undefined:', supabaseUserId === undefined);
+    
     setLoadingWarGames(true);
     try {
       const games = await WarGameService.getAllUserVisibleWarGames();
@@ -106,17 +113,38 @@ export const WarGames = () => {
       // Filter games into 3 categories
       const open = WarGameService.filterOpenWarGames(games);
       
-      // In progress: in_progress status
-      const inProgress = games.filter(game => 
+      // In progress: in_progress status (only if user is loaded)
+      const inProgress = supabaseUserId ? games.filter(game => 
         game.status === 'in_progress' &&
         (game.creatorId === supabaseUserId || game.opponentId === supabaseUserId)
-      );
+      ) : [];
       
-      // Completed: completed games where user participated
-      const completed = games.filter(game => 
+      console.log('🔍 Debug in_progress filtering:');
+      console.log('  📊 Current supabaseUserId:', supabaseUserId);
+      console.log('  📊 All games with in_progress status:', games.filter(g => g.status === 'in_progress').map(g => ({
+        id: g.id,
+        status: g.status,
+        creatorId: g.creatorId,
+        opponentId: g.opponentId,
+        supabaseUserId: supabaseUserId,
+        isCreator: g.creatorId === supabaseUserId,
+        isOpponent: g.opponentId === supabaseUserId,
+        creatorIdType: typeof g.creatorId,
+        opponentIdType: typeof g.opponentId,
+        supabaseUserIdType: typeof supabaseUserId
+      })));
+      console.log('  📊 Filtered in_progress games:', inProgress.map(g => ({
+        id: g.id,
+        status: g.status,
+        creatorId: g.creatorId,
+        opponentId: g.opponentId
+      })));
+      
+      // Completed: completed games where user participated (only if user is loaded)
+      const completed = supabaseUserId ? games.filter(game => 
         game.status === 'completed' &&
         (game.creatorId === supabaseUserId || game.opponentId === supabaseUserId)
-      );
+      ) : [];
       
       // History: combine in_progress and completed for history section
       const history = [...inProgress, ...completed].sort((a, b) => 
@@ -371,19 +399,11 @@ export const WarGames = () => {
             onJoinClick={() => setWarGameMode('join')}
           />
 
-          {/* Active War Games Badge */}
-          {openWarGames.length > 0 && (
-            <div className="mb-4">
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] text-[var(--mvx-text-color-primary)] font-medium">
-                ⚔️ {openWarGames.length} active war game{openWarGames.length > 1 ? 's' : ''}
-              </span>
-            </div>
-          )}
-
           <ActiveWarGamesList
             warGames={openWarGames}
             currentUserId={supabaseUserId}
             onJoinClick={handleJoinFromCard}
+            showBadge={true}
           />
 
           {/* War Games History */}

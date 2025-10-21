@@ -43,8 +43,8 @@ const styles = {
   
   userPoints: 'user-points flex items-center gap-2 bg-[var(--galactic-gold)] bg-opacity-10 rounded-lg p-3',
   pointsIcon: 'points-icon text-xl',
-  pointsValue: 'points-value text-xl font-bold text-[var(--galactic-gold)]',
-  pointsLabel: 'points-label text-xs text-secondary',
+  pointsValue: 'points-value text-xl font-bold text-[var(--mvx-text-color-primary)]',
+  pointsLabel: 'points-label text-xs text-[var(--mvx-text-color-secondary)]',
   
   userWallet: 'user-wallet flex items-center gap-2 bg-primary bg-opacity-5 rounded-lg p-2 justify-between',
   walletIcon: 'wallet-icon text-sm',
@@ -204,9 +204,9 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
             <button 
               className={styles.toggleButton}
               onClick={toggleCollapse}
-              title={isCollapsed ? 'Expand Menu' : 'Collapse Menu'}
+              title={isCollapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}
               type="button"
-              aria-label={isCollapsed ? 'Expand Menu' : 'Collapse Menu'}
+              aria-label={isCollapsed ? t('sidebar.expandMenu') : t('sidebar.collapseMenu')}
             >
               <svg 
                 width="20" 

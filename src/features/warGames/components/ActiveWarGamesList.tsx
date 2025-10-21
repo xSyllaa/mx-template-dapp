@@ -5,12 +5,14 @@ interface ActiveWarGamesListProps {
   warGames: WarGameWithDetails[];
   currentUserId?: string | null;
   onJoinClick: (gameId: string) => void;
+  showBadge?: boolean;
 }
 
 export const ActiveWarGamesList = ({ 
   warGames, 
   currentUserId,
-  onJoinClick 
+  onJoinClick,
+  showBadge = true
 }: ActiveWarGamesListProps) => {
   const { t } = useTranslation();
 
@@ -21,6 +23,15 @@ export const ActiveWarGamesList = ({
   return (
     <div className="mt-8 w-full max-w-4xl">
       <div className="bg-[var(--mvx-bg-color-secondary)] rounded-lg p-6 border border-[var(--mvx-border-color-secondary)]">
+        {/* Active War Games Badge - Inside container */}
+        {showBadge && (
+          <div className="mb-6 flex justify-center">
+            <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] text-[var(--mvx-text-color-primary)] font-medium">
+              ⚔️ {t('pages.warGames.activeCount', { count: warGames.length, defaultValue_one: '{{count}} active war game', defaultValue_other: '{{count}} active war games' })}
+            </span>
+          </div>
+        )}
+        
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {warGames.map((game) => {
           // Check if this war game was created by the current user

@@ -9,14 +9,30 @@ interface WarGameHistoryProps {
   completedGames?: WarGameWithDetails[]; // Optional: if provided, use these instead of fetching
 }
 
+interface TeamPlayer {
+  position: string;
+  nftIdentifier: string;
+  playerName?: string;
+}
+
 export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGameHistoryProps) => {
   const { t } = useTranslation();
   const [completedGames, setCompletedGames] = useState<WarGameWithDetails[]>(providedGames || []);
   const [loading, setLoading] = useState(!providedGames);
   const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
   const [teamDetails, setTeamDetails] = useState<Record<string, {
-    creator: any;
-    opponent: any;
+    creator: {
+      teamName: string;
+      formation: string;
+      playerCount: number;
+      players: TeamPlayer[];
+    } | null;
+    opponent: {
+      teamName: string;
+      formation: string;
+      playerCount: number;
+      players: TeamPlayer[];
+    } | null;
   }>>({});
 
   // Update completed games if provided externally
@@ -157,12 +173,12 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                       </span>
                       {game.creatorScore !== null && (
                         <span className="text-xs text-[var(--mvx-text-color-secondary)]">
-                          ({game.creatorScore} pts)
+                          ({game.creatorScore} {t('common.pts')})
                         </span>
                       )}
                     </div>
 
-                    <span className="text-[var(--mvx-text-color-secondary)]">vs</span>
+                    <span className="text-[var(--mvx-text-color-secondary)]">{t('common.vs')}</span>
 
                     {/* Opponent */}
                     <div className={`flex items-center gap-2 ${isUserWinner(game) && game.winnerId === game.opponentId ? 'text-green-500 font-bold' : ''}`}>
@@ -174,7 +190,7 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                       </span>
                       {game.opponentScore !== null && (
                         <span className="text-xs text-[var(--mvx-text-color-secondary)]">
-                          ({game.opponentScore} pts)
+                          ({game.opponentScore} {t('common.pts')})
                         </span>
                       )}
                     </div>
@@ -185,11 +201,11 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                 <div className="flex items-center gap-2">
                   {game.status === 'in_progress' ? (
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-orange-500/20 text-orange-400 border border-orange-500/30">
-                      🔥 In Progress
+                      🔥 {t('pages.warGames.history.inProgress')}
                     </span>
                   ) : game.status === 'completed' ? (
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-400 border border-green-500/30">
-                      ✅ Completed
+                      ✅ {t('pages.warGames.history.statusCompleted')}
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium bg-gray-500/20 text-gray-400 border border-gray-500/30">
@@ -259,7 +275,7 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                           {t('pages.warGames.history.score')}:
                         </span>
                         <span className="text-[var(--mvx-text-accent-color)] font-bold">
-                          {game.creatorScore !== null ? game.creatorScore : '-'} pts
+                          {game.creatorScore !== null ? game.creatorScore : '-'} {t('common.pts')}
                         </span>
                       </div>
                       <div className="mt-3">
@@ -269,13 +285,13 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                         {teamDetails[game.id]?.creator ? (
                           <div className="space-y-1">
                             <div className="text-xs text-[var(--mvx-text-color-primary)] font-semibold">
-                              {teamDetails[game.id].creator.teamName} ({teamDetails[game.id].creator.formation})
+                              {teamDetails[game.id].creator!.teamName} ({teamDetails[game.id].creator!.formation})
                             </div>
                             <div className="text-xs text-[var(--mvx-text-color-secondary)]">
-                              {teamDetails[game.id].creator.playerCount}/11 players
+                              {teamDetails[game.id].creator!.playerCount}/11 {t('pages.warGames.history.players')}
                             </div>
                             <div className="max-h-20 overflow-y-auto">
-                              {teamDetails[game.id].creator.players.map((player, index) => (
+                              {teamDetails[game.id].creator!.players.map((player: TeamPlayer, index: number) => (
                                 <div key={index} className="text-xs text-[var(--mvx-text-color-primary)]">
                                   {player.position}: {player.playerName}
                                 </div>
@@ -321,7 +337,7 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                           {t('pages.warGames.history.score')}:
                         </span>
                         <span className="text-[var(--mvx-text-accent-color)] font-bold">
-                          {game.opponentScore !== null ? game.opponentScore : '-'} pts
+                          {game.opponentScore !== null ? game.opponentScore : '-'} {t('common.pts')}
                         </span>
                       </div>
                       <div className="mt-3">
@@ -331,13 +347,13 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
                         {teamDetails[game.id]?.opponent ? (
                           <div className="space-y-1">
                             <div className="text-xs text-[var(--mvx-text-color-primary)] font-semibold">
-                              {teamDetails[game.id].opponent.teamName} ({teamDetails[game.id].opponent.formation})
+                              {teamDetails[game.id].opponent!.teamName} ({teamDetails[game.id].opponent!.formation})
                             </div>
                             <div className="text-xs text-[var(--mvx-text-color-secondary)]">
-                              {teamDetails[game.id].opponent.playerCount}/11 players
+                              {teamDetails[game.id].opponent!.playerCount}/11 {t('pages.warGames.history.players')}
                             </div>
                             <div className="max-h-20 overflow-y-auto">
-                              {teamDetails[game.id].opponent.players.map((player, index) => (
+                              {teamDetails[game.id].opponent!.players.map((player: TeamPlayer, index: number) => (
                                 <div key={index} className="text-xs text-[var(--mvx-text-color-primary)]">
                                   {player.position}: {player.playerName}
                                 </div>

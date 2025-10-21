@@ -199,7 +199,7 @@ export const NFTListPanel = ({ placedNFTs, onDragStart, onDragEnd, testAddress }
                   {isPlaced && (
                     <div className="absolute inset-0 bg-green-500/20 rounded-lg flex items-center justify-center pointer-events-none">
                       <div className="bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold">
-                        PLACED
+                        {t('common.placed')}
                       </div>
                     </div>
                   )}

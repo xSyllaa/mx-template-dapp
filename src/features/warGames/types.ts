@@ -47,10 +47,10 @@ export const Formation442: FormationPosition[] = [
   { id: 'gk', position: Position.GK, allowedPositions: [Position.GK], x: 50, y: 5, label: 'GK' },
   
   // Defense (4 players)
-  { id: 'lb', position: Position.LB, allowedPositions: [Position.LB, Position.CB, Position.LWB], x: 15, y: 20, label: 'LB' },
+  { id: 'lb', position: Position.LB, allowedPositions: [Position.LB, Position.CB, Position.LM], x: 15, y: 20, label: 'LB' },
   { id: 'cb1', position: Position.CB, allowedPositions: [Position.CB, Position.LB, Position.RB], x: 35, y: 20, label: 'CB' },
   { id: 'cb2', position: Position.CB, allowedPositions: [Position.CB, Position.LB, Position.RB], x: 65, y: 20, label: 'CB' },
-  { id: 'rb', position: Position.RB, allowedPositions: [Position.RB, Position.CB, Position.RWB], x: 85, y: 20, label: 'RB' },
+  { id: 'rb', position: Position.RB, allowedPositions: [Position.RB, Position.CB, Position.RM], x: 85, y: 20, label: 'RB' },
   
   // Midfield (4 players)
   { id: 'lm', position: Position.LM, allowedPositions: [Position.LM, Position.LW, Position.CM], x: 20, y: 45, label: 'LM' },

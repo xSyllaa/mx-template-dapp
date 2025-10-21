@@ -3,3 +3,4 @@ export * from './useHandleThemeManagement';
 export * from './useUserRole';
 export * from './useSupabaseAuthStatus';
 export * from './useWalletDisconnect';
+export * from './useDashboardStats';

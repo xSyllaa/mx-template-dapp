@@ -196,20 +196,24 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
       let points = 0;
       if (claimed) {
         // Points already earned (need to reconstruct)
-        // Calculate consecutive days from this day backwards
-        const daysFromThisDay = days.slice(index);
-        let consecutiveFromThisDay = 0;
-        for (let i = 0; i < daysFromThisDay.length; i++) {
-          if (weekStreak.claims[daysFromThisDay[i]]) {
-            consecutiveFromThisDay++;
+        // Calculate consecutive days BEFORE this day (from start of week to this day)
+        const daysBeforeThisDay = days.slice(0, index);
+        let consecutiveBeforeThisDay = 0;
+        
+        // Count consecutive days from the end backwards
+        for (let i = daysBeforeThisDay.length - 1; i >= 0; i--) {
+          if (weekStreak.claims[daysBeforeThisDay[i]]) {
+            consecutiveBeforeThisDay++;
           } else {
             break;
           }
         }
-        // Points earned for this day (based on consecutive streak at that time)
-        if (consecutiveFromThisDay > 0) {
-          points = consecutiveFromThisDay * 10;
-        }
+        
+        // Points earned for this day (based on consecutive streak BEFORE this day)
+        // Day 1 = 0 consecutive before = 10 points
+        // Day 2 = 1 consecutive before = 20 points
+        // Day 3 = 2 consecutive before = 30 points
+        points = (consecutiveBeforeThisDay + 1) * 10;
       } else if (isToday) {
         // Points available today
         points = getClaimReward(consecutiveDays);

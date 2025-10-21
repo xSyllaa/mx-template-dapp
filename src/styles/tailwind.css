@@ -304,6 +304,57 @@
   }
 }
 
+/* ============================================ */
+/* Custom Scrollbar - Modern Design            */
+/* ============================================ */
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--mvx-scrollbar-thumb) transparent;
+}
+
+/* Webkit browsers (Chrome, Safari, Edge) */
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 5px;
+  margin: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--mvx-scrollbar-thumb);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--mvx-bg-accent-color);
+  border-radius: 5px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--mvx-hover-bg-primary);
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Smooth scrolling behavior */
+html {
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
 /* Animation Classes */
 .animate-fade-in {
   animation: fadeIn 0.3s ease-in-out forwards;

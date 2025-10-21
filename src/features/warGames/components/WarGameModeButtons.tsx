@@ -15,16 +15,6 @@ export const WarGameModeButtons = ({
 
   return (
     <>
-      {/* Active War Games Counter */}
-      <div className="mb-8 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-full">
-          <span className="text-2xl">⚔️</span>
-          <span className="text-[var(--mvx-text-color-primary)] font-semibold">
-            {t('pages.warGames.activeCount', { count: activeWarGamesCount })}
-          </span>
-        </div>
-      </div>
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-4xl">
         {/* Create War Game */}
         <div className="relative group">

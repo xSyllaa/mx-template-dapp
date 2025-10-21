@@ -1,7 +1,7 @@
 /**
  * NFT Detail Modal - Premium 3D modal with NFT details
  */
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { GalacticXNFT } from '../types';
 import { getTransfermarktURL } from '../../../data/playerDataService';
@@ -52,12 +52,58 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const [isHovering, setIsHovering] = useState(false);
   
+  // Animation state - simplifié
+  const [isClosing, setIsClosing] = useState(false);
+  
+  // Ref pour tracker les timeouts et éviter les bugs de changements rapides
+  const closeTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  
+  // Reset states when NFT changes
+  useEffect(() => {
+    if (nft && isOpen) {
+      // Clear any pending close timeout
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+        closeTimeoutRef.current = null;
+      }
+      // Reset closing state
+      setIsClosing(false);
+      // Reset parallax
+      setMousePosition({ x: 0, y: 0 });
+      setIsHovering(false);
+    }
+  }, [nft?.identifier, isOpen]);
+  
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+    };
+  }, []);
+  
+  // Handle close with animation
+  const handleClose = () => {
+    // Clear any existing timeout
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    
+    setIsClosing(true);
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsClosing(false);
+      closeTimeoutRef.current = null;
+      onClose();
+    }, 300); // Animation rapide et fluide
+  };
+  
   // Handle mouse move for parallax effect
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     const rect = e.currentTarget.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5; // -0.5 to 0.5
-    const y = (e.clientY - rect.top) / rect.height - 0.5; // -0.5 to 0.5
+    const x = (e.clientX - rect.left) / rect.width - 0.5;
+    const y = (e.clientY - rect.top) / rect.height - 0.5;
     setMousePosition({ x, y });
   };
   
@@ -67,67 +113,85 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
     setMousePosition({ x: 0, y: 0 });
   };
   
-  // Close on ESC key and add custom scrollbar styles
+  // Close on ESC key and prevent background scroll
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
     
     if (isOpen) {
       document.addEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'hidden'; // Prevent background scroll
       
-      // Add custom scrollbar styles
-      const style = document.createElement('style');
-      style.textContent = `
-        .custom-scrollbar {
-          scrollbar-width: thin;
-          scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
-          scroll-behavior: smooth;
-        }
-        .custom-scrollbar::-webkit-scrollbar {
-          width: 10px;
-          height: 10px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-track {
-          background: rgba(0, 0, 0, 0.1);
-          border-radius: 5px;
-          margin: 4px;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-          background: rgba(156, 163, 175, 0.4);
-          border-radius: 5px;
-          border: 2px solid transparent;
-          background-clip: padding-box;
-          transition: background-color 0.2s ease;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-          background: rgba(156, 163, 175, 0.6);
-          border-radius: 5px;
-          border: 2px solid transparent;
-          background-clip: padding-box;
-        }
-        .custom-scrollbar::-webkit-scrollbar-thumb:active {
-          background: rgba(156, 163, 175, 0.8);
-        }
-        .custom-scrollbar::-webkit-scrollbar-corner {
-          background: transparent;
-        }
-      `;
-      document.head.appendChild(style);
+      // Calculate scrollbar width to prevent layout shift
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      
+      // Prevent background scroll while keeping scrollbar space
+      document.body.style.overflow = 'hidden';
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      
+      // Add smooth animations (only if not already added)
+      if (!document.getElementById('nft-modal-animations')) {
+        const style = document.createElement('style');
+        style.id = 'nft-modal-animations';
+        style.textContent = `
+          @keyframes fadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          
+          @keyframes fadeOut {
+            from {
+              opacity: 1;
+            }
+            to {
+              opacity: 0;
+            }
+          }
+          
+          @keyframes smoothZoomIn {
+            0% {
+              opacity: 0;
+              transform: scale(0.92) translateY(10px);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+          }
+          
+          @keyframes smoothZoomOut {
+            0% {
+              opacity: 1;
+              transform: scale(1) translateY(0);
+            }
+            100% {
+              opacity: 0;
+              transform: scale(0.92) translateY(10px);
+            }
+          }
+          
+          /* Prevent animation glitches */
+          .nft-modal-animated {
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+          }
+        `;
+        document.head.appendChild(style);
+      }
       
       return () => {
         document.removeEventListener('keydown', handleEsc);
         document.body.style.overflow = 'unset';
-        document.head.removeChild(style);
+        document.body.style.paddingRight = '0px';
+        // Ne pas retirer le style pour éviter les bugs de changements rapides
       };
     }
-    
-    return () => {
-      document.removeEventListener('keydown', handleEsc);
-      document.body.style.overflow = 'unset';
-    };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
   
   if (!isOpen || !nft) return null;
   
@@ -158,15 +222,24 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
     <>
       {/* Backdrop with blur */}
       <div
-        className="fixed inset-0 z-50 bg-black/70 backdrop-blur-md animate-[fadeIn_0.3s_ease-out]"
-        onClick={onClose}
+        className={`fixed inset-0 z-50 bg-black/70 backdrop-blur-md nft-modal-animated ${
+          isClosing 
+            ? 'animate-[fadeOut_0.3s_ease-out_forwards]' 
+            : 'animate-[fadeIn_0.3s_ease-out_forwards]'
+        }`}
+        onClick={handleClose}
       />
       
-       {/* Modal Container with 3D perspective */}
+       {/* Modal Container with smooth animations */}
        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
          <div
-           className="relative w-full max-w-4xl max-h-[90vh] pointer-events-auto animate-[zoomIn3D_0.5s_cubic-bezier(0.34,1.56,0.64,1)]"
+           className={`relative w-full max-w-4xl max-h-[90vh] pointer-events-auto nft-modal-animated ${
+             isClosing 
+               ? 'animate-[smoothZoomOut_0.3s_cubic-bezier(0.4,0,0.2,1)_forwards]' 
+               : 'animate-[smoothZoomIn_0.4s_cubic-bezier(0.16,1,0.3,1)_forwards]'
+           }`}
            onClick={(e) => e.stopPropagation()}
+           key={nft.identifier}
          >
            {/* Card with 3D effect */}
            <div className={`
@@ -179,19 +252,19 @@ export const NFTDetailModal = ({ nft, isOpen, onClose }: NFTDetailModalProps) =>
                absolute inset-0 rounded-3xl
                bg-gradient-to-br ${style.gradient}
              `} />
-             {/* Close Button */}
-             <button
-               onClick={onClose}
-               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all hover:scale-110 flex items-center justify-center"
-               aria-label="Close"
-             >
-               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-               </svg>
-             </button>
+            {/* Close Button */}
+            <button
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/50 backdrop-blur-sm text-white hover:bg-black/70 transition-all hover:scale-110 flex items-center justify-center"
+              aria-label="Close"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
              
-             {/* Content Grid */}
-             <div className="grid md:grid-cols-2 gap-6 p-6 md:p-8 items-center max-h-[90vh] overflow-y-auto custom-scrollbar relative z-0">
+            {/* Content Grid */}
+            <div className="grid md:grid-cols-2 gap-6 p-6 md:p-8 items-center max-h-[90vh] overflow-y-auto relative z-0">
               {/* Left: Image with Parallax */}
               <div 
                 className="relative flex items-center justify-center"

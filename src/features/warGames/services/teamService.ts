@@ -218,11 +218,11 @@ export class TeamService {
       .map(slot => ({
         position: slot.position,
         nftIdentifier: slot.nftIdentifier,
-        playerName: slot.playerName || slot.nftIdentifier.split('-').pop() || 'Unknown'
+        playerName: slot.nftIdentifier.split('-').pop() || 'Unknown'
       }));
 
     return {
-      teamName: team.team_name,
+      teamName: team.teamName,
       formation: team.formation,
       playerCount: players.length,
       players

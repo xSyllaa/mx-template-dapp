@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { useGetAccount } from 'lib';
+import { useDashboardStats } from 'hooks/useDashboardStats';
 import { StatsCard } from 'components/shared/StatsCard';
 import { Button } from 'components/Button';
 
@@ -31,17 +31,14 @@ const styles = {
 
 export const Dashboard = () => {
   const navigate = useNavigate();
-  const { address } = useGetAccount();
   const { t } = useTranslation();
   
-  // TODO: Replace with actual data from API/context
-  const userData = {
-    username: address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Guest',
-    totalPoints: 1250,
-    currentStreak: 5,
-    nftCount: 8,
-    globalRank: 142
-  };
+  // Fetch all dashboard stats with centralized hook
+  const { stats, loading, error, refresh } = useDashboardStats();
+  
+  // Display username or formatted wallet address
+  const displayName = stats.username || 
+    (stats.walletAddress ? `${stats.walletAddress.slice(0, 6)}...${stats.walletAddress.slice(-4)}` : 'Guest');
 
   const quickActions = [
     {
@@ -69,43 +66,60 @@ export const Dashboard = () => {
       {/* Welcome Header */}
       <div className={styles.header}>
         <h1 className={styles.welcomeTitle}>
-          {t('dashboard.welcome', { username: userData.username })} 👋
+          {t('dashboard.welcome', { username: displayName })} 👋
         </h1>
         <p className={styles.welcomeSubtitle}>
           {t('dashboard.subtitle')}
         </p>
       </div>
 
+      {/* Error State */}
+      {error && (
+        <div className="bg-red-500/20 border border-red-500/50 rounded-xl p-4 mb-6">
+          <p className="text-[var(--mvx-text-color-primary)] text-sm">
+            ⚠️ {t('common.error')}: {error.message}
+          </p>
+          <Button 
+            variant="secondary" 
+            onClick={refresh}
+            className="mt-2"
+          >
+            {t('common.retry')}
+          </Button>
+        </div>
+      )}
+
       {/* Stats Cards */}
       <div className={styles.statsGrid}>
         <StatsCard
           icon="⭐"
           label={t('dashboard.stats.totalPoints')}
-          value={userData.totalPoints.toLocaleString()}
-          change={{ value: t('dashboard.stats.todayChange', { value: '120' }), positive: true }}
+          value={loading ? '...' : stats.totalPoints.toLocaleString()}
           variant="gold"
         />
         
         <StatsCard
           icon="🔥"
           label={t('dashboard.stats.currentStreak')}
-          value={`${userData.currentStreak} ${t('dashboard.stats.days')}`}
-          change={{ value: t('dashboard.stats.dayChange', { value: '1' }), positive: true }}
+          value={loading ? '...' : `${stats.currentStreak} ${t('dashboard.stats.days')}`}
+          change={stats.canClaimToday ? { 
+            value: t('dashboard.stats.claimAvailable'), 
+            positive: true 
+          } : undefined}
           variant="accent"
         />
         
         <StatsCard
           icon="🖼️"
           label={t('dashboard.stats.myNFTs')}
-          value={userData.nftCount}
+          value={loading ? '...' : stats.nftCount}
           variant="default"
         />
         
         <StatsCard
           icon="🏆"
           label={t('dashboard.stats.globalRank')}
-          value={`#${userData.globalRank}`}
-          change={{ value: t('dashboard.stats.positionChange', { value: '5' }), positive: true }}
+          value={loading ? '...' : stats.globalRank ? `#${stats.globalRank}` : t('dashboard.stats.noRank')}
           variant="default"
         />
       </div>

@@ -8,11 +8,17 @@
     "success": "Succès",
     "comingSoon": "Bientôt disponible",
     "points": "points",
+    "pts": "pts",
     "close": "Fermer",
     "retry": "Réessayer",
     "back": "Retour",
     "all": "Tous",
+    "show": "Afficher",
+    "hide": "Masquer",
+    "delete": "Supprimer",
+    "vs": "vs",
     "anonymous": "Anonyme",
+    "placed": "PLACÉ",
     "months": {
       "january": "Janvier",
       "february": "Février",
@@ -90,6 +96,8 @@
       "days": "jours",
       "myNFTs": "Mes NFTs",
       "globalRank": "Classement Global",
+      "noRank": "Non classé",
+      "claimAvailable": "Réclamation disponible aujourd'hui",
       "todayChange": "+{{value}} aujourd'hui",
       "dayChange": "+{{value}} jour",
       "positionChange": "+{{value}} positions"
@@ -115,196 +123,6 @@
     "recentActivity": {
       "title": "Activité Récente",
       "noActivity": "Aucune activité récente pour le moment"
-    }
-  },
-  "pages": {
-    "warGames": {
-      "title": "War Games",
-      "subtitle": "Construis ton équipe ultime et défie les autres",
-      "activeCount": "{{count}} war game(s) actif(s)",
-      "field": {
-        "title": "Ton Équipe",
-        "formation": "Formation: 4-4-2",
-        "playersPlaced": "joueurs placés",
-        "empty": "Glisse les NFTs pour construire ton équipe",
-        "complete": "Complète",
-        "authRequired": "Signer pour sauvegarder"
-      },
-      "nftList": {
-        "title": "Tes NFTs",
-        "search": "Rechercher des NFTs...",
-        "noNFTs": "Aucun NFT disponible",
-        "total": "{{total}} au total • {{placed}} placés"
-      },
-      "actions": {
-        "saveTeam": "Sauvegarder l'Équipe",
-        "clearTeam": "Tout Effacer",
-        "challenge": "Défier un Joueur",
-        "teamNamePlaceholder": "Entrez le nom de l'équipe...",
-        "teamNameRequired": "Le nom de l'équipe est requis",
-        "showTeams": "Afficher les Équipes",
-        "hideTeams": "Masquer les Équipes"
-      },
-      "cardDesign": {
-        "label": "Design des Cartes",
-        "vertical": "Vertical",
-        "horizontal": "Horizontal"
-      },
-      "savedTeams": {
-        "title": "Équipes Sauvegardées",
-        "empty": "Aucune équipe sauvegardée",
-        "players": "joueurs",
-        "load": "Charger",
-        "confirmDelete": "Êtes-vous sûr de vouloir supprimer \"{{teamName}}\" ?"
-      },
-      "errors": {
-        "notEnoughNFTs": "Tu as besoin d'au moins 11 NFTs pour créer une équipe",
-        "needMoreNFTs": "Tu as {{current}} NFTs, mais il en faut {{needed}} pour créer une équipe",
-        "incompatiblePosition": "Ce NFT ne peut pas être placé ici",
-        "loadingError": "Échec du chargement des NFTs"
-      },
-      "mode": {
-        "title": "Sélectionne le Mode de War Game",
-        "subtitle": "Choisis comment tu veux jouer",
-        "create": {
-          "title": "Créer un War Game",
-          "description": "Crée un nouveau war game et attends qu'un adversaire te rejoigne",
-          "features": {
-            "selectTeam": "Sélectionne ton équipe de 11 joueurs",
-            "setPoints": "Définis les points en jeu",
-            "setDeadline": "Fixe la date limite d'inscription"
-          },
-          "button": "Créer une Partie"
-        },
-        "join": {
-          "title": "Rejoindre un War Game",
-          "description": "Parcours les war games disponibles et défie d'autres joueurs",
-          "features": {
-            "browseGames": "Parcours les war games disponibles",
-            "selectTeam": "Choisis ton équipe",
-            "challengeOpponent": "Défie l'adversaire"
-          },
-          "button": "Rejoindre une Partie",
-          "noGamesAvailable": "Aucun war game disponible pour le moment",
-          "noGamesTooltip": "Aucun war game actif disponible"
-        },
-        "notEnoughNFTs": "Tu as besoin de {needed} NFTs (tu en as {current})",
-        "needMoreNFTsTooltip": "Tu as besoin d'au moins {needed} NFTs pour participer aux War Games. Tu en as actuellement {current}."
-      },
-      "messages": {
-        "teamIncomplete": "Complète ton équipe (11 joueurs) avant de valider",
-        "authRequired": "Signe le message pour t'authentifier",
-        "createSuccess": "War Game créé avec succès ! En attente d'un adversaire.",
-        "joinSuccess": "Tu as rejoint le war game avec succès ! Bonne chance !",
-        "teamSavedSuccess": "Équipe sauvegardée avec succès !",
-        "genericError": "Échec de l'envoi. Réessaye.",
-        "loadWarGamesError": "Échec du chargement des war games disponibles"
-      },
-      "create": {
-        "title": "Créer un War Game",
-        "subtitle": "Configure ton war game et attends un adversaire",
-        "button": "Créer le War Game",
-        "fields": {
-          "team": {
-            "label": "Sélectionne Ton Équipe",
-            "noTeams": "Tu n'as aucune équipe sauvegardée. Crée d'abord une équipe.",
-            "description": "Choisis quelle équipe tu veux utiliser pour ce war game"
-          },
-          "points": {
-            "label": "Points en Jeu",
-            "description": "Combien de points sont en jeu ? Le gagnant remporte tout !"
-          },
-          "deadline": {
-            "label": "Date Limite d'Inscription",
-            "description": "Les adversaires doivent rejoindre avant cette date"
-          }
-        },
-        "summary": {
-          "title": "Résumé du War Game",
-          "team": "Équipe",
-          "stake": "Points en Jeu",
-          "deadline": "Date Limite"
-        },
-        "errors": {
-          "loadTeams": "Échec du chargement des équipes",
-          "selectTeam": "Veuillez sélectionner une équipe",
-          "invalidPoints": "Les points doivent être supérieurs à 0",
-          "invalidDeadline": "Veuillez sélectionner une date limite valide",
-          "createFailed": "Échec de la création du war game"
-        }
-      },
-      "join": {
-        "title": "Rejoindre un War Game",
-        "subtitle": "Sélectionne un war game et défie ton adversaire",
-        "button": "Rejoindre le War Game",
-        "fields": {
-          "warGame": {
-            "label": "Sélectionne le War Game",
-            "noGames": "Aucun war game disponible pour le moment. Crée-en un !",
-            "description": "Choisis quel war game tu veux rejoindre",
-            "anonymous": "Anonyme"
-          },
-          "team": {
-            "label": "Sélectionne Ton Équipe",
-            "noTeams": "Tu n'as aucune équipe sauvegardée. Crée d'abord une équipe.",
-            "description": "Choisis quelle équipe tu veux utiliser"
-          }
-        },
-        "warGameDetails": {
-          "title": "Détails du War Game",
-          "creator": "Créateur",
-          "stake": "Points en Jeu",
-          "deadline": "Date Limite",
-          "created": "Créé le"
-        },
-        "summary": {
-          "title": "Important",
-          "message": "Tu mises {{points}} points. Le gagnant remporte tout !"
-        },
-        "errors": {
-          "loadData": "Échec du chargement des données",
-          "selectWarGame": "Veuillez sélectionner un war game",
-          "selectTeam": "Veuillez sélectionner une équipe",
-          "joinFailed": "Échec de la participation au war game"
-        }
-      },
-      "testMode": {
-        "show": "Utiliser une Adresse de Test",
-        "hide": "Masquer l'Adresse de Test",
-        "placeholder": "Entrez l'adresse du portefeuille à tester...",
-        "search": "Charger les NFTs",
-        "loading": "Chargement des NFTs pour l'adresse de test..."
-      },
-      "activeGames": {
-        "title": "War Games Actifs",
-        "stake": "Mise",
-        "deadline": "Date Limite",
-        "joinButton": "Rejoindre ce War Game",
-        "ownWarGame": "Ton War Game"
-      },
-      "history": {
-        "title": "Historique War Games",
-        "loading": "Chargement de l'historique...",
-        "noHistory": "Aucun War Game",
-        "noHistoryDescription": "Les war games terminés apparaîtront ici",
-        "stake": "Mise",
-        "completed": "Terminé",
-        "creator": "Créateur",
-        "opponent": "Adversaire",
-        "username": "Pseudo",
-        "address": "Adresse",
-        "score": "Score",
-        "teamId": "ID Équipe",
-        "teamComposition": "Composition d'Équipe",
-        "loadingTeam": "Chargement des détails de l'équipe",
-        "timeline": "Chronologie",
-        "created": "Créé",
-        "started": "Démarré",
-        "completedAt": "Terminé",
-        "winner": "Vainqueur",
-        "youWon": "Tu as gagné",
-        "noWinner": "Aucun Vainqueur"
-      }
     }
   },
   "predictions": {
@@ -433,6 +251,202 @@
     "leaderboards": {
       "title": "Classements",
       "subtitle": "Grimpe au sommet et remporte des récompenses exclusives"
+    },
+    "warGames": {
+      "title": "War Games",
+      "subtitle": "Construis ton équipe ultime et défie les autres",
+      "activeCount_one": "{{count}} war game actif",
+      "activeCount_other": "{{count}} war games actifs",
+      "field": {
+        "title": "Ton Équipe",
+        "formation": "Formation: 4-4-2",
+        "playersPlaced": "joueurs placés",
+        "empty": "Glisse les NFTs pour construire ton équipe",
+        "complete": "Complète",
+        "authRequired": "Signer pour sauvegarder"
+      },
+      "nftList": {
+        "title": "Tes NFTs",
+        "search": "Rechercher des NFTs...",
+        "noNFTs": "Aucun NFT disponible",
+        "total": "{{total}} au total • {{placed}} placés"
+      },
+      "actions": {
+        "saveTeam": "Sauvegarder l'Équipe",
+        "clearTeam": "Tout Effacer",
+        "challenge": "Défier un Joueur",
+        "teamNamePlaceholder": "Entrez le nom de l'équipe...",
+        "teamNameRequired": "Le nom de l'équipe est requis",
+        "showTeams": "Afficher les Équipes",
+        "hideTeams": "Masquer les Équipes"
+      },
+      "cardDesign": {
+        "label": "Design des Cartes",
+        "vertical": "Vertical",
+        "horizontal": "Horizontal"
+      },
+      "savedTeams": {
+        "title": "Équipes Sauvegardées",
+        "empty": "Aucune équipe sauvegardée",
+        "players": "joueurs",
+        "load": "Charger",
+        "confirmDelete": "Êtes-vous sûr de vouloir supprimer \"{{teamName}}\" ?"
+      },
+      "errors": {
+        "notEnoughNFTs": "Tu as besoin d'au moins 11 NFTs pour créer une équipe",
+        "needMoreNFTs": "Tu as {{current}} NFTs, mais il en faut {{needed}} pour créer une équipe",
+        "incompatiblePosition": "Ce NFT ne peut pas être placé ici",
+        "loadingError": "Échec du chargement des NFTs"
+      },
+      "notConnected": {
+        "title": "Wallet Non Connecté",
+        "subtitle": "Connecte ton wallet pour accéder aux War Games"
+      },
+      "mode": {
+        "title": "Sélectionne le Mode de War Game",
+        "subtitle": "Choisis comment tu veux jouer",
+        "create": {
+          "title": "Créer un War Game",
+          "description": "Crée un nouveau war game et attends qu'un adversaire te rejoigne",
+          "features": {
+            "selectTeam": "Sélectionne ton équipe de 11 joueurs",
+            "setPoints": "Définis les points en jeu",
+            "setDeadline": "Fixe la date limite d'inscription"
+          },
+          "button": "Créer une Partie"
+        },
+        "join": {
+          "title": "Rejoindre un War Game",
+          "description": "Parcours les war games disponibles et défie d'autres joueurs",
+          "features": {
+            "browseGames": "Parcours les war games disponibles",
+            "selectTeam": "Choisis ton équipe",
+            "challengeOpponent": "Défie l'adversaire"
+          },
+          "button": "Rejoindre une Partie",
+          "noGamesAvailable": "Aucun war game disponible pour le moment",
+          "noGamesTooltip": "Aucun war game actif disponible"
+        },
+        "notEnoughNFTs": "Tu as besoin de {needed} NFTs (tu en as {current})",
+        "needMoreNFTsTooltip": "Tu as besoin d'au moins {needed} NFTs pour participer aux War Games. Tu en as actuellement {current}."
+      },
+      "messages": {
+        "teamIncomplete": "Complète ton équipe (11 joueurs) avant de valider",
+        "authRequired": "Signe le message pour t'authentifier",
+        "createSuccess": "War Game créé avec succès ! En attente d'un adversaire.",
+        "joinSuccess": "Tu as rejoint le war game avec succès ! Bonne chance !",
+        "teamSavedSuccess": "Équipe sauvegardée avec succès !",
+        "genericError": "Échec de l'envoi. Réessaye.",
+        "loadWarGamesError": "Échec du chargement des war games disponibles"
+      },
+      "create": {
+        "title": "Créer un War Game",
+        "subtitle": "Configure ton war game et attends un adversaire",
+        "button": "Créer le War Game",
+        "fields": {
+          "team": {
+            "label": "Sélectionne Ton Équipe",
+            "noTeams": "Tu n'as aucune équipe sauvegardée. Crée d'abord une équipe.",
+            "description": "Choisis quelle équipe tu veux utiliser pour ce war game"
+          },
+          "points": {
+            "label": "Points en Jeu",
+            "description": "Combien de points sont en jeu ? Le gagnant remporte tout !"
+          },
+          "deadline": {
+            "label": "Date Limite d'Inscription",
+            "description": "Les adversaires doivent rejoindre avant cette date"
+          }
+        },
+        "summary": {
+          "title": "Résumé du War Game",
+          "team": "Équipe",
+          "stake": "Points en Jeu",
+          "deadline": "Date Limite"
+        },
+        "errors": {
+          "loadTeams": "Échec du chargement des équipes",
+          "selectTeam": "Veuillez sélectionner une équipe",
+          "invalidPoints": "Les points doivent être supérieurs à 0",
+          "invalidDeadline": "Veuillez sélectionner une date limite valide",
+          "createFailed": "Échec de la création du war game"
+        }
+      },
+      "join": {
+        "title": "Rejoindre un War Game",
+        "subtitle": "Sélectionne un war game et défie ton adversaire",
+        "button": "Rejoindre le War Game",
+        "fields": {
+          "warGame": {
+            "label": "Sélectionne le War Game",
+            "noGames": "Aucun war game disponible pour le moment. Crée-en un !",
+            "description": "Choisis quel war game tu veux rejoindre",
+            "anonymous": "Anonyme"
+          },
+          "team": {
+            "label": "Sélectionne Ton Équipe",
+            "noTeams": "Tu n'as aucune équipe sauvegardée. Crée d'abord une équipe.",
+            "description": "Choisis quelle équipe tu veux utiliser"
+          }
+        },
+        "warGameDetails": {
+          "title": "Détails du War Game",
+          "creator": "Créateur",
+          "stake": "Points en Jeu",
+          "deadline": "Date Limite",
+          "created": "Créé le"
+        },
+        "summary": {
+          "title": "Important",
+          "message": "Tu mises {{points}} points. Le gagnant remporte tout !"
+        },
+        "errors": {
+          "loadData": "Échec du chargement des données",
+          "selectWarGame": "Veuillez sélectionner un war game",
+          "selectTeam": "Veuillez sélectionner une équipe",
+          "joinFailed": "Échec de la participation au war game"
+        }
+      },
+      "testMode": {
+        "show": "Utiliser une Adresse de Test",
+        "hide": "Masquer l'Adresse de Test",
+        "placeholder": "Entrez l'adresse du portefeuille à tester...",
+        "search": "Charger les NFTs",
+        "loading": "Chargement des NFTs pour l'adresse de test..."
+      },
+      "activeGames": {
+        "title": "War Games Actifs",
+        "stake": "Mise",
+        "deadline": "Date Limite",
+        "joinButton": "Rejoindre ce War Game",
+        "ownWarGame": "Ton War Game"
+      },
+      "history": {
+        "title": "Historique War Games",
+        "loading": "Chargement de l'historique...",
+        "noHistory": "Aucun War Game",
+        "noHistoryDescription": "Les war games terminés apparaîtront ici",
+        "stake": "Mise",
+        "completed": "Terminé",
+        "inProgress": "En Cours",
+        "statusCompleted": "Terminé",
+        "creator": "Créateur",
+        "opponent": "Adversaire",
+        "username": "Pseudo",
+        "address": "Adresse",
+        "score": "Score",
+        "teamId": "ID Équipe",
+        "teamComposition": "Composition d'Équipe",
+        "loadingTeam": "Chargement des détails de l'équipe",
+        "timeline": "Chronologie",
+        "created": "Créé",
+        "started": "Démarré",
+        "completedAt": "Terminé",
+        "winner": "Vainqueur",
+        "youWon": "Tu as gagné",
+        "noWinner": "Aucun Vainqueur",
+        "players": "joueurs"
+      }
     },
     "streaks": {
       "title": "Streaks",
