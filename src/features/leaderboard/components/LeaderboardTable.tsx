@@ -45,7 +45,7 @@ export const LeaderboardTable = ({
     );
   }
 
-  if (entries.length === 0) {
+  if (!entries || entries.length === 0) {
     return (
       <div className={styles.empty}>
         <p className={styles.emptyText}>

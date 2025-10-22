@@ -234,7 +234,18 @@ export const createPrediction = async (
     const { data: newPrediction, error } = await supabase
       .from('predictions')
       .insert({
-        ...data,
+        competition: data.competition,
+        home_team: data.home_team,
+        away_team: data.away_team,
+        bet_type: data.bet_type,
+        bet_calculation_type: data.bet_calculation_type,
+        extended_bet_type: data.extended_bet_type,
+        options: data.options,
+        start_date: data.start_date,
+        close_date: data.close_date,
+        points_reward: data.points_reward,
+        min_bet_points: data.min_bet_points,
+        max_bet_points: data.max_bet_points,
         created_by: createdBy,
         status: 'open',
         winning_option_id: null
@@ -427,6 +438,115 @@ export const deletePrediction = async (predictionId: string): Promise<void> => {
 };
 
 /**
+ * Cancel a prediction with automatic refund of all bets (admin only)
+ * Cannot cancel predictions that have been validated (status = 'resulted')
+ */
+export const cancelPredictionWithRefund = async (
+  predictionId: string
+): Promise<{ refunded_users: number; refunded_amount: number }> => {
+  try {
+    // Check if prediction can be cancelled (not resulted)
+    const prediction = await getPredictionById(predictionId);
+    if (!prediction) {
+      throw new Error('Prediction not found');
+    }
+    
+    if (prediction.status === 'resulted') {
+      throw new Error('Cannot cancel a validated prediction');
+    }
+    
+    if (prediction.status === 'cancelled') {
+      throw new Error('Prediction is already cancelled');
+    }
+    
+    // Get all user predictions for this prediction
+    const { data: userPredictions, error: fetchError } = await supabase
+      .from('user_predictions')
+      .select('*')
+      .eq('prediction_id', predictionId);
+    
+    if (fetchError) {
+      console.error('[PredictionService] Error fetching user predictions:', fetchError);
+      throw fetchError;
+    }
+    
+    if (!userPredictions || userPredictions.length === 0) {
+      return {
+        refunded_users: 0,
+        refunded_amount: 0
+      };
+    }
+    
+    // Refund each bet individually using record_points_transaction
+    let totalRefunded = 0;
+    let usersRefunded = 0;
+    
+    for (const userPrediction of userPredictions) {
+      try {
+        // Use record_points_transaction to properly update user balance
+        const { error: refundError } = await supabase.rpc('record_points_transaction', {
+          p_user_id: userPrediction.user_id,
+          p_amount: userPrediction.points_wagered, // Positive amount for refund
+          p_source_type: 'prediction_refund',
+          p_source_id: predictionId,
+          p_metadata: {
+            selected_option_id: userPrediction.selected_option_id,
+            original_bet: userPrediction.points_wagered,
+            reason: 'prediction_cancelled',
+            prediction_teams: {
+              home_team: prediction.home_team,
+              away_team: prediction.away_team,
+              competition: prediction.competition
+            }
+          }
+        });
+        
+        if (refundError) {
+          console.error('[PredictionService] Error refunding bet for user:', userPrediction.user_id, refundError);
+          // Continue with other refunds even if one fails
+        } else {
+          totalRefunded += userPrediction.points_wagered;
+          usersRefunded += 1;
+        }
+      } catch (error) {
+        console.error('[PredictionService] Error processing refund for user:', userPrediction.user_id, error);
+        // Continue with other refunds
+      }
+    }
+    
+    const refundResult = {
+      users_refunded: usersRefunded,
+      total_refunded: totalRefunded
+    };
+    
+    // Update prediction status to cancelled instead of deleting
+    const { error: updateError } = await supabase
+      .from('predictions')
+      .update({ status: 'cancelled' })
+      .eq('id', predictionId);
+    
+    if (updateError) {
+      console.error('[PredictionService] Error updating prediction status:', updateError);
+      throw updateError;
+    }
+    
+    console.log('[PredictionService] Successfully cancelled prediction with refund:', {
+      predictionId,
+      refundedUsers: refundResult.users_refunded,
+      refundedAmount: refundResult.total_refunded
+    });
+    
+    return {
+      refunded_users: refundResult.users_refunded,
+      refunded_amount: refundResult.total_refunded
+    };
+  } catch (error) {
+    console.error('[PredictionService] Error cancelling prediction with refund:', error);
+    throw error;
+  }
+};
+
+/**
  * Delete a prediction with automatic refund of all bets (admin only)
  * Cannot delete predictions that have been validated (status = 'resulted')
  */
@@ -444,14 +564,67 @@ export const deletePredictionWithRefund = async (
       throw new Error('Cannot delete a validated prediction');
     }
     
-    // Refund all bets using the RPC function
-    const { data: refundResult, error: refundError } = await supabase
-      .rpc('refund_prediction_bets', { p_prediction_id: predictionId });
+    // Get all user predictions for this prediction
+    const { data: userPredictions, error: fetchError } = await supabase
+      .from('user_predictions')
+      .select('*')
+      .eq('prediction_id', predictionId);
     
-    if (refundError) {
-      console.error('[PredictionService] Error refunding bets:', refundError);
-      throw refundError;
+    if (fetchError) {
+      console.error('[PredictionService] Error fetching user predictions:', fetchError);
+      throw fetchError;
     }
+    
+    if (!userPredictions || userPredictions.length === 0) {
+      // Delete prediction even if no bets
+      await deletePrediction(predictionId);
+      return {
+        refunded_users: 0,
+        refunded_amount: 0
+      };
+    }
+    
+    // Refund each bet individually using record_points_transaction
+    let totalRefunded = 0;
+    let usersRefunded = 0;
+    
+    for (const userPrediction of userPredictions) {
+      try {
+        // Use record_points_transaction to properly update user balance
+        const { error: refundError } = await supabase.rpc('record_points_transaction', {
+          p_user_id: userPrediction.user_id,
+          p_amount: userPrediction.points_wagered, // Positive amount for refund
+          p_source_type: 'prediction_refund',
+          p_source_id: predictionId,
+          p_metadata: {
+            selected_option_id: userPrediction.selected_option_id,
+            original_bet: userPrediction.points_wagered,
+            reason: 'prediction_deleted',
+            prediction_teams: {
+              home_team: prediction.home_team,
+              away_team: prediction.away_team,
+              competition: prediction.competition
+            }
+          }
+        });
+        
+        if (refundError) {
+          console.error('[PredictionService] Error refunding bet for user:', userPrediction.user_id, refundError);
+          // Continue with other refunds even if one fails
+        } else {
+          totalRefunded += userPrediction.points_wagered;
+          usersRefunded += 1;
+        }
+      } catch (error) {
+        console.error('[PredictionService] Error processing refund for user:', userPrediction.user_id, error);
+        // Continue with other refunds
+      }
+    }
+    
+    const refundResult = {
+      users_refunded: usersRefunded,
+      total_refunded: totalRefunded
+    };
     
     // Delete prediction
     await deletePrediction(predictionId);
@@ -468,6 +641,29 @@ export const deletePredictionWithRefund = async (
     };
   } catch (error) {
     console.error('[PredictionService] Error deleting prediction with refund:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get all user predictions for a specific prediction (admin view)
+ * @param predictionId - Prediction UUID
+ */
+export const getUserPredictionsForPrediction = async (
+  predictionId: string
+): Promise<UserPrediction[]> => {
+  try {
+    const { data, error } = await supabase
+      .from('user_predictions')
+      .select('*')
+      .eq('prediction_id', predictionId)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    return (data || []) as UserPrediction[];
+  } catch (error) {
+    console.error('[PredictionService] Error fetching user predictions for prediction:', error);
     throw error;
   }
 };

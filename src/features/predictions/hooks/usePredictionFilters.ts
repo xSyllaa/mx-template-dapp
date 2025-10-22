@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import type { Prediction, BetType, BetCalculationType, PredictionStatus } from '../types';
 
 export interface PredictionFilters {
-  betTypes: BetType[];
+  betTypes: string[]; // Changed to string[] to support extended_bet_type
   calculationType: BetCalculationType | 'all';
   competitions: string[];
   statuses: PredictionStatus[];
@@ -24,17 +24,18 @@ export const usePredictionFilters = (predictions: Prediction[]) => {
     return Array.from(comps).sort();
   }, [predictions]);
 
-  // Get unique bet types from predictions
+  // Get unique bet types from predictions (using extended_bet_type)
   const availableBetTypes = useMemo(() => {
-    const types = new Set(predictions.map(p => p.bet_type));
-    return Array.from(types);
+    const types = new Set(predictions.map(p => p.extended_bet_type || p.bet_type));
+    return Array.from(types).filter(Boolean); // Filter out null/undefined values
   }, [predictions]);
 
   // Filter predictions based on current filters
   const filteredPredictions = useMemo(() => {
     return predictions.filter(prediction => {
-      // Filter by bet type
-      if (filters.betTypes.length > 0 && !filters.betTypes.includes(prediction.bet_type)) {
+      // Filter by bet type (using extended_bet_type)
+      const predictionBetType = prediction.extended_bet_type || prediction.bet_type;
+      if (filters.betTypes.length > 0 && !filters.betTypes.includes(predictionBetType)) {
         return false;
       }
 
@@ -64,7 +65,7 @@ export const usePredictionFilters = (predictions: Prediction[]) => {
   }, [predictions, filters]);
 
   // Toggle bet type filter
-  const toggleBetType = (betType: BetType) => {
+  const toggleBetType = (betType: string) => {
     setFilters(prev => ({
       ...prev,
       betTypes: prev.betTypes.includes(betType)

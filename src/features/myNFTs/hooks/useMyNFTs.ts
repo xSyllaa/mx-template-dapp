@@ -54,13 +54,7 @@ export const useMyNFTs = (customAddress?: string, includeErrors: boolean = false
     setLoading(true);
     
     try {
-      console.log(`🔍 useMyNFTs: Fetching NFTs for address: ${address}`);
-      console.log(`🔧 useMyNFTs: Include errors mode: ${includeErrors}`);
-      
       const result: NFTOwnershipResult = await fetchUserNFTs(address, includeErrors);
-      
-      console.log(`✅ useMyNFTs: Successfully fetched ${result.nftCount} NFTs`);
-      console.log(`📋 useMyNFTs: NFTs array length: ${result.nfts.length}`);
       
       setNFTs(result.nfts);
       setNFTCount(result.nftCount);
@@ -107,13 +101,7 @@ export const useMyNFTs = (customAddress?: string, includeErrors: boolean = false
     setLoading(true);
     
     try {
-      console.log(`🔍 fetchNFTsForAddress: Fetching NFTs for test address: ${testAddress}`);
-      console.log(`🔧 fetchNFTsForAddress: Include errors mode: ${includeErrors}`);
-      
       const result: NFTOwnershipResult = await fetchUserNFTs(testAddress, includeErrors);
-      
-      console.log(`✅ fetchNFTsForAddress: Successfully fetched ${result.nftCount} NFTs`);
-      console.log(`📋 fetchNFTsForAddress: NFTs array length: ${result.nfts.length}`);
       
       setNFTs(result.nfts);
       setNFTCount(result.nftCount);

@@ -4,10 +4,18 @@ import LanguageDetector from 'i18next-browser-languagedetector';
 
 import en from './locales/en.json';
 import fr from './locales/fr.json';
+import enPredictions from './locales/en.predictions.json';
+import frPredictions from './locales/fr.predictions.json';
 
 export const resources = {
-  en: { translation: en },
-  fr: { translation: fr }
+  en: {
+    translation: en,
+    predictions: enPredictions
+  },
+  fr: {
+    translation: fr,
+    predictions: frPredictions
+  }
 } as const;
 
 i18n
@@ -17,6 +25,7 @@ i18n
     resources,
     fallbackLng: 'en',
     defaultNS: 'translation',
+    ns: ['translation', 'predictions'],
     supportedLngs: ['en', 'fr'],
     interpolation: {
       escapeValue: false

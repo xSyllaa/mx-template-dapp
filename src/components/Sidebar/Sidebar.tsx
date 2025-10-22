@@ -7,6 +7,7 @@ import { RouteNamesEnum } from 'localConstants';
 import { useGetAccount } from 'lib';
 import { useUserRole } from 'hooks';
 import { useToast } from 'hooks/useToast';
+import { useUserPoints } from 'features/predictions/hooks/useUserPoints';
 import { Logo } from 'components/Logo';
 import { ToastContainer } from 'components/Toast';
 import { UsernameEditor } from 'features/username';
@@ -71,6 +72,7 @@ const menuItems: MenuItem[] = [
   { path: '/leaderboard', label: 'nav.leaderboards', icon: '🏆' },
   { path: '/streaks', label: 'nav.streaks', icon: '🔥' },
   { path: '/my-nfts', label: 'nav.myNFTs', icon: '🖼️' },
+  { path: '/collection', label: 'nav.collection', icon: '🌌' },
   { path: '/team-of-week', label: 'nav.teamOfWeek', icon: '⭐' },
   { path: '/admin', label: 'nav.admin', icon: '👑', adminOnly: true }
 ];
@@ -91,6 +93,9 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
   const { userProfile, isAdmin, refreshProfile } = useUserRole();
   const { toasts, removeToast } = useToast();
   
+  // Use the real-time points hook for accurate point display
+  const { points: userPoints, loading: pointsLoading } = useUserPoints(userProfile?.id || null);
+  
   // Detect screen size
   useEffect(() => {
     const checkScreenSize = () => {
@@ -104,7 +109,6 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
   }, []);
   
   const userRole = isAdmin ? 'admin' : 'user';
-  const userPoints = userProfile?.total_points ?? 0;
 
   const filteredMenuItems = menuItems.filter(
     (item) => !item.adminOnly || userRole === 'admin'
@@ -251,7 +255,9 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
           <div className={styles.userInfo}>
             <div className={styles.userPoints}>
               <span className={styles.pointsIcon}>⭐</span>
-              <span className={styles.pointsValue}>{userPoints.toLocaleString()}</span>
+              <span className={styles.pointsValue}>
+                {pointsLoading ? '...' : userPoints.toLocaleString()}
+              </span>
               <span className={styles.pointsLabel}>{t('common.points')}</span>
             </div>
             
@@ -280,7 +286,7 @@ export const Sidebar = ({ isOpen, onClose, onCollapseChange }: SidebarProps) => 
         {/* User Info (Collapsed - Desktop only) */}
         {isCollapsed && !isMobile && (
           <div className={styles.userInfoCollapsed}>
-            <div className={styles.collapsedPoints} title={`${userPoints} points`}>
+            <div className={styles.collapsedPoints} title={`${pointsLoading ? '...' : userPoints} points`}>
               ⭐
             </div>
           </div>

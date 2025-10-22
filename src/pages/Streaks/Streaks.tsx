@@ -7,6 +7,7 @@ import {
   ClaimButton,
   useWeeklyStreak
 } from 'features/streaks';
+import { Button } from 'components/Button';
 
 // prettier-ignore
 const styles = {
@@ -39,11 +40,15 @@ export const Streaks = () => {
     loading,
     error: streakError,
     claimDay,
+    refresh,
     stats,
     daysState,
     canClaimToday,
     todaysClaim
   } = useWeeklyStreak();
+
+  // Extract data from streak
+  const streak = weekStreak;
 
   // Show loading while authentication is in progress
   if (authLoading || loading) {
@@ -87,8 +92,26 @@ export const Streaks = () => {
   return (
     <div className={styles.container}>
       <div className={styles.header}>
-        <h1 className={styles.title}>🔥 {t('pages.streaks.title')}</h1>
-        <p className={styles.subtitle}>{t('pages.streaks.subtitle')}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h1 className={styles.title}>🔥 {t('pages.streaks.title')}</h1>
+            <p className={styles.subtitle}>{t('pages.streaks.subtitle')}</p>
+          </div>
+
+          {/* Refresh Button */}
+          <div className="flex items-center gap-3">
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={refresh}
+              disabled={loading}
+              className="flex items-center gap-2"
+            >
+              <span className={loading ? 'animate-spin' : ''}>🔄</span>
+              {loading ? 'Actualisation...' : 'Actualiser'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Authentication Warning */}

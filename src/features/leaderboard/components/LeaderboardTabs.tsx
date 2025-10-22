@@ -24,8 +24,8 @@ export const LeaderboardTabs = ({
 
   const tabs: Array<{ id: LeaderboardType; label: string }> = [
     { id: 'all_time', label: t('leaderboard.tabs.allTime') },
-    { id: 'weekly', label: t('leaderboard.tabs.weekly') },
-    { id: 'monthly', label: t('leaderboard.tabs.monthly') }
+    { id: 'monthly', label: t('leaderboard.tabs.monthly') },
+    { id: 'weekly', label: t('leaderboard.tabs.weekly') }
   ];
 
   return (

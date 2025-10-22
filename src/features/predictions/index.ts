@@ -22,6 +22,7 @@ export { useUserPoints } from './hooks/useUserPoints';
 export { usePredictionStats } from './hooks/usePredictionStats';
 export { usePredictionFilters } from './hooks/usePredictionFilters';
 export type { PredictionFilters } from './hooks/usePredictionFilters';
+export { useCachedPredictions } from './hooks/usePredictionsWithCache';
 
 // Components
 export { PredictionCard } from './components/PredictionCard';

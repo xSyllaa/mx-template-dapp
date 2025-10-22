@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 
-import { useDashboardStats } from 'hooks/useDashboardStats';
+import { useCachedDashboardStats } from 'hooks/useCachedDashboardStats';
 import { StatsCard } from 'components/shared/StatsCard';
 import { Button } from 'components/Button';
 
@@ -33,8 +33,8 @@ export const Dashboard = () => {
   const navigate = useNavigate();
   const { t } = useTranslation();
   
-  // Fetch all dashboard stats with centralized hook
-  const { stats, loading, error, refresh } = useDashboardStats();
+  // Fetch all dashboard stats with cached hook (5-minute cache)
+  const { stats, loading, error, refetch, isRefetching, lastUpdated } = useCachedDashboardStats();
   
   // Display username or formatted wallet address
   const displayName = stats.username || 
@@ -65,12 +65,35 @@ export const Dashboard = () => {
     <div className={styles.container}>
       {/* Welcome Header */}
       <div className={styles.header}>
-        <h1 className={styles.welcomeTitle}>
-          {t('dashboard.welcome', { username: displayName })} 👋
-        </h1>
-        <p className={styles.welcomeSubtitle}>
-          {t('dashboard.subtitle')}
-        </p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-2">
+          <div>
+            <h1 className={styles.welcomeTitle}>
+              {t('dashboard.welcome', { username: displayName })} 👋
+            </h1>
+            <p className={styles.welcomeSubtitle}>
+              {t('dashboard.subtitle')}
+            </p>
+          </div>
+
+          {/* Refresh Button */}
+          <div className="flex items-center gap-3">
+            {lastUpdated && !loading && (
+              <span className="text-xs text-[var(--mvx-text-color-tertiary)]">
+                Dernière MAJ: {lastUpdated.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </span>
+            )}
+            <Button
+              variant="secondary"
+              size="small"
+              onClick={() => refetch()}
+              disabled={isRefetching}
+              className="flex items-center gap-2"
+            >
+              <span className={isRefetching ? 'animate-spin' : ''}>🔄</span>
+              {isRefetching ? 'Actualisation...' : 'Actualiser'}
+            </Button>
+          </div>
+        </div>
       </div>
 
       {/* Error State */}
@@ -79,9 +102,9 @@ export const Dashboard = () => {
           <p className="text-[var(--mvx-text-color-primary)] text-sm">
             ⚠️ {t('common.error')}: {error.message}
           </p>
-          <Button 
-            variant="secondary" 
-            onClick={refresh}
+          <Button
+            variant="secondary"
+            onClick={() => refetch()}
             className="mt-2"
           >
             {t('common.retry')}

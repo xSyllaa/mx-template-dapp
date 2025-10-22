@@ -50,13 +50,13 @@ export const NationalitySelect = ({ value, onChange, nationalities, counts }: Na
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-[50]"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Menu */}
-          <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border-2 border-secondary bg-secondary shadow-2xl backdrop-blur-xl overflow-hidden max-h-64 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-2 z-[60] rounded-xl border-2 border-secondary bg-secondary shadow-2xl backdrop-blur-xl overflow-hidden max-h-64 overflow-y-auto">
             {/* All option */}
             <button
               onClick={() => {

@@ -1,9 +1,11 @@
 import { Route, BrowserRouter as Router, Routes } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 
 import { PageNotFound } from 'pages/PageNotFound/PageNotFound';
 import { routes } from 'routes';
 import { AdminGuard, AxiosInterceptors, BatchTransactionsContextProvider } from 'wrappers';
 import { AuthProvider } from 'contexts';
+import { queryClient } from 'lib/queryClient';
 
 import { Layout, LayoutWithSidebar } from './components';
 
@@ -50,13 +52,15 @@ const AppContent = () => {
 export const App = () => {
   return (
     <Router>
-      <AuthProvider>
-        <AxiosInterceptors>
-          <BatchTransactionsContextProvider>
-            <AppContent />
-          </BatchTransactionsContextProvider>
-        </AxiosInterceptors>
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <AxiosInterceptors>
+            <BatchTransactionsContextProvider>
+              <AppContent />
+            </BatchTransactionsContextProvider>
+          </AxiosInterceptors>
+        </AuthProvider>
+      </QueryClientProvider>
     </Router>
   );
 };

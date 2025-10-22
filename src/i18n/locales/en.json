@@ -10,6 +10,7 @@
     "points": "points",
     "pts": "pts",
     "close": "Close",
+    "refresh": "Refresh",
     "retry": "Retry",
     "back": "Back",
     "all": "All",
@@ -41,6 +42,7 @@
     "leaderboards": "Leaderboards",
     "streaks": "Streaks",
     "myNFTs": "My NFTs",
+    "collection": "Collection",
     "teamOfWeek": "Team of the Week",
     "admin": "Admin"
   },
@@ -124,125 +126,7 @@
       "title": "Recent Activity",
       "noActivity": "No recent activity for now"
     }
-  },
-  "predictions": {
-    "title": "Predictions",
-    "subtitle": "Predict match results and earn points",
-    "active": "Active Predictions",
-    "history": "History",
-    "participate": "Participate",
-    "participated": "Participated",
-    "loadMore": "Load More",
-    "noActive": "No active predictions",
-    "noHistory": "No prediction history yet",
-    "submitPrediction": "Submit Prediction",
-    "pointsReward": "Points Reward",
-    "startDate": "Match Start",
-    "closeDate": "Closes at",
-    "result": "Result",
-    "winningOption": "Winning Option",
-    "correct": "Correct",
-    "incorrect": "Incorrect",
-    "betAmount": "Bet Amount",
-    "minBet": "Min Bet",
-    "maxBet": "Max Bet",
-    "yourBalance": "Your Balance",
-    "status": {
-      "open": "Open",
-      "closed": "Closed",
-      "resulted": "Resulted",
-      "cancelled": "Cancelled"
     },
-    "betTypes": {
-      "result": "Match Result",
-      "over_under": "Over/Under",
-      "scorer": "First Scorer",
-      "both_teams_score": "Both Teams Score"
-    },
-    "calculationTypes": {
-      "fixedOdds": "Fixed Odds",
-      "poolRatio": "Pool Ratio"
-    },
-    "filters": {
-      "title": "Filters",
-      "betType": "Bet Type",
-      "calculation": "Calculation Type",
-      "competition": "Competition",
-      "status": "Status",
-      "clearAll": "Clear All",
-      "noResults": "No predictions match your filters",
-      "results": "{{count}} result(s)"
-    },
-    "stats": {
-      "bettingPool": "Betting Pool",
-      "totalWagered": "Total Wagered",
-      "participants": "Participants",
-      "ratio": "Win Ratio",
-      "biggestBet": "Biggest Bet",
-      "topBettor": "Top Bettor",
-      "noBetsYet": "No bets placed yet. Be the first!",
-      "noBets": "No bets",
-      "totalParticipants": "Total Participants",
-      "viewDetails": "View Details",
-      "hideDetails": "Hide Details",
-      "betType": {
-        "fixedOdds": "Fixed Odds",
-        "poolRatio": "Pool Ratio"
-      }
-    },
-    "errors": {
-      "insufficientPoints": "Insufficient points",
-      "belowMinBet": "Minimum bet is {{min}} points",
-      "aboveMaxBet": "Maximum bet is {{max}} points"
-    },
-    "admin": {
-      "createPrediction": "Create Prediction",
-      "managePredictions": "Manage Predictions",
-      "competition": "Competition",
-      "homeTeam": "Home Team",
-      "awayTeam": "Away Team",
-      "betType": "Bet Type",
-      "options": "Options",
-      "addOption": "Add Option",
-      "removeOption": "Remove",
-      "optionLabel": "Option Label",
-      "optionOdds": "Odds",
-      "startDate": "Match Start Date",
-      "closeDate": "Betting Close Date",
-      "pointsReward": "Points Reward",
-      "validateResult": "Validate Result",
-      "selectWinner": "Select Winning Option",
-      "delete": "Delete",
-      "cancel": "Cancel",
-      "save": "Save",
-      "create": "Create Prediction",
-      "update": "Update Prediction",
-      "deleteConfirm": "Are you sure you want to delete this prediction?",
-      "validation": {
-        "required": "This field is required",
-        "minOptions": "At least 2 options are required",
-        "invalidDates": "Betting close date must be before match start date"
-      },
-      "betTypes": {
-        "result": "Match Result",
-        "over_under": "Over/Under",
-        "scorer": "First Scorer",
-        "both_teams_score": "Both Teams to Score"
-      },
-      "success": {
-        "created": "Prediction created successfully",
-        "updated": "Prediction updated successfully",
-        "deleted": "Prediction deleted successfully",
-        "validated": "Result validated successfully"
-      },
-      "errors": {
-        "createFailed": "Failed to create prediction",
-        "updateFailed": "Failed to update prediction",
-        "deleteFailed": "Failed to delete prediction",
-        "validateFailed": "Failed to validate result"
-      }
-    }
-  },
   "pages": {
     "predictions": {
       "title": "Predictions",
@@ -337,8 +221,15 @@
         "epic": "Epic",
         "legendary": "Legendary",
         "mythic": "Mythic",
+        "rarity": "Rarity",
+        "position": "Position",
+        "nationality": "Nationality",
         "positions": {
-          "all": "All Positions"
+          "all": "All Positions",
+          "gk": "Goalkeeper",
+          "def": "Defender",
+          "mid": "Midfielder",
+          "att": "Attacker"
         },
         "nationalities": {
           "all": "All Nationalities"
@@ -376,7 +267,47 @@
     },
     "teamOfWeek": {
       "title": "Team of the Week",
-      "subtitle": "Discover the best team of the week"
+      "subtitle": "Discover the best team of the week",
+      "loading": {
+        "title": "Loading Team of the Week...",
+        "subtitle": "Preparing player data and statistics",
+        "players": "Loading players...",
+        "nfts": "Fetching NFT details...",
+        "waiting": "Please wait while we gather the latest team information"
+      },
+      "empty": {
+        "title": "No Team of the Week Available",
+        "subtitle": "No team has been selected yet. Check back soon to discover the star players!",
+        "icon": "⭐"
+      },
+      "error": {
+        "title": "Loading Error",
+        "retry": "🔄 Try Again",
+        "icon": "❌"
+      },
+      "placeholder": {
+        "playerCard": {
+          "loading": "Loading...",
+          "notFound": "NFT not found",
+          "rarity": "Rarity",
+          "position": "Position"
+        },
+        "stats": {
+          "nftsFound": "NFTs found",
+          "legendary": "Legendary+",
+          "averageRank": "Average rank",
+          "averageScore": "Average score"
+        }
+      },
+      "refresh": "Refresh",
+      "refreshing": "Refreshing...",
+      "lastUpdate": "Last updated: {{time}}",
+      "weekLabel": "Week {{week}} ({{year}}) - {{start}} to {{end}}",
+      "info": {
+        "weekDates": "📅 {{start}} - {{end}}",
+        "playersCount": "👥 {{count}} players selected",
+        "created": "Team created on {{date}} • Last updated {{updatedDate}}"
+      }
     },
     "admin": {
       "title": "Admin Panel",
@@ -385,6 +316,7 @@
     "warGames": {
       "title": "War Games",
       "subtitle": "Build your ultimate team and challenge others",
+      "refresh": "Refresh Data",
       "activeCount_one": "{{count}} active war game",
       "activeCount_other": "{{count}} active war games",
       "field": {
@@ -607,6 +539,35 @@
       "of": "of"
     }
   },
+  "collection": {
+    "title": "Collection Overview",
+    "subtitle": "Explore the entire GalacticX Main Season collection",
+    "stats": {
+      "totalNFTs": "Total NFTs",
+      "rarityDistribution": "Rarity Distribution",
+      "positionDistribution": "Position Distribution",
+      "topNationalities": "Top Nationalities"
+    },
+    "refresh": "Refresh Data",
+    "loading": "Loading collection data...",
+    "loadingMore": "Loading more NFTs...",
+    "scrollForMore": "Scroll for more",
+    "endOfResults": "You've reached the end",
+    "scrollToLoadMore": "Scroll down to load more NFTs",
+    "showingResults": "Showing {{shown}} of {{total}} NFTs",
+    "nftsFiltered": "{{count}} NFTs found",
+    "filters": {
+      "title": "Filters",
+      "search": "Search NFTs...",
+      "active": "active filters",
+      "activeFilters": "Active filters",
+      "clearAll": "Clear all"
+    },
+    "error": {
+      "title": "Failed to load collection",
+      "retry": "Retry"
+    }
+  },
   "themes": {
     "dark": "Dark",
     "light": "Light",
@@ -652,6 +613,10 @@
       "resultValidatedMessage": "The result has been successfully validated",
       "validationError": "Validation Error",
       "validationErrorMessage": "Failed to validate the result",
+      "predictionCancelled": "Prediction Cancelled",
+      "predictionCancelledMessage": "The prediction has been cancelled successfully",
+      "cancellationError": "Cancellation Error",
+      "cancellationErrorMessage": "Failed to cancel the prediction",
       "predictionDeleted": "Prediction Deleted",
       "predictionDeletedMessage": "The prediction has been successfully deleted",
       "deletionError": "Deletion Error",
@@ -666,6 +631,16 @@
       "managePredictionsSubtitle": "Manage, validate or delete predictions",
       "failedToLoad": "Failed to load predictions",
       "noPredictionsYet": "No predictions created yet",
+      "noPredictionsForFilter": "No predictions match this filter",
+      "sections": {
+        "resultedPredictions": "Resulted Predictions",
+        "resultedAndCancelledPredictions": "Resulted & Cancelled Predictions",
+        "otherPredictions": "Other Predictions",
+        "noResultedPredictions": "No resulted predictions",
+        "noOtherPredictions": "No other predictions"
+      },
+      "detailsError": "Failed to load prediction details",
+      "detailsErrorMessage": "Could not load the detailed information for this prediction",
       "tableHeaders": {
         "match": "Match",
         "participants": "Participants",
@@ -693,6 +668,139 @@
       "actions": {
         "close": "Close",
         "cannotDelete": "Cannot delete validated predictions"
+      }
+    },
+    "betCategories": {
+      "match-result": "1. Match Result Bets",
+      "match-resultDesc": "Basic match outcome predictions",
+      "goals-markets": "2. Goals Markets",
+      "goals-marketsDesc": "Goal-related predictions",
+      "time-based": "3. Time-Based Bets",
+      "time-basedDesc": "Timing and half-specific bets",
+      "player-bets": "4. Player Bets",
+      "player-betsDesc": "Individual player performance",
+      "cards-bookings": "5. Cards & Bookings",
+      "cards-bookingsDesc": "Disciplinary and card markets",
+      "corners": "6. Corners",
+      "cornersDesc": "Corner kick markets",
+      "combination": "7. Combination & Accumulator Bets",
+      "combinationDesc": "Multiple outcome combinations",
+      "specials": "8. Specials / Prop Bets",
+      "specialsDesc": "Special and novelty markets",
+      "outright": "9. Long-Term / Outright Bets",
+      "outrightDesc": "Season-long and tournament bets",
+      "advanced": "10. Advanced / Niche Markets",
+      "advancedDesc": "Specialized and statistical markets"
+    }
+  },
+  "predictions": {
+    "title": "Predictions",
+    "subtitle": "Predict match results and earn points",
+    "active": "Active Predictions",
+    "history": "History",
+    "participate": "Participate",
+    "participated": "Participated",
+    "loadMore": "Load More",
+    "noActive": "No active predictions",
+    "noHistory": "No prediction history yet",
+    "submitPrediction": "Submit Prediction",
+    "pointsReward": "Points Reward",
+    "startDate": "Match Start",
+    "closeDate": "Closes at",
+    "result": "Result",
+    "winningOption": "Winning Option",
+    "correct": "Correct",
+    "incorrect": "Incorrect",
+    "betAmount": "Bet Amount",
+    "minBet": "Min Bet",
+    "maxBet": "Max Bet",
+    "yourBalance": "Your Balance",
+    "status": {
+      "open": "Open",
+      "closed": "Closed",
+      "resulted": "Resulted",
+      "cancelled": "Cancelled"
+    },
+    "calculationTypes": {
+      "fixedOdds": "Fixed Odds",
+      "poolRatio": "Pool Ratio"
+    },
+    "filters": {
+      "title": "Filters",
+      "betType": "Bet Type",
+      "calculation": "Calculation Type",
+      "competition": "Competition",
+      "status": "Status",
+      "clearAll": "Clear All",
+      "noResults": "No predictions match your filters",
+      "results": "{{count}} result(s)"
+    },
+    "stats": {
+      "bettingPool": "Betting Pool",
+      "totalWagered": "Total Wagered",
+      "participants": "Participants",
+      "ratio": "Win Ratio",
+      "biggestBet": "Biggest Bet",
+      "topBettor": "Top Bettor",
+      "noBetsYet": "No bets placed yet. Be the first!",
+      "noBets": "No bets",
+      "totalParticipants": "Total Participants",
+      "viewDetails": "View Details",
+      "hideDetails": "Hide Details",
+      "betType": {
+        "fixedOdds": "Fixed Odds",
+        "poolRatio": "Pool Ratio"
+      }
+    },
+    "errors": {
+      "insufficientPoints": "Insufficient points",
+      "belowMinBet": "Minimum bet is {{min}} points",
+      "aboveMaxBet": "Maximum bet is {{max}} points"
+    },
+    "admin": {
+      "createPrediction": "Create Prediction",
+      "managePredictions": "Manage Predictions",
+      "competition": "Competition",
+      "homeTeam": "Home Team",
+      "awayTeam": "Away Team",
+      "betType": "Bet Type",
+      "cancel": "Cancel",
+      "cancelConfirm": "Are you sure you want to cancel this prediction? All bets will be refunded to players.",
+      "options": "Options",
+      "addOption": "Add Option",
+      "removeOption": "Remove",
+      "optionLabel": "Option Label",
+      "optionOdds": "Odds",
+      "startDate": "Match Start Date",
+      "closeDate": "Betting Close Date",
+      "pointsReward": "Points Reward",
+      "validateResult": "Validate Result",
+      "selectWinner": "Select Winning Option",
+      "delete": "Delete",
+      "save": "Save",
+      "create": "Create Prediction",
+      "update": "Update Prediction",
+      "deleteConfirm": "Are you sure you want to delete this prediction?",
+      "validation": {
+        "required": "This field is required",
+        "minOptions": "At least 2 options are required",
+        "invalidDates": "Betting close date must be before match start date"
+      },
+      "calculationHelp": {
+        "poolRatio": "Pool Ratio mode: Odds calculated automatically based on betting pool",
+        "fixedOdds": "Fixed Odds mode: Set odds for each option"
+      },
+      "success": {
+        "created": "Prediction created successfully",
+        "updated": "Prediction updated successfully",
+        "deleted": "Prediction deleted successfully",
+        "validated": "Result validated successfully"
+      },
+      "errors": {
+        "createFailed": "Failed to create prediction",
+        "updateFailed": "Failed to update prediction",
+        "deleteFailed": "Failed to delete prediction",
+        "validateFailed": "Failed to validate result"
       }
     }
   }

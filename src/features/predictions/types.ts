@@ -19,9 +19,42 @@ export interface PredictionOption {
 export type PredictionStatus = 'open' | 'closed' | 'resulted' | 'cancelled';
 
 /**
- * Type of bet/prediction
+ * Type of bet/prediction (legacy - kept for backward compatibility)
  */
 export type BetType = 'result' | 'over_under' | 'scorer' | 'both_teams_score';
+
+/**
+ * Bet category (non-selectable header in dropdown)
+ */
+export interface BetCategory {
+  id: string;
+  name: string;
+  description?: string;
+  isSelectable: false;
+}
+
+/**
+ * Specific bet type (selectable option in dropdown)
+ */
+export interface BetTypeOption {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  isSelectable: true;
+  i18nKey: string; // New i18n key for structured translations (e.g., "1-1", "2-3")
+  legacyType?: BetType; // For backward compatibility with existing system
+}
+
+/**
+ * Union type for dropdown items
+ */
+export type BetDropdownItem = BetCategory | BetTypeOption;
+
+/**
+ * Extended bet type that includes category information
+ */
+export type ExtendedBetType = string; // Using string for flexibility to support new bet types
 
 /**
  * Calculation method for winnings
@@ -51,6 +84,7 @@ export interface Prediction {
   created_at: string;
   updated_at?: string;
   created_by: string | null;
+  extended_bet_type?: string; // New field for enhanced bet type system
 }
 
 /**
@@ -82,6 +116,7 @@ export interface CreatePredictionData {
   points_reward: number;
   min_bet_points?: number;
   max_bet_points?: number;
+  extended_bet_type: string; // Required field for enhanced bet type system
 }
 
 /**
@@ -101,6 +136,7 @@ export interface UpdatePredictionData {
   points_reward?: number;
   min_bet_points?: number;
   max_bet_points?: number;
+  extended_bet_type?: string; // Optional field for enhanced bet type system
 }
 
 /**

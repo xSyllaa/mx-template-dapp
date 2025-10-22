@@ -1,12 +1,14 @@
 import { useState, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAuth } from 'contexts/AuthContext';
+import { RefreshButton } from 'components/RefreshButton';
 import {
   LeaderboardTabs,
   LeaderboardTable,
   UserRankCard
 } from 'features/leaderboard/components';
-import { useLeaderboard, useUserRank } from 'features/leaderboard/hooks';
+import { useCachedLeaderboard, useUserRank } from 'features/leaderboard/hooks';
+import { Button } from 'components/Button';
 import {
   getCurrentWeekNumber,
   getCurrentMonth,
@@ -34,6 +36,7 @@ const styles = {
 export const Leaderboard = () => {
   const { t } = useTranslation();
   const { supabaseUserId } = useAuth();
+
   const [activeTab, setActiveTab] = useState<LeaderboardType>('all_time');
 
   // Get current period info (memoized to prevent re-calculations)
@@ -104,12 +107,40 @@ export const Leaderboard = () => {
   }, []);
 
   // Fetch leaderboard and user rank (real-time enabled)
-  const { entries, loading, error, refresh } = useLeaderboard(filters, true);
+  const { leaderboard: entries, loading, error, refetch: refresh } = useCachedLeaderboard(activeTab as 'all_time' | 'weekly' | 'monthly');
   const {
     rank: userRank,
     loading: rankLoading,
     refresh: refreshRank
   } = useUserRank(supabaseUserId, filters, true);
+
+  // Refresh function for the refresh button component
+  const handleRefreshAll = useCallback(async () => {
+    console.log('🔄 [Refresh] All leaderboards');
+
+    // Refresh current tab and user rank
+    await Promise.all([
+      refresh(), // Current tab
+      refreshRank(), // User rank
+    ]);
+
+    // Refresh other tabs in background (no await to not block UI)
+    setTimeout(async () => {
+      try {
+        const { refetch: refetchAllTime } = useCachedLeaderboard('all_time');
+        const { refetch: refetchWeekly } = useCachedLeaderboard('weekly');
+        const { refetch: refetchMonthly } = useCachedLeaderboard('monthly');
+
+        await Promise.all([
+          refetchAllTime(),
+          refetchWeekly(),
+          refetchMonthly()
+        ]);
+      } catch (error) {
+        console.error('Error refreshing other leaderboards:', error);
+      }
+    }, 100);
+  }, [refresh, refreshRank]);
 
   // Logs handled centrally in useLeaderboard
 
@@ -122,8 +153,26 @@ export const Leaderboard = () => {
     <div className={styles.container}>
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.title}>🏆 {t('leaderboard.title')}</h1>
-        <p className={styles.subtitle}>{t('leaderboard.subtitle')}</p>
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className={styles.title}>🏆 {t('leaderboard.title')}</h1>
+            <p className={styles.subtitle}>{t('leaderboard.subtitle')}</p>
+          </div>
+
+          {/* Refresh All Button */}
+          <div className="flex items-center gap-3">
+            <RefreshButton
+              onRefresh={handleRefreshAll}
+              cooldownMs={30000}
+              minLoadingMs={1000}
+              normalText="Tout actualiser"
+              loadingText="Actualisation..."
+              successText="Actualisé"
+              showToasts={false}
+            />
+          </div>
+        </div>
+
         <div className="mt-4 p-3 bg-[var(--mvx-bg-color-secondary)] rounded-lg border border-[var(--mvx-border-color-secondary)]">
           <p className="text-sm text-[var(--mvx-text-color-secondary)]">
             📅 {formattedDates}
@@ -131,16 +180,27 @@ export const Leaderboard = () => {
         </div>
       </div>
 
-          {/* Tabs */}
-          <LeaderboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+      {/* Tabs */}
+      <LeaderboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
 
       {/* Error State */}
       {error && (
         <div className={styles.error}>
           <p className={styles.errorText}>{t('common.error')}</p>
-          <button onClick={handleRefresh} className={styles.refreshButton}>
-            {t('common.retry')}
-          </button>
+          <div className="flex gap-3 mt-4">
+            <button onClick={handleRefresh} className={styles.refreshButton}>
+              {t('common.retry')}
+            </button>
+            <RefreshButton
+              onRefresh={handleRefreshAll}
+              cooldownMs={30000}
+              minLoadingMs={1000}
+              normalText="Tout actualiser"
+              loadingText="Actualisation..."
+              successText="Actualisé"
+              showToasts={false}
+            />
+          </div>
         </div>
       )}
 

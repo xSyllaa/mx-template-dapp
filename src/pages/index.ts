@@ -9,4 +9,5 @@ export * from './Leaderboard';
 export * from './Streaks';
 export * from './MyNFTs';
 export * from './TeamOfWeek';
+export * from './Collection';
 export * from './Admin';

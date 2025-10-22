@@ -10,6 +10,7 @@ import {
   Streaks,
   MyNFTs,
   TeamOfWeek,
+  Collection,
   Admin,
   CreatePrediction,
   ManagePredictions,
@@ -77,6 +78,12 @@ export const routes: RouteWithTitleType[] = [
     path: '/team-of-week',
     title: 'Team of the Week',
     component: TeamOfWeek,
+    authenticatedRoute: true
+  },
+  {
+    path: '/collection',
+    title: 'Collection',
+    component: Collection,
     authenticatedRoute: true
   },
   {

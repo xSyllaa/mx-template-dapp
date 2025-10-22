@@ -121,31 +121,54 @@ const extractImageUrl = (nft: MultiversXNFT): string | undefined => {
 };
 
 /**
- * Parse raw MultiversX NFT to GalacticX NFT format
+ * Attempt to recover metadata from IPFS when API parsing fails
  */
-const parseNFT = (rawNFT: MultiversXNFT, includeErrors: boolean = false): GalacticXNFT | null => {
-  // Handle NFTs with metadata errors
+const tryRecoverMetadataFromIPFS = async (rawNFT: MultiversXNFT): Promise<any | null> => {
+  try {
+    // Try to get metadata URI from uris array (usually uris[1] is the JSON)
+    if (rawNFT.uris && rawNFT.uris.length > 1) {
+      const metadataUriBase64 = rawNFT.uris[1];
+      const metadataUri = atob(metadataUriBase64);
+      
+      // Fetch metadata from IPFS
+      const response = await fetch(metadataUri, { 
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      
+      const metadata = await response.json();
+      return metadata;
+    }
+    
+    return null;
+  } catch (error) {
+    // Silently fail - fallback will be used
+    return null;
+  }
+};
+
+/**
+ * Parse raw MultiversX NFT to GalacticX NFT format
+ * Exported for use by collection service
+ */
+export const parseNFT = async (rawNFT: MultiversXNFT, includeErrors: boolean = false): Promise<GalacticXNFT | null> => {
+  // Handle NFTs with metadata errors - Try to recover from IPFS
   if (rawNFT.metadata?.error) {
-    if (!includeErrors) {
-      console.warn(
-        `Skipping NFT ${rawNFT.identifier} - metadata error:`, 
-        rawNFT.metadata.error,
-        '\n📋 Full metadata object:', 
-        JSON.stringify(rawNFT.metadata, null, 2),
-        '\n🔗 NFT Details:',
-        {
-          identifier: rawNFT.identifier,
-          collection: rawNFT.collection,
-          nonce: rawNFT.nonce,
-          name: rawNFT.name
-        }
-      );
-      return null; // Will be filtered out
+    // Attempt to recover metadata from IPFS
+    const recoveredMetadata = await tryRecoverMetadataFromIPFS(rawNFT);
+    
+    if (recoveredMetadata) {
+      // Successfully recovered! Use it instead
+      rawNFT.metadata = recoveredMetadata;
+      // Continue with normal parsing below
     } else {
-      // Include NFT with error but use fallback values
-      console.warn(
-        `Including NFT ${rawNFT.identifier} with metadata error for War Games`
-      );
+      // Recovery failed, use fallback
+      if (!includeErrors) {
+        return null; // Will be filtered out
+      }
       
       // Try to get real player name even for error NFTs
       const realPlayerName = getRealPlayerName({
@@ -154,6 +177,9 @@ const parseNFT = (rawNFT: MultiversXNFT, includeErrors: boolean = false): Galact
         name: rawNFT.name
       });
       
+      // Try to extract image from media/url even if metadata is broken
+      const imageUrl = extractImageUrl(rawNFT);
+      
       return {
         identifier: rawNFT.identifier,
         collection: rawNFT.collection,
@@ -161,7 +187,7 @@ const parseNFT = (rawNFT: MultiversXNFT, includeErrors: boolean = false): Galact
         name: rawNFT.name || `Main Season #${rawNFT.nonce}`,
         realPlayerName: realPlayerName || undefined,
         owner: rawNFT.owner || '',
-        imageUrl: undefined,
+        imageUrl: imageUrl,
         attributes: {},
         rarity: 'Common' as const,
         position: 'Unknown',
@@ -223,25 +249,13 @@ export const fetchUserNFTs = async (
     
     const rawNFTs = response.data;
     
-    // Parse NFTs and filter out any with errors
-    const parsedNFTs = rawNFTs
-      .map(nft => parseNFT(nft, includeErrors))
-      .filter(nft => nft !== null);
+    // Parse NFTs and filter out any with errors (now async for IPFS recovery)
+    const parsedNFTsPromises = rawNFTs.map(nft => parseNFT(nft, includeErrors));
+    const parsedNFTsResults = await Promise.all(parsedNFTsPromises);
+    const parsedNFTs = parsedNFTsResults.filter(nft => nft !== null);
     
-    // Count errors for logging
-    const errorCount = rawNFTs.filter(nft => nft.metadata?.error).length;
-    const totalRawNFTs = rawNFTs.length;
-    const validNFTs = parsedNFTs.length;
-    
-    console.log(`🎴 NFT Fetch Results for ${walletAddress}:`);
-    console.log(`📊 Total raw NFTs: ${totalRawNFTs}`);
-    console.log(`❌ NFTs with errors: ${errorCount}`);
-    console.log(`✅ Valid NFTs: ${validNFTs}`);
-    console.log(`🔧 Include errors mode: ${includeErrors}`);
-    
-    if (errorCount > 0) {
-      console.log(`⚠️  ${errorCount} NFTs had metadata errors and were ${includeErrors ? 'included with fallback values' : 'excluded'}`);
-    }
+    // Log summary only
+    console.log(`✅ Fetched ${parsedNFTs.length} NFTs for ${walletAddress.substring(0, 10)}...`);
     
     return {
       hasNFTs: parsedNFTs.length > 0,
@@ -278,7 +292,11 @@ export const fetchNFTDetails = async (identifier: string): Promise<GalacticXNFT>
       }
     );
     
-    return parseNFT(response.data);
+    const parsed = await parseNFT(response.data, true);
+    if (!parsed) {
+      throw new Error('Failed to parse NFT data');
+    }
+    return parsed;
   } catch (error) {
     console.error('Error fetching NFT details:', error);
     throw new Error('Failed to fetch NFT details.');

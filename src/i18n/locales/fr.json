@@ -10,6 +10,7 @@
     "points": "points",
     "pts": "pts",
     "close": "Fermer",
+    "refresh": "Actualiser",
     "retry": "Réessayer",
     "back": "Retour",
     "all": "Tous",
@@ -41,6 +42,7 @@
     "leaderboards": "Classements",
     "streaks": "Streaks",
     "myNFTs": "Mes NFTs",
+    "collection": "Collection",
     "teamOfWeek": "Équipe de la semaine",
     "admin": "Admin"
   },
@@ -153,12 +155,6 @@
       "resulted": "Résulté",
       "cancelled": "Annulé"
     },
-    "betTypes": {
-      "result": "Résultat du Match",
-      "over_under": "Plus/Moins",
-      "scorer": "Premier Buteur",
-      "both_teams_score": "Les Deux Équipes Marquent"
-    },
     "calculationTypes": {
       "fixedOdds": "Cotes Fixes",
       "poolRatio": "Ratio Pool"
@@ -202,6 +198,8 @@
       "homeTeam": "Équipe Domicile",
       "awayTeam": "Équipe Extérieur",
       "betType": "Type de Pari",
+      "cancel": "Annuler",
+      "cancelConfirm": "Êtes-vous sûr de vouloir annuler cette prédiction ? Tous les paris seront remboursés aux joueurs.",
       "options": "Options",
       "addOption": "Ajouter une Option",
       "removeOption": "Supprimer",
@@ -213,7 +211,6 @@
       "validateResult": "Valider le Résultat",
       "selectWinner": "Sélectionner l'Option Gagnante",
       "delete": "Supprimer",
-      "cancel": "Annuler",
       "save": "Enregistrer",
       "create": "Créer la Prédiction",
       "update": "Modifier la Prédiction",
@@ -223,11 +220,9 @@
         "minOptions": "Au moins 2 options sont requises",
         "invalidDates": "La date limite des paris doit être avant le début du match"
       },
-      "betTypes": {
-        "result": "Résultat du Match",
-        "over_under": "Plus/Moins",
-        "scorer": "Premier Buteur",
-        "both_teams_score": "Les Deux Équipes Marquent"
+      "calculationHelp": {
+        "poolRatio": "Mode Ratio Pool: Cotes calculées automatiquement selon la cagnotte",
+        "fixedOdds": "Mode Cotes Fixes: Définir les cotes pour chaque option"
       },
       "success": {
         "created": "Prédiction créée avec succès",
@@ -255,6 +250,7 @@
     "warGames": {
       "title": "War Games",
       "subtitle": "Construis ton équipe ultime et défie les autres",
+      "refresh": "Actualiser les Données",
       "activeCount_one": "{{count}} war game actif",
       "activeCount_other": "{{count}} war games actifs",
       "field": {
@@ -533,8 +529,15 @@
         "epic": "Épique",
         "legendary": "Légendaire",
         "mythic": "Mythique",
+        "rarity": "Rareté",
+        "position": "Poste",
+        "nationality": "Nationalité",
         "positions": {
-          "all": "Toutes les Positions"
+          "all": "Toutes les Positions",
+          "gk": "Gardien",
+          "def": "Défenseur",
+          "mid": "Milieu",
+          "att": "Attaquant"
         },
         "nationalities": {
           "all": "Toutes les Nationalités"
@@ -572,7 +575,47 @@
     },
     "teamOfWeek": {
       "title": "Équipe de la semaine",
-      "subtitle": "Découvre la meilleure équipe de la semaine"
+      "subtitle": "Découvre la meilleure équipe de la semaine",
+      "loading": {
+        "title": "Chargement de l'Équipe de la semaine...",
+        "subtitle": "Préparation des données des joueurs et des statistiques",
+        "players": "Chargement des joueurs...",
+        "nfts": "Récupération des détails NFT...",
+        "waiting": "Veuillez patienter pendant que nous collectons les dernières informations de l'équipe"
+      },
+      "empty": {
+        "title": "Aucune Équipe de la semaine disponible",
+        "subtitle": "Aucune équipe n'a encore été sélectionnée. Revenez bientôt pour découvrir les joueurs vedettes !",
+        "icon": "⭐"
+      },
+      "error": {
+        "title": "Erreur de chargement",
+        "retry": "🔄 Réessayer",
+        "icon": "❌"
+      },
+      "placeholder": {
+        "playerCard": {
+          "loading": "Chargement...",
+          "notFound": "NFT non trouvé",
+          "rarity": "Rareté",
+          "position": "Position"
+        },
+        "stats": {
+          "nftsFound": "NFTs trouvés",
+          "legendary": "Légendaires+",
+          "averageRank": "Rang moyen",
+          "averageScore": "Score moyen"
+        }
+      },
+      "refresh": "Actualiser",
+      "refreshing": "Actualisation...",
+      "lastUpdate": "Dernière MAJ: {{time}}",
+      "weekLabel": "Semaine {{week}} ({{year}}) - {{start}} au {{end}}",
+      "info": {
+        "weekDates": "📅 {{start}} - {{end}}",
+        "playersCount": "👥 {{count}} joueurs sélectionnés",
+        "created": "Équipe créée le {{date}} • Dernière mise à jour le {{updatedDate}}"
+      }
     },
     "admin": {
       "title": "Panel Admin",
@@ -605,6 +648,35 @@
       "to": "au",
       "week": "Semaine",
       "of": "de"
+    }
+  },
+  "collection": {
+    "title": "Vue d'ensemble de la Collection",
+    "subtitle": "Explore toute la collection GalacticX Main Season",
+    "stats": {
+      "totalNFTs": "Total de NFTs",
+      "rarityDistribution": "Distribution par Rareté",
+      "positionDistribution": "Distribution par Poste",
+      "topNationalities": "Top Nationalités"
+    },
+    "refresh": "Actualiser les Données",
+    "loading": "Chargement de la collection...",
+    "loadingMore": "Chargement de plus de NFTs...",
+    "scrollForMore": "Faites défiler pour plus",
+    "endOfResults": "Vous avez atteint la fin",
+    "scrollToLoadMore": "Faites défiler vers le bas pour charger plus de NFTs",
+    "showingResults": "Affichage de {{shown}} sur {{total}} NFTs",
+    "nftsFiltered": "{{count}} NFTs trouvés",
+    "filters": {
+      "title": "Filtres",
+      "search": "Rechercher des NFTs...",
+      "active": "filtres actifs",
+      "activeFilters": "Filtres actifs",
+      "clearAll": "Effacer tout"
+    },
+    "error": {
+      "title": "Échec du chargement de la collection",
+      "retry": "Réessayer"
     }
   },
   "themes": {
@@ -652,6 +724,10 @@
       "resultValidatedMessage": "Le résultat a été validé avec succès",
       "validationError": "Erreur de Validation",
       "validationErrorMessage": "Échec de la validation du résultat",
+      "predictionCancelled": "Prédiction Annulée",
+      "predictionCancelledMessage": "La prédiction a été annulée avec succès",
+      "cancellationError": "Erreur d'Annulation",
+      "cancellationErrorMessage": "Échec de l'annulation de la prédiction",
       "predictionDeleted": "Prédiction Supprimée",
       "predictionDeletedMessage": "La prédiction a été supprimée avec succès",
       "deletionError": "Erreur de Suppression",
@@ -666,6 +742,16 @@
       "managePredictionsSubtitle": "Gérer, valider ou supprimer des prédictions",
       "failedToLoad": "Échec du chargement des prédictions",
       "noPredictionsYet": "Aucune prédiction créée pour le moment",
+      "noPredictionsForFilter": "Aucune prédiction ne correspond à ce filtre",
+      "sections": {
+        "resultedPredictions": "Prédictions Résultées",
+        "resultedAndCancelledPredictions": "Prédictions Résultées & Annulées",
+        "otherPredictions": "Autres Prédictions",
+        "noResultedPredictions": "Aucune prédiction résultée",
+        "noOtherPredictions": "Aucune autre prédiction"
+      },
+      "detailsError": "Échec du chargement des détails",
+      "detailsErrorMessage": "Impossible de charger les informations détaillées de cette prédiction",
       "tableHeaders": {
         "match": "Match",
         "participants": "Participants",

@@ -7,9 +7,15 @@ import { useToast } from 'hooks/useToast';
 import { ToastContainer } from 'components/Toast';
 import type { BetType, BetCalculationType, PredictionOption } from 'features/predictions/types';
 import { predictionService } from 'features/predictions';
+import { BetTypeSelector } from 'features/predictions/components';
 
 export const CreatePrediction = () => {
-  const { t } = useTranslation();
+  const { t } = useTranslation('predictions');
+
+  // Helper function to convert calculation type to translation key
+  const getCalculationKey = (type: BetCalculationType) => {
+    return type === 'pool_ratio' ? 'poolRatio' : 'fixedOdds';
+  };
   const navigate = useNavigate();
   const { address } = useGetAccount();
   const { supabaseUserId, loading: authLoading } = useAuth();
@@ -30,6 +36,7 @@ export const CreatePrediction = () => {
   const [awayTeam, setAwayTeam] = useState('');
   const [betType, setBetType] = useState<BetType>('result');
   const [betCalculationType, setBetCalculationType] = useState<BetCalculationType>('pool_ratio');
+  const [extendedBetType, setExtendedBetType] = useState<string>('');
   const [options, setOptions] = useState<PredictionOption[]>([
     { id: '1', label: '', odds: '' },
     { id: 'X', label: '', odds: '' }
@@ -43,6 +50,17 @@ export const CreatePrediction = () => {
   // UI state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Convert extended bet type to legacy bet type for backward compatibility
+  const getLegacyBetType = (extendedType: string): BetType => {
+    // For now, we'll map based on common patterns
+    // In the future, this could be more sophisticated
+    if (extendedType.startsWith('1x2') || extendedType.includes('result')) return 'result';
+    if (extendedType.includes('over') || extendedType.includes('under') || extendedType.includes('goals')) return 'over_under';
+    if (extendedType.includes('scorer') || extendedType.includes('goalscorer')) return 'scorer';
+    if (extendedType.includes('btts') || extendedType.includes('both-teams')) return 'both_teams_score';
+    return 'result'; // Default fallback
+  };
 
   // Add option
   const handleAddOption = () => {
@@ -70,27 +88,38 @@ export const CreatePrediction = () => {
   // Validate form
   const validateForm = (): boolean => {
     if (!competition.trim()) {
-      setError(t('predictions.admin.validation.required') + ' (Competition)');
+      setError(t('admin.validation.required') + ' (Competition)');
       return false;
     }
     if (!homeTeam.trim() || !awayTeam.trim()) {
-      setError(t('predictions.admin.validation.required') + ' (Teams)');
+      setError(t('admin.validation.required') + ' (Teams)');
+      return false;
+    }
+    if (!extendedBetType.trim()) {
+      setError(t('admin.validation.required') + ' (Bet Type)');
       return false;
     }
     if (options.length < 2) {
-      setError(t('predictions.admin.validation.minOptions'));
+      setError(t('admin.validation.minOptions'));
       return false;
     }
-    if (options.some((opt) => !opt.label.trim() || !opt.odds.trim())) {
-      setError('All options must have a label and odds');
-      return false;
+    if (betCalculationType === 'fixed_odds') {
+      if (options.some((opt) => !opt.label.trim() || !opt.odds.trim())) {
+        setError('All options must have a label and odds');
+        return false;
+      }
+    } else {
+      if (options.some((opt) => !opt.label.trim())) {
+        setError('All options must have a label');
+        return false;
+      }
     }
     if (!startDate || !closeDate) {
-      setError(t('predictions.admin.validation.required') + ' (Dates)');
+      setError(t('admin.validation.required') + ' (Dates)');
       return false;
     }
     if (new Date(closeDate) > new Date(startDate)) {
-      setError(t('predictions.admin.validation.invalidDates'));
+      setError(t('admin.validation.invalidDates'));
       return false;
     }
     if (!pointsReward || Number(pointsReward) <= 0) {
@@ -138,8 +167,9 @@ export const CreatePrediction = () => {
           competition: competition.trim(),
           home_team: homeTeam.trim(),
           away_team: awayTeam.trim(),
-          bet_type: betType,
+          bet_type: getLegacyBetType(extendedBetType),
           bet_calculation_type: betCalculationType,
+          extended_bet_type: extendedBetType,
           options: options.map((opt) => ({
             id: opt.id,
             label: opt.label.trim(),
@@ -171,7 +201,7 @@ export const CreatePrediction = () => {
       }, 1000);
     } catch (err) {
       console.error('Error creating prediction:', err);
-      const errorMsg = t('predictions.admin.errors.createFailed');
+      const errorMsg = t('admin.errors.createFailed');
       setError(errorMsg);
     } finally {
       setSubmitting(false);
@@ -202,10 +232,10 @@ export const CreatePrediction = () => {
           ← {t('common.back', { defaultValue: 'Back' })}
         </button>
         <h1 className="text-4xl font-bold text-[var(--mvx-text-color-primary)] mb-2">
-          {t('predictions.admin.createPrediction')}
+          {t('admin.createPrediction')}
         </h1>
         <p className="text-[var(--mvx-text-color-secondary)]">
-          Créer une nouvelle prédiction pour les utilisateurs
+          {t('admin.createPredictionDescription')}
         </p>
         
         {/* Auth Status Debug */}
@@ -219,7 +249,7 @@ export const CreatePrediction = () => {
         {/* Competition */}
         <div>
           <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-            {t('predictions.admin.competition')} *
+            {t('admin.competition')} *
           </label>
           <input
             type="text"
@@ -234,7 +264,7 @@ export const CreatePrediction = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-              {t('predictions.admin.homeTeam')} *
+              {t('admin.homeTeam')} *
             </label>
             <input
               type="text"
@@ -246,7 +276,7 @@ export const CreatePrediction = () => {
           </div>
           <div>
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-              {t('predictions.admin.awayTeam')} *
+              {t('admin.awayTeam')} *
             </label>
             <input
               type="text"
@@ -262,22 +292,19 @@ export const CreatePrediction = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-              {t('predictions.admin.betType')} *
+              {t('admin.betType')} *
             </label>
-            <select
-              value={betType}
-              onChange={(e) => setBetType(e.target.value as BetType)}
-              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
-            >
-              <option value="result">{t('predictions.admin.betTypes.result')}</option>
-              <option value="over_under">
-                {t('predictions.admin.betTypes.over_under')}
-              </option>
-              <option value="scorer">{t('predictions.admin.betTypes.scorer')}</option>
-              <option value="both_teams_score">
-                {t('predictions.admin.betTypes.both_teams_score')}
-              </option>
-            </select>
+            <BetTypeSelector
+              value={extendedBetType}
+              onChange={setExtendedBetType}
+              placeholder="Search and select a bet type..."
+              className="w-full"
+            />
+            {extendedBetType && (
+              <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
+                Selected: {extendedBetType}
+              </p>
+            )}
           </div>
           
           {/* Bet Calculation Type */}
@@ -290,13 +317,11 @@ export const CreatePrediction = () => {
               onChange={(e) => setBetCalculationType(e.target.value as BetCalculationType)}
               className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
             >
-              <option value="pool_ratio">Ratio Pool (Twitch-style)</option>
-              <option value="fixed_odds">Cotes Fixes</option>
+              <option value="pool_ratio">{t('admin.calculationTypes.poolRatio')}</option>
+              <option value="fixed_odds">{t('admin.calculationTypes.fixedOdds')}</option>
             </select>
             <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
-              {betCalculationType === 'pool_ratio' 
-                ? 'Gains = Mise × (Pool Total / Pool Option Gagnante)'
-                : 'Gains = Mise × Cote Fixe'}
+              {t(`admin.calculationHelp.${getCalculationKey(betCalculationType)}`)}
             </p>
           </div>
         </div>
@@ -304,7 +329,7 @@ export const CreatePrediction = () => {
         {/* Options */}
         <div>
           <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-            {t('predictions.admin.options')} * (min 2)
+            {t('admin.options')} * (min 2)
           </label>
           <div className="space-y-3">
             {options.map((option, index) => (
@@ -315,44 +340,51 @@ export const CreatePrediction = () => {
                   onChange={(e) =>
                     handleUpdateOption(index, 'label', e.target.value)
                   }
-                  placeholder={t('predictions.admin.optionLabel')}
+                  placeholder={t('admin.optionLabel')}
                   className="flex-1 px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
                 />
-                <input
-                  type="text"
-                  value={option.odds}
-                  onChange={(e) =>
-                    handleUpdateOption(index, 'odds', e.target.value)
-                  }
-                  placeholder={t('predictions.admin.optionOdds')}
-                  className="w-24 px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
-                />
+                {betCalculationType === 'fixed_odds' && (
+                  <input
+                    type="text"
+                    value={option.odds}
+                    onChange={(e) =>
+                      handleUpdateOption(index, 'odds', e.target.value)
+                    }
+                    placeholder={t('admin.optionOdds')}
+                    className="w-24 px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+                  />
+                )}
                 {options.length > 2 && (
                   <button
                     type="button"
                     onClick={() => handleRemoveOption(index)}
                     className="px-4 py-3 bg-red-500/20 text-red-400 rounded-lg hover:bg-red-500/30 transition-colors"
                   >
-                    {t('predictions.admin.removeOption')}
+                    {t('admin.removeOption')}
                   </button>
                 )}
               </div>
             ))}
           </div>
-          <button
-            type="button"
-            onClick={handleAddOption}
-            className="mt-3 px-4 py-2 bg-[var(--mvx-text-accent-color)] text-white rounded-lg hover:opacity-90 transition-opacity"
-          >
-            + {t('predictions.admin.addOption')}
-          </button>
+          <div className="flex items-center justify-between mt-3">
+            <button
+              type="button"
+              onClick={handleAddOption}
+              className="px-4 py-2 bg-[var(--mvx-text-accent-color)] text-white rounded-lg hover:opacity-90 transition-opacity"
+            >
+              + {t('admin.addOption')}
+            </button>
+            <div className="text-sm text-[var(--mvx-text-color-secondary)]">
+              {t(`admin.calculationHelp.${getCalculationKey(betCalculationType)}`)}
+            </div>
+          </div>
         </div>
 
         {/* Dates */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-              {t('predictions.admin.startDate')} *
+              {t('admin.startDate')} *
             </label>
             <input
               type="datetime-local"
@@ -361,12 +393,12 @@ export const CreatePrediction = () => {
               className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
             />
             <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
-              Quand le match commence
+              {t('admin.startDateHelp')}
             </p>
           </div>
           <div>
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-              {t('predictions.admin.closeDate')} *
+              {t('admin.closeDate')} *
             </label>
             <input
               type="datetime-local"
@@ -375,7 +407,7 @@ export const CreatePrediction = () => {
               className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
             />
             <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
-              Date limite pour parier (avant le match)
+              {t('admin.closeDateHelp')}
             </p>
           </div>
         </div>
@@ -383,7 +415,7 @@ export const CreatePrediction = () => {
         {/* Points Reward */}
         <div>
           <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
-            {t('predictions.admin.pointsReward')} *
+            {t('admin.pointsReward')} *
           </label>
           <input
             type="number"
@@ -445,14 +477,14 @@ export const CreatePrediction = () => {
             onClick={() => navigate('/admin')}
             className="flex-1 py-3 px-4 bg-[var(--mvx-bg-color-secondary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] rounded-lg font-semibold hover:border-[var(--mvx-text-accent-color)] transition-colors"
           >
-            {t('predictions.admin.cancel')}
+            {t('admin.cancel')}
           </button>
           <button
             type="submit"
             disabled={submitting}
             className="flex-1 py-3 px-4 bg-[var(--mvx-text-accent-color)] text-white rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {submitting ? t('common.loading') : t('predictions.admin.create')}
+            {submitting ? t('common.loading') : t('admin.create')}
           </button>
         </div>
       </form>

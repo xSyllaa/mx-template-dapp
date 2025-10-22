@@ -17,16 +17,16 @@ export const PositionSelect = ({ value, onChange, positions, counts }: PositionS
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   
-  // Position icons mapping
-  const positionIcons: Record<string, string> = {
-    'GK': '🧤',
-    'DEF': '🛡️',
-    'MID': '⚡',
-    'ATT': '⚔️',
-    'all': '📋'
+  // Position icons and names mapping
+  const positionData: Record<string, { icon: string; name: string }> = {
+    'GK': { icon: '🧤', name: t('pages.myNFTs.filters.positions.gk') },
+    'DEF': { icon: '🛡️', name: t('pages.myNFTs.filters.positions.def') },
+    'MID': { icon: '⚡', name: t('pages.myNFTs.filters.positions.mid') },
+    'ATT': { icon: '⚔️', name: t('pages.myNFTs.filters.positions.att') },
+    'all': { icon: '📋', name: t('pages.myNFTs.filters.positions.all') }
   };
-  
-  const getIcon = (pos: string) => positionIcons[pos] || '⚽';
+
+  const getPositionData = (pos: string) => positionData[pos] || { icon: '⚽', name: pos };
   
   return (
     <div className="relative inline-block w-full sm:w-64">
@@ -36,9 +36,9 @@ export const PositionSelect = ({ value, onChange, positions, counts }: PositionS
         className="w-full flex items-center justify-between gap-3 px-3 sm:px-4 py-3 rounded-xl border-2 border-secondary bg-secondary text-primary font-medium shadow-lg hover:bg-tertiary transition-all focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-primary"
       >
         <div className="flex items-center gap-2">
-          <span className="text-lg">{getIcon(value)}</span>
+          <span className="text-lg">{getPositionData(value).icon}</span>
           <span className="text-primary">
-            {value === 'all' ? t('pages.myNFTs.filters.positions.all') : value}
+            {getPositionData(value).name}
           </span>
         </div>
         
@@ -61,13 +61,13 @@ export const PositionSelect = ({ value, onChange, positions, counts }: PositionS
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-[50]"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Menu */}
-          <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border-2 border-secondary bg-secondary shadow-2xl backdrop-blur-xl overflow-hidden max-h-64 overflow-y-auto">
+          <div className="absolute top-full left-0 right-0 mt-2 z-[60] rounded-xl border-2 border-secondary bg-secondary shadow-2xl backdrop-blur-xl overflow-hidden max-h-64 overflow-y-auto">
             {/* All option */}
             <button
               onClick={() => {
@@ -81,9 +81,9 @@ export const PositionSelect = ({ value, onChange, positions, counts }: PositionS
               }`}
             >
               <div className="flex items-center gap-3">
-                <span className="text-lg">{getIcon('all')}</span>
+                <span className="text-lg">{getPositionData('all').icon}</span>
                 <span className="font-medium text-primary">
-                  {t('pages.myNFTs.filters.positions.all')}
+                  {getPositionData('all').name}
                 </span>
               </div>
               
@@ -115,9 +115,9 @@ export const PositionSelect = ({ value, onChange, positions, counts }: PositionS
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    <span className="text-lg">{getIcon(position)}</span>
+                    <span className="text-lg">{getPositionData(position).icon}</span>
                     <span className="font-medium text-primary">
-                      {position}
+                      {getPositionData(position).name}
                     </span>
                   </div>
                   

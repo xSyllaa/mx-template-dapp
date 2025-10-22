@@ -350,7 +350,7 @@ export const PredictionCard = ({
                   : 'bg-gray-500/20 text-[var(--mvx-text-color-secondary)]'
             }`}
           >
-            {t(`predictions.status.${prediction.status}`)}
+            {t(`status.${prediction.status}`, { ns: 'predictions' })}
           </span>
         </div>
       )}

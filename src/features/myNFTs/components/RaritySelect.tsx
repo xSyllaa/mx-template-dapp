@@ -62,13 +62,13 @@ export const RaritySelect = ({ value, onChange, counts, labels }: RaritySelectPr
       {isOpen && (
         <>
           {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40" 
+          <div
+            className="fixed inset-0 z-[50]"
             onClick={() => setIsOpen(false)}
           />
           
           {/* Menu */}
-          <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-xl border-2 border-secondary bg-secondary shadow-2xl backdrop-blur-xl overflow-hidden">
+          <div className="absolute top-full left-0 right-0 mt-2 z-[60] rounded-xl border-2 border-secondary bg-secondary shadow-2xl backdrop-blur-xl overflow-hidden">
             {options.map((option) => {
               const optionColor = rarityColors[option];
               const isSelected = value === option;

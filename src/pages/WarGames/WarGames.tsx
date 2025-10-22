@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useGetAccount } from 'lib/sdkDapp';
-import { useMyNFTs } from 'features/myNFTs';
+import { useCurrentUserNFTs } from 'features/collection';
 import { 
   useWarGameTeam, 
   WarGameService, 
@@ -26,20 +26,9 @@ export const WarGames = () => {
   // War Game mode state (must be declared early for conditional NFT loading)
   const [warGameMode, setWarGameMode] = useState<WarGameMode>('select');
   
-  // Test address functionality
-  const [testAddress, setTestAddress] = useState('erd1z563juvyfl7etnev8ua65vzhx65ln0rp0m783hq2m2wgdxx6z83s9t2cmv');
-  const [showTestInput, setShowTestInput] = useState(false);
-  const [isLoadingTestAddress, setIsLoadingTestAddress] = useState(false);
-  
-  // Use test address by default, fallback to connected address
-  const currentAddress = address || testAddress;
-  
-  // Only load NFTs when in create/join mode
-  const shouldLoadNFTs = warGameMode !== 'select';
-  const { nfts, loading, error, fetchNFTsForAddress } = useMyNFTs(
-    shouldLoadNFTs ? currentAddress : '', 
-    shouldLoadNFTs
-  );
+  // Use current user's NFTs from global cache
+  // This will automatically use injected test NFTs if set via My NFTs page
+  const { nfts, loading, error } = useCurrentUserNFTs();
   
   const {
     slots,
@@ -93,11 +82,11 @@ export const WarGames = () => {
     console.log('🔍 supabaseUserId type:', typeof supabaseUserId);
     console.log('🔍 supabaseUserId === null:', supabaseUserId === null);
     console.log('🔍 supabaseUserId === undefined:', supabaseUserId === undefined);
-    
+
     setLoadingWarGames(true);
     try {
       const games = await WarGameService.getAllUserVisibleWarGames();
-      
+
       console.log('📊 ALL WAR GAMES RETRIEVED:', games.length);
       console.log('📊 Full list of war games:', games.map(g => ({
         id: g.id,
@@ -105,13 +94,28 @@ export const WarGames = () => {
         creatorId: g.creatorId,
         opponentId: g.opponentId,
         creatorUsername: g.creatorUsername,
-        opponentUsername: g.opponentUsername
+        opponentUsername: g.opponentUsername,
+        entryDeadline: g.entryDeadline,
+        entryDeadlineDate: new Date(g.entryDeadline).toISOString(),
+        now: new Date().toISOString(),
+        isExpired: new Date(g.entryDeadline) < new Date()
       })));
-      
+
       setAllWarGames(games);
-      
-      // Filter games into 3 categories
+
+      // Filter games into 3 categories - with detailed debugging for open games
       const open = WarGameService.filterOpenWarGames(games);
+
+      // Debug each game's filtering criteria
+      console.log('🔍 DEBUG: Filtering criteria for each game:');
+      games.forEach(game => {
+        const isStatusOpen = game.status === 'open';
+        const isOpponentNull = game.opponentId === null;
+        const isNotExpired = new Date(game.entryDeadline) > new Date();
+        const shouldInclude = isStatusOpen && isOpponentNull && isNotExpired;
+
+        console.log(`  Game ${game.id}: status=${isStatusOpen}, opponentNull=${isOpponentNull}, notExpired=${isNotExpired}, include=${shouldInclude}`);
+      });
       
       // In progress: in_progress status (only if user is loaded)
       const inProgress = supabaseUserId ? games.filter(game => 
@@ -190,16 +194,8 @@ export const WarGames = () => {
     }
   };
 
-  const handleTestAddressSearch = async () => {
-    if (testAddress.trim()) {
-      setIsLoadingTestAddress(true);
-      try {
-        await fetchNFTsForAddress(testAddress.trim());
-      } finally {
-        setIsLoadingTestAddress(false);
-      }
-    }
-  };
+  // Test address functionality removed - now uses global TestAddressContext
+  // Set via My NFTs page, automatically applies to all features
 
   const handleSaveTeam = async () => {
     if (!teamName.trim()) {
@@ -335,14 +331,15 @@ export const WarGames = () => {
     setSelectedWarGameId('');
   };
 
+
   // Loading state (only if loading in create/join mode)
-  if ((loading || isLoadingTestAddress) && warGameMode !== 'select') {
+  if (loading && warGameMode !== 'select') {
     return (
       <div className="container max-w-7xl mx-auto px-4 py-8">
         <div className="text-center py-16">
           <div className="animate-spin inline-block w-16 h-16 border-4 border-secondary border-t-accent rounded-full mb-4"></div>
           <p className="text-lg text-[var(--mvx-text-color-secondary)]">
-            {isLoadingTestAddress ? t('pages.warGames.testMode.loading') : t('common.loading')}
+            {t('common.loading')}
           </p>
         </div>
       </div>
@@ -379,14 +376,31 @@ export const WarGames = () => {
               {t('pages.warGames.subtitle')}
             </p>
           </div>
-          {warGameMode !== 'select' && (
+          <div className="flex gap-2">
+            {/* Refresh button */}
             <Button
-              onClick={resetToSelectMode}
+              onClick={loadAllWarGames}
               variant="secondary"
+              disabled={loadingWarGames}
+              className="flex items-center gap-2"
             >
-              ← {t('common.back')}
+              {loadingWarGames ? (
+                <div className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
+              ) : (
+                <span>🔄</span>
+              )}
+              {t('pages.warGames.refresh')}
             </Button>
-          )}
+
+            {warGameMode !== 'select' && (
+              <Button
+                onClick={resetToSelectMode}
+                variant="secondary"
+              >
+                ← {t('common.back')}
+              </Button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -420,7 +434,7 @@ export const WarGames = () => {
       {warGameMode !== 'select' && (
         <>
           {/* Not enough NFTs warning */}
-          {shouldLoadNFTs && !loading && nfts.length < 11 && (
+          {!loading && nfts.length < 11 && (
             <div className="mb-6 bg-yellow-500/20 border-2 border-yellow-500 rounded-lg p-6">
               <div className="flex items-center gap-4">
                 <div className="text-5xl">📭</div>
@@ -431,39 +445,6 @@ export const WarGames = () => {
                   <p className="text-[var(--mvx-text-color-secondary)]">
                     {t('pages.warGames.errors.needMoreNFTs', { current: nfts.length, needed: 11 })}
                   </p>
-                  {/* Test Address Input */}
-                  <div className="mt-4">
-                    <button
-                      onClick={() => setShowTestInput(!showTestInput)}
-                      className="text-sm text-[var(--mvx-text-color-secondary)] hover:text-[var(--mvx-text-color-primary)] underline"
-                    >
-                      {showTestInput ? t('pages.warGames.testMode.hide') : t('pages.warGames.testMode.show')}
-                    </button>
-                    
-                    {showTestInput && (
-                      <div className="flex gap-2 mt-2">
-                        <input
-                          type="text"
-                          value={testAddress}
-                          onChange={(e) => setTestAddress(e.target.value)}
-                          placeholder={t('pages.warGames.testMode.placeholder')}
-                          className="flex-1 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter' && testAddress.trim() && !isLoadingTestAddress) {
-                              handleTestAddressSearch();
-                            }
-                          }}
-                        />
-                        <button
-                          onClick={handleTestAddressSearch}
-                          disabled={!testAddress.trim() || isLoadingTestAddress}
-                          className="px-4 py-2 rounded-lg bg-[var(--mvx-text-accent-color)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-                        >
-                          {t('pages.warGames.testMode.search')}
-                        </button>
-                      </div>
-                    )}
-                  </div>
                 </div>
               </div>
             </div>
@@ -491,7 +472,7 @@ export const WarGames = () => {
               isTeamComplete={isTeamComplete}
               isAuthenticated={isAuthenticated}
               warGameMode={warGameMode}
-              testAddress={testAddress}
+              testAddress=""
               teamName={teamName}
               showTeamNameError={showTeamNameError}
               supabaseUserId={supabaseUserId}

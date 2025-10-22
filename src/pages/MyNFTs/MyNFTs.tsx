@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useGetAccount } from 'lib/sdkDapp';
 import { 
-  useMyNFTs, 
   NFTCard, 
   NFTStats, 
   RaritySelect, 
@@ -12,30 +10,56 @@ import {
   SearchInput
 } from 'features/myNFTs';
 import type { GalacticXNFT } from 'features/myNFTs';
+import { useCurrentUserNFTs, useInjectTestNFTs } from 'features/collection';
 import { Button } from 'components/Button';
 
 type FilterOption = 'all' | 'Common' | 'Rare' | 'Epic' | 'Legendary' | 'Mythic';
 
 export const MyNFTs = () => {
   const { t } = useTranslation();
-  const { address } = useGetAccount();
-  
-  const { nfts, nftCount, hasNFTs, loading, error, lastSynced, refetch, fetchNFTsForAddress } = useMyNFTs();
   
   const [filterRarity, setFilterRarity] = useState<FilterOption>('all');
   const [filterPosition, setFilterPosition] = useState<string>('all');
   const [filterNationality, setFilterNationality] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const [testAddress, setTestAddress] = useState('erd1z563juvyfl7etnev8ua65vzhx65ln0rp0m783hq2m2wgdxx6z83s9t2cmv');
+  const [testAddressInput, setTestAddressInput] = useState('erd1z563juvyfl7etnev8ua65vzhx65ln0rp0m783hq2m2wgdxx6z83s9t2cmv');
   const [showTestInput, setShowTestInput] = useState(false);
+  const [isInjecting, setIsInjecting] = useState(false);
   const [selectedNFT, setSelectedNFT] = useState<GalacticXNFT | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const handleTestAddressSearch = async () => {
-    if (testAddress.trim()) {
-      await fetchNFTsForAddress(testAddress.trim());
+  // Use current user's NFTs (cached globally)
+  const { 
+    nfts, 
+    nftCount, 
+    hasNFTs, 
+    loading, 
+    error, 
+    lastSynced, 
+    refetch,
+    isRefetching 
+  } = useCurrentUserNFTs();
+  
+  // Test injection functionality
+  const { injectNFTsFromAddress, resetToWalletNFTs } = useInjectTestNFTs();
+  
+  const handleInjectTestNFTs = async () => {
+    if (!testAddressInput.trim()) return;
+    
+    setIsInjecting(true);
+    try {
+      await injectNFTsFromAddress(testAddressInput.trim());
+    } catch (err) {
+      console.error('Failed to inject test NFTs:', err);
+      alert('Erreur lors de l\'injection des NFTs de test');
+    } finally {
+      setIsInjecting(false);
     }
+  };
+  
+  const handleResetToWallet = async () => {
+    await resetToWalletNFTs();
+    setShowTestInput(false);
   };
   
   const handleNFTClick = (nft: GalacticXNFT) => {
@@ -71,7 +95,7 @@ export const MyNFTs = () => {
   // Extract unique positions and nationalities
   const uniquePositions = useMemo(() => {
     const positions = new Set<string>();
-    nfts.forEach(nft => {
+    nfts.forEach((nft: GalacticXNFT) => {
       if (nft.position) {
         positions.add(nft.position);
       }
@@ -81,9 +105,9 @@ export const MyNFTs = () => {
   
   const uniqueNationalities = useMemo(() => {
     const nationalities = new Set<string>();
-    nfts.forEach(nft => {
+    nfts.forEach((nft: GalacticXNFT) => {
       if (nft.attributes.nationality) {
-        nationalities.add(nft.attributes.nationality);
+        nationalities.add(nft.attributes.nationality as string);
       }
     });
     return Array.from(nationalities).sort();
@@ -91,7 +115,7 @@ export const MyNFTs = () => {
   
   // Filter NFTs by all criteria
   const filteredNFTs = useMemo(() => {
-    return nfts.filter(nft => {
+    return nfts.filter((nft: GalacticXNFT) => {
       // Rarity filter
       if (filterRarity !== 'all' && nft.rarity !== filterRarity) {
         return false;
@@ -143,18 +167,18 @@ export const MyNFTs = () => {
   // Count by rarity for dropdown
   const rarityCounts: Record<FilterOption, number> = useMemo(() => ({
     all: nfts.length,
-    Common: nfts.filter(n => n.rarity === 'Common').length,
-    Rare: nfts.filter(n => n.rarity === 'Rare').length,
-    Epic: nfts.filter(n => n.rarity === 'Epic').length,
-    Legendary: nfts.filter(n => n.rarity === 'Legendary').length,
-    Mythic: nfts.filter(n => n.rarity === 'Mythic').length
+    Common: nfts.filter((n: GalacticXNFT) => n.rarity === 'Common').length,
+    Rare: nfts.filter((n: GalacticXNFT) => n.rarity === 'Rare').length,
+    Epic: nfts.filter((n: GalacticXNFT) => n.rarity === 'Epic').length,
+    Legendary: nfts.filter((n: GalacticXNFT) => n.rarity === 'Legendary').length,
+    Mythic: nfts.filter((n: GalacticXNFT) => n.rarity === 'Mythic').length
   }), [nfts]);
   
   // Count by position
   const positionCounts: Record<string, number> = useMemo(() => {
     const counts: Record<string, number> = { all: nfts.length };
     uniquePositions.forEach((pos: string) => {
-      counts[pos] = nfts.filter(n => n.position === pos).length;
+      counts[pos] = nfts.filter((n: GalacticXNFT) => n.position === pos).length;
     });
     return counts;
   }, [nfts, uniquePositions]);
@@ -163,7 +187,7 @@ export const MyNFTs = () => {
   const nationalityCounts: Record<string, number> = useMemo(() => {
     const counts: Record<string, number> = { all: nfts.length };
     uniqueNationalities.forEach((nat: string) => {
-      counts[nat] = nfts.filter(n => n.attributes.nationality === nat).length;
+      counts[nat] = nfts.filter((n: GalacticXNFT) => n.attributes.nationality === nat).length;
     });
     return counts;
   }, [nfts, uniqueNationalities]);
@@ -194,32 +218,54 @@ export const MyNFTs = () => {
       <div className="mb-6">
         <button
           onClick={() => setShowTestInput(!showTestInput)}
-          className="text-sm text-secondary hover:text-primary underline mb-2"
+          className="text-sm text-[var(--mvx-text-color-secondary)] hover:text-[var(--mvx-text-accent-color)] underline mb-2"
         >
-          {showTestInput ? t('pages.myNFTs.testMode.hide') : t('pages.myNFTs.testMode.show')}
+          {showTestInput ? '🔒 ' + t('pages.myNFTs.testMode.hide') : '🧪 ' + t('pages.myNFTs.testMode.show')}
         </button>
         
         {showTestInput && (
-          <div className="flex gap-2 p-4 rounded-lg bg-secondary border border-secondary">
-            <input
-              type="text"
-              value={testAddress}
-              onChange={(e) => setTestAddress(e.target.value)}
-              placeholder={t('pages.myNFTs.testMode.placeholder')}
-              className="flex-1 px-3 py-2 rounded-lg bg-primary text-primary border border-secondary focus:outline-none focus:ring-2 focus:ring-accent"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && testAddress.trim() && !loading) {
-                  handleTestAddressSearch();
-                }
-              }}
-            />
-            <button
-              onClick={handleTestAddressSearch}
-              disabled={!testAddress.trim() || loading}
-              className="px-4 py-2 rounded-lg bg-tertiary text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
-            >
-              {t('pages.myNFTs.testMode.search')}
-            </button>
+          <div className="p-4 rounded-lg bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)]">
+            <div className="mb-3">
+              <h4 className="text-sm font-bold text-[var(--mvx-text-color-primary)] mb-1">
+                🧪 Mode Test - Injection de NFTs
+              </h4>
+              <p className="text-xs text-[var(--mvx-text-color-secondary)]">
+                Récupère les NFTs d'une autre adresse et les injecte dans le cache de ton wallet. War Games et autres features utiliseront ces NFTs.
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-2">
+              <input
+                type="text"
+                value={testAddressInput}
+                onChange={(e) => setTestAddressInput(e.target.value)}
+                placeholder={t('pages.myNFTs.testMode.placeholder')}
+                className="flex-1 px-3 py-2 rounded-lg bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] focus:outline-none focus:ring-2 focus:ring-[var(--mvx-text-accent-color)]"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && testAddressInput.trim() && !isInjecting && !loading) {
+                    handleInjectTestNFTs();
+                  }
+                }}
+              />
+              <button
+                onClick={handleInjectTestNFTs}
+                disabled={!testAddressInput.trim() || isInjecting || loading}
+                className="px-4 py-2 rounded-lg bg-[var(--mvx-text-accent-color)] text-white hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity font-medium"
+              >
+                {isInjecting ? '💉 Injection...' : '💉 Injecter'}
+              </button>
+              <button
+                onClick={handleResetToWallet}
+                disabled={isInjecting}
+                className="px-4 py-2 rounded-lg bg-red-500/20 text-[var(--mvx-text-color-primary)] border border-red-500/30 hover:bg-red-500/30 transition-colors font-medium disabled:opacity-50"
+              >
+                🔄 Reset
+              </button>
+            </div>
+            
+            <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 text-xs text-[var(--mvx-text-color-secondary)] mt-3">
+              ⚠️ <strong>Attention:</strong> Les NFTs injectés remplaceront temporairement tes vrais NFTs dans toutes les features. Utilise "Reset" pour revenir à tes NFTs.
+            </div>
           </div>
         )}
       </div>
@@ -236,7 +282,7 @@ export const MyNFTs = () => {
       
       {/* Error State */}
       {error && !loading && (
-        <div className="text-center py-16">
+          <div className="text-center py-16">
           <div className="text-6xl mb-4">❌</div>
           <p className="text-2xl mb-4 text-primary font-bold">{t('pages.myNFTs.error.title')}</p>
           <p className="text-sm mb-6 text-secondary">{error.message}</p>
@@ -247,7 +293,7 @@ export const MyNFTs = () => {
       )}
       
       {/* Not Connected State */}
-      {!address && !loading && (
+      {!hasNFTs && !loading && !error && (
         <div className="text-center py-16">
           <div className="text-8xl mb-6">🔒</div>
           <p className="text-2xl text-primary mb-2 font-bold">
@@ -259,18 +305,6 @@ export const MyNFTs = () => {
         </div>
       )}
       
-      {/* No NFTs State */}
-      {address && !loading && !error && !hasNFTs && (
-        <div className="text-center py-16">
-          <div className="text-8xl mb-6">📭</div>
-          <p className="text-2xl text-primary mb-2 font-bold">
-            {t('pages.myNFTs.empty.title')}
-          </p>
-          <p className="text-md text-secondary">
-            {t('pages.myNFTs.empty.subtitle')}
-          </p>
-        </div>
-      )}
       
       {/* NFTs Display */}
       {!loading && !error && hasNFTs && (
@@ -289,11 +323,19 @@ export const MyNFTs = () => {
               
               {/* Refresh Button - Inline on desktop, below on mobile */}
               <button
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-tertiary to-accent text-white font-medium shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap sm:w-auto"
+                className={`px-6 py-3 rounded-xl bg-gradient-to-r from-tertiary to-accent text-white font-medium shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2 whitespace-nowrap sm:w-auto ${
+                  isRefetching ? 'opacity-75 cursor-not-allowed' : ''
+                }`}
                 onClick={refetch}
+                disabled={isRefetching}
               >
-                <span className="text-lg">🔄</span>
+                <span className={`text-lg ${isRefetching ? 'animate-spin' : ''}`}>🔄</span>
                 <span>{t('pages.myNFTs.refresh')}</span>
+                {lastSynced && !isRefetching && (
+                  <span className="text-xs opacity-75">
+                    ({new Date(lastSynced).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })})
+                  </span>
+                )}
               </button>
             </div>
             

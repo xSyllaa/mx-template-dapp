@@ -60,10 +60,9 @@ export const getLeaderboard = async (
   try {
     const { type, week, month, year, sourceTypes, limit = 100 } = filters;
 
-    // Keep service logs minimal; source logging handled in hook
-
     // Try to call the real Supabase function first
     try {
+      console.log(`🏆 [Leaderboard] ${type} - supabase`);
       const { data, error } = await supabase.rpc('get_leaderboard', {
         p_type: type,
         p_week: week || null,
@@ -83,13 +82,13 @@ export const getLeaderboard = async (
       // If function doesn't exist, fallback to direct table query
       if (functionError.code === '42883') { // function does not exist
         // Function not found, fallback to users table
-        
-        // Fallback: Get all users with their total_points
+        console.log(`🏆 [Leaderboard] ${type} - fallback (users table)`);
+
+        // Fallback: Get all users with their total_points (including negative)
         const { data, error } = await supabase
           .from('users')
           .select('id, username, avatar_url, total_points')
           .not('total_points', 'is', null)
-          .gt('total_points', 0)
           .order('total_points', { ascending: false })
           .limit(limit);
 
@@ -98,7 +97,7 @@ export const getLeaderboard = async (
           throw error;
         }
 
-        // Transform to LeaderboardEntry format with ranks
+        // Transform to LeaderboardEntry format with ranks (including negative points)
         const entries: LeaderboardEntry[] = (data || []).map((user, index) => ({
           user_id: user.id,
           username: user.username,
@@ -129,9 +128,7 @@ export const getUserRank = async (
   try {
     const { type, week, month, year, sourceTypes } = filters;
 
-    if (DEBUG) {
-      console.log('📡 [LeaderboardService] Fetching user rank for', type, 'leaderboard...');
-    }
+    // User rank fetching logs removed as requested - only essential leaderboard logs remain
 
     // Try to call the real Supabase function
     const { data, error } = await supabase.rpc('get_user_rank', {
@@ -379,10 +376,16 @@ export const getLeaderboardDateRange = (
 };
 
 /**
- * Format date to UTC string for display
+ * Format date to UTC string for display (without seconds and milliseconds)
  * @param date - Date to format
  */
 export const formatDateToUTC = (date: Date): string => {
-  return date.toISOString().replace('T', ' ').replace('Z', ' UTC');
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const hours = String(date.getHours()).padStart(2, '0');
+  const minutes = String(date.getMinutes()).padStart(2, '0');
+
+  return `${year}-${month}-${day} ${hours}:${minutes} UTC`;
 };
 
