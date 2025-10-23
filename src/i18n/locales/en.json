@@ -325,7 +325,19 @@
         "playersPlaced": "players placed",
         "empty": "Drag NFTs to build your team",
         "complete": "Complete",
-        "authRequired": "Sign to save teams"
+        "authRequired": "Sign to save teams",
+        "positions": {
+          "GK": "Goalkeeper",
+          "CB": "Center Back",
+          "LB": "Left Back",
+          "RB": "Right Back",
+          "CM": "Central Midfielder",
+          "LM": "Left Midfielder",
+          "RM": "Right Midfielder",
+          "ST": "Striker",
+          "COACH": "Coach",
+          "STADIUM": "Stadium"
+        }
       },
       "nftList": {
         "title": "Your NFTs",

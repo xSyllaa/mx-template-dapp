@@ -259,7 +259,19 @@
         "playersPlaced": "joueurs placés",
         "empty": "Glisse les NFTs pour construire ton équipe",
         "complete": "Complète",
-        "authRequired": "Signer pour sauvegarder"
+        "authRequired": "Signer pour sauvegarder",
+        "positions": {
+          "GK": "Gardien",
+          "CB": "Défenseur Central",
+          "LB": "Arrière Gauche",
+          "RB": "Arrière Droit",
+          "CM": "Milieu Central",
+          "LM": "Milieu Gauche",
+          "RM": "Milieu Droit",
+          "ST": "Attaquant",
+          "COACH": "Entraîneur",
+          "STADIUM": "Stade"
+        }
       },
       "nftList": {
         "title": "Tes NFTs",

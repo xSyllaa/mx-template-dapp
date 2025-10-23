@@ -10,8 +10,8 @@ export const POSITION_COMPATIBILITY: Record<Position, Position[]> = {
   
   // Defenders - can play in defensive positions
   [Position.CB]: [Position.CB, Position.LB, Position.RB],
-  [Position.LB]: [Position.LB, Position.CB, Position.LWB],
-  [Position.RB]: [Position.RB, Position.CB, Position.RWB],
+  [Position.LB]: [Position.LB, Position.CB, Position.LM],
+  [Position.RB]: [Position.RB, Position.CB, Position.RM],
   
   // Defensive Midfielders - can play in defensive and central positions
   [Position.CDM]: [Position.CDM, Position.CM, Position.CB],
@@ -32,7 +32,13 @@ export const POSITION_COMPATIBILITY: Record<Position, Position[]> = {
   
   // Strikers - can play in attacking positions
   [Position.ST]: [Position.ST, Position.CF, Position.LW, Position.RW],
-  [Position.CF]: [Position.CF, Position.ST, Position.CAM]
+  [Position.CF]: [Position.CF, Position.ST, Position.CAM],
+  
+  // Coach - can only be placed in coach position
+  [Position.COACH]: [Position.COACH],
+  
+  // Stadium - can only be placed in stadium position
+  [Position.STADIUM]: [Position.STADIUM]
 };
 
 /**
@@ -96,6 +102,10 @@ export const getPositionCategory = (position: Position): string => {
     case Position.ST:
     case Position.CF:
       return 'forward';
+    case Position.COACH:
+      return 'coach';
+    case Position.STADIUM:
+      return 'stadium';
     default:
       return 'unknown';
   }

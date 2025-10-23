@@ -16,7 +16,9 @@ export enum Position {
   LW = 'LW',   // Left Winger
   RW = 'RW',   // Right Winger
   ST = 'ST',   // Striker
-  CF = 'CF'    // Center Forward
+  CF = 'CF',   // Center Forward
+  COACH = 'COACH', // Coach/Manager
+  STADIUM = 'STADIUM' // Stadium
 }
 
 /**
@@ -40,27 +42,33 @@ export interface TeamSlot {
 }
 
 /**
- * Formation 4-4-2 with 11 positions
+ * Formation 4-4-2 with 11 positions + Coach + Stadium
  */
 export const Formation442: FormationPosition[] = [
-  // Goalkeeper
-  { id: 'gk', position: Position.GK, allowedPositions: [Position.GK], x: 50, y: 5, label: 'GK' },
+  // Goalkeeper (moved to bottom)
+  { id: 'gk', position: Position.GK, allowedPositions: [Position.GK], x: 50, y: 90, label: 'GK' },
   
-  // Defense (4 players)
-  { id: 'lb', position: Position.LB, allowedPositions: [Position.LB, Position.CB, Position.LM], x: 15, y: 20, label: 'LB' },
-  { id: 'cb1', position: Position.CB, allowedPositions: [Position.CB, Position.LB, Position.RB], x: 35, y: 20, label: 'CB' },
-  { id: 'cb2', position: Position.CB, allowedPositions: [Position.CB, Position.LB, Position.RB], x: 65, y: 20, label: 'CB' },
-  { id: 'rb', position: Position.RB, allowedPositions: [Position.RB, Position.CB, Position.RM], x: 85, y: 20, label: 'RB' },
+  // Defense (4 players) - moved down
+  { id: 'lb', position: Position.LB, allowedPositions: [Position.LB, Position.CB, Position.LM], x: 15, y: 75, label: 'LB' },
+  { id: 'cb1', position: Position.CB, allowedPositions: [Position.CB, Position.LB, Position.RB], x: 35, y: 75, label: 'CB' },
+  { id: 'cb2', position: Position.CB, allowedPositions: [Position.CB, Position.LB, Position.RB], x: 65, y: 75, label: 'CB' },
+  { id: 'rb', position: Position.RB, allowedPositions: [Position.RB, Position.CB, Position.RM], x: 85, y: 75, label: 'RB' },
   
-  // Midfield (4 players)
-  { id: 'lm', position: Position.LM, allowedPositions: [Position.LM, Position.LW, Position.CM], x: 20, y: 45, label: 'LM' },
-  { id: 'cm1', position: Position.CM, allowedPositions: [Position.CM, Position.CDM, Position.CAM, Position.LM, Position.RM], x: 40, y: 45, label: 'CM' },
-  { id: 'cm2', position: Position.CM, allowedPositions: [Position.CM, Position.CDM, Position.CAM, Position.LM, Position.RM], x: 60, y: 45, label: 'CM' },
-  { id: 'rm', position: Position.RM, allowedPositions: [Position.RM, Position.RW, Position.CM], x: 80, y: 45, label: 'RM' },
+  // Midfield (4 players) - moved down
+  { id: 'lm', position: Position.LM, allowedPositions: [Position.LM, Position.LW, Position.CM], x: 20, y: 50, label: 'LM' },
+  { id: 'cm1', position: Position.CM, allowedPositions: [Position.CM, Position.CDM, Position.CAM, Position.LM, Position.RM], x: 40, y: 50, label: 'CM' },
+  { id: 'cm2', position: Position.CM, allowedPositions: [Position.CM, Position.CDM, Position.CAM, Position.LM, Position.RM], x: 60, y: 50, label: 'CM' },
+  { id: 'rm', position: Position.RM, allowedPositions: [Position.RM, Position.RW, Position.CM], x: 80, y: 50, label: 'RM' },
   
-  // Attack (2 players)
-  { id: 'st1', position: Position.ST, allowedPositions: [Position.ST, Position.CF, Position.LW, Position.RW], x: 40, y: 70, label: 'ST' },
-  { id: 'st2', position: Position.ST, allowedPositions: [Position.ST, Position.CF, Position.LW, Position.RW], x: 60, y: 70, label: 'ST' }
+  // Attack (2 players) - moved to top
+  { id: 'st1', position: Position.ST, allowedPositions: [Position.ST, Position.CF, Position.LW, Position.RW], x: 40, y: 25, label: 'ST' },
+  { id: 'st2', position: Position.ST, allowedPositions: [Position.ST, Position.CF, Position.LW, Position.RW], x: 60, y: 25, label: 'ST' },
+  
+  // Coach (on the sideline)
+  { id: 'coach', position: Position.COACH, allowedPositions: [Position.COACH], x: 5, y: 50, label: 'COACH' },
+  
+  // Stadium (on the other sideline)
+  { id: 'stadium', position: Position.STADIUM, allowedPositions: [Position.STADIUM], x: 95, y: 50, label: 'STADIUM' }
 ];
 
 /**

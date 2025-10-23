@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import type { TeamSlot, FormationPosition } from '../types';
 import type { GalacticXNFT } from 'features/myNFTs';
 import { canDropNFT } from '../utils/positionCompatibility';
@@ -12,6 +13,7 @@ interface FieldSlotProps {
 }
 
 export const FieldSlot = ({ slot, draggedNFT, onDrop, onRemove, canDropOnSlot }: FieldSlotProps) => {
+  const { t } = useTranslation();
   const [isDragOver, setIsDragOver] = useState(false);
   
   const { position, nft } = slot;
@@ -78,7 +80,7 @@ export const FieldSlot = ({ slot, draggedNFT, onDrop, onRemove, canDropOnSlot }:
       {isEmpty && (
         <div className="text-center">
           <div className="text-xs font-bold text-gray-600">
-            {position.label}
+            {t(`pages.warGames.field.positions.${position.position}`, position.label)}
           </div>
         </div>
       )}
@@ -111,7 +113,7 @@ export const FieldSlot = ({ slot, draggedNFT, onDrop, onRemove, canDropOnSlot }:
           
           {/* Position label */}
           <div className="absolute -bottom-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-white bg-black/70 px-2 py-1 rounded">
-            {position.label}
+            {t(`pages.warGames.field.positions.${position.position}`, position.label)}
           </div>
         </div>
       )}
