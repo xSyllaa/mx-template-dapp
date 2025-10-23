@@ -319,6 +319,8 @@
       "refresh": "Refresh Data",
       "activeCount_one": "{{count}} active war game",
       "activeCount_other": "{{count}} active war games",
+      "allWarGames_one": "{{count}} war game",
+      "allWarGames_other": "{{count}} war games",
       "field": {
         "title": "Your Team",
         "formation": "Formation: 4-4-2",
@@ -413,6 +415,11 @@
         "genericError": "Failed to submit war game. Please try again.",
         "loadWarGamesError": "Failed to load available war games"
       },
+      "stats": {
+        "active": "{{count}} Active",
+        "historical": "{{count}} Historical",
+        "total": "{{count}} Total"
+      },
       "create": {
         "title": "Create War Game",
         "subtitle": "Set up your war game and wait for an opponent",
@@ -493,11 +500,15 @@
         "stake": "Stake",
         "deadline": "Deadline",
         "joinButton": "Join This War Game",
-        "ownWarGame": "Your War Game"
+        "ownWarGame": "Your War Game",
+        "expired": "Expired",
+        "notAccessible": "Not Accessible"
       },
       "history": {
         "title": "War Games History",
         "loading": "Loading history...",
+        "loadMore": "Load More",
+        "showing": "Showing {{current}} of {{total}} war games",
         "noHistory": "No War Games Yet",
         "noHistoryDescription": "Complete war games will appear here",
         "stake": "Stake",
@@ -561,8 +572,11 @@
       "topNationalities": "Top Nationalities"
     },
     "refresh": "Refresh Data",
-    "loading": "Loading collection data...",
     "loadingMore": "Loading more NFTs...",
+    "loading": {
+      "collection": "Loading collection data...",
+      "nfts": "Loading NFTs..."
+    },
     "scrollForMore": "Scroll for more",
     "endOfResults": "You've reached the end",
     "scrollToLoadMore": "Scroll down to load more NFTs",
@@ -644,6 +658,13 @@
       "failedToLoad": "Failed to load predictions",
       "noPredictionsYet": "No predictions created yet",
       "noPredictionsForFilter": "No predictions match this filter",
+      "predictions": {
+        "status": "Status",
+        "betType": "Bet Type",
+        "startDate": "Start Date",
+        "closeDate": "Close Date",
+        "bettingOptions": "Betting Options"
+      },
       "sections": {
         "resultedPredictions": "Resulted Predictions",
         "resultedAndCancelledPredictions": "Resulted & Cancelled Predictions",
@@ -680,7 +701,20 @@
       "actions": {
         "close": "Close",
         "cannotDelete": "Cannot delete validated predictions"
-      }
+      },
+      "historicalActions": "Historical prediction - view only",
+      "status": "Status",
+      "betType": "Bet Type",
+      "startDate": "Start Date",
+      "closeDate": "Close Date",
+      "bettingOptions": "Betting Options",
+      "statistics": "Statistics",
+      "totalParticipants": "Total Participants",
+      "totalPool": "Total Pool",
+      "createdAt": "Created At",
+      "optionStatistics": "Option Statistics",
+      "participantsLower": "participants",
+      "winner": "Winner"
     },
     "betCategories": {
       "match-result": "1. Match Result Bets",
@@ -713,6 +747,7 @@
     "participate": "Participate",
     "participated": "Participated",
     "loadMore": "Load More",
+    "showing": "Showing {{current}} of {{total}} predictions",
     "noActive": "No active predictions",
     "noHistory": "No prediction history yet",
     "submitPrediction": "Submit Prediction",
@@ -748,6 +783,11 @@
       "results": "{{count}} result(s)"
     },
     "stats": {
+      "active_one": "{{count}} Active",
+      "active_other": "{{count}} Active",
+      "historical_one": "{{count}} Historical",
+      "historical_other": "{{count}} Historical",
+      "total": "{{count}} Total",
       "bettingPool": "Betting Pool",
       "totalWagered": "Total Wagered",
       "participants": "Participants",

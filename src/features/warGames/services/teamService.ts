@@ -1,4 +1,5 @@
 import { supabase } from 'lib/supabase/client';
+import { teamsAPI } from 'api/teams';
 import type { SavedTeam, CreateTeamData, UpdateTeamData, SavedTeamSlot } from '../types';
 
 /**
@@ -9,138 +10,130 @@ export class TeamService {
    * Get all teams for the current user
    */
   static async getUserTeams(userId: string): Promise<SavedTeam[]> {
-    if (!userId) {
-      throw new Error('User ID is required to fetch teams.');
-    }
-
-    const { data, error } = await supabase
-      .from('war_game_teams')
-      .select('*')
-      .eq('user_id', userId)
-      .order('updated_at', { ascending: false });
-
-    if (error) {
+    try {
+      const response = await teamsAPI.getSaved();
+      
+      // Check if response is successful and has data
+      if (!response.success || !response.data) {
+        throw new Error('Invalid teams response');
+      }
+      
+      // Transform API response to SavedTeam format
+      return response.data.teams.map((team: any) => ({
+        id: team.id,
+        userId: team.userId,
+        teamName: team.teamName,
+        formation: team.formation,
+        slots: team.slots,
+        createdAt: team.createdAt,
+        updatedAt: team.updatedAt
+      })) as SavedTeam[];
+    } catch (error) {
       console.error('Error fetching user teams:', error);
       throw new Error('Failed to fetch teams');
     }
-
-    const rows = (data || []) as any[];
-    // Map snake_case from DB to camelCase expected by UI types
-    return rows.map(row => ({
-      id: row.id,
-      userId: row.user_id,
-      teamName: row.team_name,
-      formation: row.formation,
-      slots: row.slots,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at
-    })) as SavedTeam[];
   }
 
   /**
    * Get a specific team by ID
    */
   static async getTeam(teamId: string): Promise<SavedTeam | null> {
-    const { data, error } = await supabase
-      .from('war_game_teams')
-      .select('*')
-      .eq('id', teamId)
-      .single();
-
-    if (error) {
+    try {
+      const response = await teamsAPI.getById(teamId);
+      
+      // Check if response is successful and has data
+      if (!response.success || !response.data) {
+        return null;
+      }
+      
+      // Transform API response to SavedTeam format
+      return {
+        id: response.data.team.id,
+        userId: response.data.team.userId,
+        teamName: response.data.team.teamName,
+        formation: response.data.team.formation,
+        slots: response.data.team.slots,
+        createdAt: response.data.team.createdAt,
+        updatedAt: response.data.team.updatedAt
+      } as SavedTeam;
+    } catch (error) {
       console.error('Error fetching team:', error);
-      throw new Error('Failed to fetch team');
+      return null;
     }
-
-    return data;
   }
 
   /**
    * Create a new team
    */
   static async createTeam(teamData: CreateTeamData, userId: string): Promise<SavedTeam> {
-    if (!userId) {
-      throw new Error('User ID is required to create a team.');
-    }
-
-    console.log('Creating team for user:', userId);
+    console.log('Creating team via API');
     console.log('Team data:', teamData);
 
-    const { data, error } = await supabase
-      .from('war_game_teams')
-      .insert({
-        user_id: userId,
-        team_name: teamData.teamName,
-        formation: teamData.formation,
-        slots: teamData.slots
-      })
-      .select()
-      .single();
+    try {
+      const response = await teamsAPI.create(
+        teamData.teamName,
+        teamData.formation,
+        teamData.slots
+      );
 
-    if (error) {
+      // Check if response is successful and has data
+      if (!response.success || !response.data) {
+        throw new Error('Invalid create team response');
+      }
+
+      return {
+        id: response.data.team.id,
+        userId: response.data.team.userId,
+        teamName: response.data.team.teamName,
+        formation: response.data.team.formation,
+        slots: response.data.team.slots,
+        createdAt: response.data.team.createdAt,
+        updatedAt: response.data.team.updatedAt
+      } as SavedTeam;
+    } catch (error) {
       console.error('Error creating team:', error);
-      
-      // Check if it's a table not found error
-      if (error.code === '42501' || error.message.includes('war_game_teams')) {
-        throw new Error('Database table not found. Please run the migration script in Supabase dashboard.');
-      }
-      
-      // Check if it's an authentication error
-      if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-        throw new Error('Authentication error. Please refresh the page and try again.');
-      }
-      
-      throw new Error(`Failed to create team: ${error.message}`);
+      throw error;
     }
-
-    return data;
   }
 
   /**
    * Update an existing team
    */
   static async updateTeam(teamId: string, teamData: UpdateTeamData, userId: string): Promise<SavedTeam> {
-    if (!userId) {
-      throw new Error('User ID is required to update team.');
-    }
+    try {
+      const response = await teamsAPI.update(teamId, {
+        teamName: teamData.teamName,
+        formation: teamData.formation,
+        slots: teamData.slots
+      });
 
-    const updateData: any = {};
-    
-    if (teamData.teamName) updateData.team_name = teamData.teamName;
-    if (teamData.formation) updateData.formation = teamData.formation;
-    if (teamData.slots) updateData.slots = teamData.slots;
+      // Check if response is successful and has data
+      if (!response.success || !response.data) {
+        throw new Error('Invalid update team response');
+      }
 
-    const { data, error } = await supabase
-      .from('war_game_teams')
-      .update(updateData)
-      .eq('id', teamId)
-      .eq('user_id', userId) // Ensure user can only update their own teams
-      .select()
-      .single();
-
-    if (error) {
+      return {
+        id: response.data.team.id,
+        userId: response.data.team.userId,
+        teamName: response.data.team.teamName,
+        formation: response.data.team.formation,
+        slots: response.data.team.slots,
+        createdAt: response.data.team.createdAt,
+        updatedAt: response.data.team.updatedAt
+      } as SavedTeam;
+    } catch (error) {
       console.error('Error updating team:', error);
       throw new Error('Failed to update team');
     }
-
-    return data;
   }
 
   /**
    * Delete a team
    */
   static async deleteTeam(teamId: string, userId: string): Promise<void> {
-    if (!userId) {
-      throw new Error('User ID is required to delete team.');
-    }
-
-    const { error } = await supabase
-      .from('war_game_teams')
-      .delete()
-      .eq('id', teamId)
-      .eq('user_id', userId); // Ensure user can only delete their own teams
-
-    if (error) {
+    try {
+      await teamsAPI.delete(teamId);
+    } catch (error) {
       console.error('Error deleting team:', error);
       throw new Error('Failed to delete team');
     }

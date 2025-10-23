@@ -56,10 +56,10 @@ export const PredictionStatsDisplay = ({
           </div>
           <div className="text-right">
             <p className="text-lg font-bold text-[var(--mvx-text-accent-color)]">
-              {stats.total_pool.toLocaleString()} pts
+              {stats?.total_pool?.toLocaleString() || '0'} pts
             </p>
             <p className="text-xs text-[var(--mvx-text-color-secondary)]">
-              {stats.total_participants} {t('predictions.stats.participants', { defaultValue: 'participants' })}
+              {stats?.total_participants || 0} {t('predictions.stats.participants', { defaultValue: 'participants' })}
             </p>
           </div>
         </div>
@@ -68,7 +68,7 @@ export const PredictionStatsDisplay = ({
         <div className="mb-3">
           <div className="h-3 bg-[var(--mvx-bg-color-primary)] rounded-full overflow-hidden flex">
             {options.map((option, index) => {
-              const optionStats = stats.options.find(s => s.option_id === option.id);
+              const optionStats = stats?.options?.find(s => s.option_id === option.id);
               const percentage = optionStats?.percentage || 0;
               
               // Colors for different options
@@ -95,7 +95,7 @@ export const PredictionStatsDisplay = ({
         {/* Option Labels */}
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mb-3">
           {options.map((option, index) => {
-            const optionStats = stats.options.find(s => s.option_id === option.id);
+            const optionStats = stats?.options?.find(s => s.option_id === option.id);
             const percentage = optionStats?.percentage || 0;
             
             const colors = [
@@ -143,7 +143,7 @@ export const PredictionStatsDisplay = ({
         </div>
         <div className="text-right">
           <p className="text-xl font-bold text-[var(--mvx-text-accent-color)]">
-            {stats.total_pool.toLocaleString()}
+            {stats?.total_pool?.toLocaleString() || '0'}
           </p>
           <p className="text-xs text-[var(--mvx-text-color-secondary)]">
             {t('predictions.stats.totalWagered')}
@@ -154,7 +154,7 @@ export const PredictionStatsDisplay = ({
       {/* Options Stats */}
       <div className="space-y-3">
         {options.map((option) => {
-          const optionStats = stats.options.find(
+          const optionStats = stats?.options?.find(
             (s) => s.option_id === option.id
           );
 
@@ -278,9 +278,9 @@ export const PredictionStatsDisplay = ({
       {/* Total Participants */}
       <div className="pt-2 border-t border-[var(--mvx-border-color-secondary)] text-center">
         <p className="text-sm text-[var(--mvx-text-color-secondary)]">
-          {t('predictions.stats.totalParticipants', { count: stats.total_participants })}:{' '}
+          {t('predictions.stats.totalParticipants', { count: stats?.total_participants || 0 })}:{' '}
           <span className="text-[var(--mvx-text-color-primary)] font-semibold">
-            {stats.total_participants}
+            {stats?.total_participants || 0}
           </span>
         </p>
       </div>

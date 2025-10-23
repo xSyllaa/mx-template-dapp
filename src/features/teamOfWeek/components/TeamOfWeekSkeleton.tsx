@@ -66,31 +66,43 @@ export const TeamOfWeekSkeleton = ({ playerCount = 11 }: TeamOfWeekSkeletonProps
             className="relative group bg-gradient-to-br from-[var(--mvx-bg-color-secondary)] to-[var(--mvx-bg-color-primary)] p-0.5 rounded-xl animate-pulse"
           >
             <div className="bg-[var(--mvx-bg-color-secondary)] rounded-xl overflow-hidden h-full">
-              {/* NFT Image Skeleton */}
-              <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-gradient-to-br from-gray-700 to-gray-900">
-                <div className="text-center flex flex-col items-center justify-center h-full">
-                  <div className="text-4xl mb-2 opacity-50">🎴</div>
-                  <div className="h-3 w-16 bg-gray-600 rounded animate-pulse"></div>
+              {/* NFT Image Skeleton - Enhanced placeholder */}
+              <div className="relative aspect-square overflow-hidden flex items-center justify-center bg-gradient-to-br from-[var(--mvx-bg-color-secondary)] to-[var(--mvx-bg-color-primary)]">
+                {/* Animated background pattern */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[var(--mvx-text-accent-color)]/10 via-transparent to-[var(--mvx-text-accent-color)]/5 animate-pulse"></div>
+                
+                <div className="text-center flex flex-col items-center justify-center h-full relative z-10">
+                  {/* Main icon with animation */}
+                  <div className="text-5xl mb-3 opacity-60 animate-bounce">🎴</div>
+                  
+                  {/* Loading state skeleton */}
+                  <div className="flex flex-col items-center gap-2">
+                    <div className="animate-spin rounded-full h-4 w-4 border-2 border-[var(--mvx-text-color-secondary)] border-t-[var(--mvx-text-accent-color)]"></div>
+                    <div className="h-3 w-16 bg-[var(--mvx-text-color-secondary)]/50 rounded animate-pulse"></div>
+                  </div>
                 </div>
-
+                
                 {/* Badge overlays skeleton */}
                 <div className="absolute top-2 right-2">
-                  <div className="h-6 w-12 bg-gray-600/90 rounded-full animate-pulse"></div>
+                  <div className="h-6 w-12 bg-[var(--mvx-text-color-secondary)]/30 rounded-full animate-pulse"></div>
                 </div>
                 <div className="absolute top-2 left-2">
-                  <div className="h-6 w-16 bg-[var(--mvx-text-accent-color)]/90 rounded-full animate-pulse"></div>
+                  <div className="h-6 w-16 bg-[var(--mvx-text-accent-color)]/30 rounded-full animate-pulse"></div>
                 </div>
+                
+                {/* Subtle border animation */}
+                <div className="absolute inset-0 border-2 border-[var(--mvx-text-accent-color)]/20 rounded-lg animate-pulse"></div>
               </div>
 
               {/* Player Info Skeleton */}
               <div className="p-3 space-y-2">
-                <div className="h-4 w-20 bg-gray-600 rounded animate-pulse mb-1"></div>
-                <div className="h-3 w-16 bg-gray-700 rounded animate-pulse"></div>
+                <div className="h-4 w-20 bg-[var(--mvx-text-color-secondary)]/30 rounded animate-pulse mb-1"></div>
+                <div className="h-3 w-16 bg-[var(--mvx-text-color-secondary)]/20 rounded animate-pulse"></div>
 
                 {/* Score and Rank skeleton */}
                 <div className="flex items-center justify-between">
-                  <div className="h-3 w-12 bg-gray-700 rounded animate-pulse"></div>
-                  <div className="h-3 w-10 bg-gray-700 rounded animate-pulse"></div>
+                  <div className="h-3 w-12 bg-[var(--mvx-text-color-secondary)]/20 rounded animate-pulse"></div>
+                  <div className="h-3 w-10 bg-[var(--mvx-text-color-secondary)]/20 rounded animate-pulse"></div>
                 </div>
               </div>
             </div>

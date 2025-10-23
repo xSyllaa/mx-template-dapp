@@ -21,22 +21,6 @@ export const Admin = () => {
       color: 'bg-green-500/20 border-green-500/30 hover:border-green-500'
     },
     {
-      title: 'Gérer les War Games',
-      description: 'Créer et gérer les war games',
-      icon: '⚔️',
-      path: '/admin/war-games',
-      color: 'bg-red-500/20 border-red-500/30 hover:border-red-500',
-      disabled: true
-    },
-    {
-      title: 'Gérer les Leaderboards',
-      description: 'Configurer les classements et récompenses',
-      icon: '🏆',
-      path: '/admin/leaderboards',
-      color: 'bg-yellow-500/20 border-yellow-500/30 hover:border-yellow-500',
-      disabled: true
-    },
-    {
       title: 'Select Team of the Week',
       description: 'Sélectionner l\'équipe de la semaine et récupérer les holders',
       icon: '⭐',
@@ -90,16 +74,6 @@ export const Admin = () => {
             </div>
           </button>
         ))}
-      </div>
-
-
-      {/* Info Box */}
-      <div className="mt-8 p-6 bg-[var(--mvx-bg-accent-color)] rounded-xl border border-[var(--mvx-border-color-secondary)]">
-        <p className="text-[var(--mvx-text-color-primary)]">
-          <strong>ℹ️ Note:</strong> En tant qu'administrateur, vous avez accès aux
-          fonctionnalités de gestion. Toutes les actions sont sécurisées par RLS
-          au niveau de la base de données.
-        </p>
       </div>
     </div>
   );

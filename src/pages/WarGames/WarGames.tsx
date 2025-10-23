@@ -11,6 +11,7 @@ import {
   WarGameConfiguration,
   TeamBuildingInterface
 } from 'features/warGames';
+import { warGamesAPI } from 'api/wargames';
 import { TeamService } from 'features/warGames/services/teamService';
 import type { WarGameWithDetails } from 'features/warGames/types';
 import { Button } from 'components/Button';
@@ -47,8 +48,15 @@ export const WarGames = () => {
   // War Games state
   const [allWarGames, setAllWarGames] = useState<WarGameWithDetails[]>([]);
   const [openWarGames, setOpenWarGames] = useState<WarGameWithDetails[]>([]);
-  const [completedWarGames, setCompletedWarGames] = useState<WarGameWithDetails[]>([]);
   const [loadingWarGames, setLoadingWarGames] = useState(false);
+  
+  // War Games statistics state
+  const [warGameStats, setWarGameStats] = useState<{
+    active: number;
+    historical: number;
+    total: number;
+  } | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
   
   // Form state
   const [selectedWarGameId, setSelectedWarGameId] = useState<string>('');
@@ -57,12 +65,19 @@ export const WarGames = () => {
   const [teamName, setTeamName] = useState('');
   const [showTeamNameError, setShowTeamNameError] = useState(false);
 
-  // Load all war games on mount and when user changes
+  // Load war games statistics and then war games on mount and when user changes
   useEffect(() => {
     if (supabaseUserId) {
-      loadAllWarGames();
+      loadWarGameStats();
     }
   }, [supabaseUserId]);
+
+  // Load war games after statistics are loaded
+  useEffect(() => {
+    if (warGameStats && supabaseUserId) {
+      loadAllWarGames();
+    }
+  }, [warGameStats, supabaseUserId]);
 
   // Set default deadline when entering create mode
   useEffect(() => {
@@ -72,6 +87,34 @@ export const WarGames = () => {
       setEntryDeadline(tomorrow.toISOString().slice(0, 16));
     }
   }, [warGameMode]);
+
+  /**
+   * Load war games statistics first
+   */
+  const loadWarGameStats = async () => {
+    console.log('📊 Loading war games statistics...');
+    setLoadingStats(true);
+    try {
+      const statsResponse = await warGamesAPI.getStats();
+      if (statsResponse.success) {
+        setWarGameStats(statsResponse.data);
+        console.log('📊 War games statistics loaded:', statsResponse.data);
+        
+        // Load war games after getting stats
+        await loadAllWarGames();
+      } else {
+        console.error('Failed to load war games statistics');
+        // Still try to load war games even if stats fail
+        await loadAllWarGames();
+      }
+    } catch (error) {
+      console.error('Error loading war games statistics:', error);
+      // Still try to load war games even if stats fail
+      await loadAllWarGames();
+    } finally {
+      setLoadingStats(false);
+    }
+  };
 
   /**
    * Load all war games and filter them
@@ -85,7 +128,11 @@ export const WarGames = () => {
 
     setLoadingWarGames(true);
     try {
-      const games = await WarGameService.getAllUserVisibleWarGames();
+      // Use the total from statistics if available, otherwise use a reasonable default
+      const limit = warGameStats?.total ? Math.max(warGameStats.total, 50) : 100;
+      console.log('📊 Using limit based on stats:', limit, 'from stats:', warGameStats);
+      
+      const games = await WarGameService.getAllUserVisibleWarGames(limit);
 
       console.log('📊 ALL WAR GAMES RETRIEVED:', games.length);
       console.log('📊 Full list of war games:', games.map(g => ({
@@ -111,52 +158,20 @@ export const WarGames = () => {
       games.forEach(game => {
         const isStatusOpen = game.status === 'open';
         const isOpponentNull = game.opponentId === null;
-        const isNotExpired = new Date(game.entryDeadline) > new Date();
+        const entryDeadlineDate = new Date(game.entryDeadline);
+        const now = new Date();
+        const isNotExpired = entryDeadlineDate > now;
+        const isCreatedByCurrentUser = game.creatorId === supabaseUserId;
         const shouldInclude = isStatusOpen && isOpponentNull && isNotExpired;
 
         console.log(`  Game ${game.id}: status=${isStatusOpen}, opponentNull=${isOpponentNull}, notExpired=${isNotExpired}, include=${shouldInclude}`);
+        console.log(`    Created by current user: ${isCreatedByCurrentUser} (creator: ${game.creatorId}, current: ${supabaseUserId})`);
+        console.log(`    Entry deadline: ${game.entryDeadline} (${entryDeadlineDate.toISOString()})`);
+        console.log(`    Now: ${now.toISOString()}`);
+        console.log(`    Time difference: ${entryDeadlineDate.getTime() - now.getTime()}ms`);
       });
       
-      // In progress: in_progress status (only if user is loaded)
-      const inProgress = supabaseUserId ? games.filter(game => 
-        game.status === 'in_progress' &&
-        (game.creatorId === supabaseUserId || game.opponentId === supabaseUserId)
-      ) : [];
-      
-      console.log('🔍 Debug in_progress filtering:');
-      console.log('  📊 Current supabaseUserId:', supabaseUserId);
-      console.log('  📊 All games with in_progress status:', games.filter(g => g.status === 'in_progress').map(g => ({
-        id: g.id,
-        status: g.status,
-        creatorId: g.creatorId,
-        opponentId: g.opponentId,
-        supabaseUserId: supabaseUserId,
-        isCreator: g.creatorId === supabaseUserId,
-        isOpponent: g.opponentId === supabaseUserId,
-        creatorIdType: typeof g.creatorId,
-        opponentIdType: typeof g.opponentId,
-        supabaseUserIdType: typeof supabaseUserId
-      })));
-      console.log('  📊 Filtered in_progress games:', inProgress.map(g => ({
-        id: g.id,
-        status: g.status,
-        creatorId: g.creatorId,
-        opponentId: g.opponentId
-      })));
-      
-      // Completed: completed games where user participated (only if user is loaded)
-      const completed = supabaseUserId ? games.filter(game => 
-        game.status === 'completed' &&
-        (game.creatorId === supabaseUserId || game.opponentId === supabaseUserId)
-      ) : [];
-      
-      // History: combine in_progress and completed for history section
-      const history = [...inProgress, ...completed].sort((a, b) => 
-        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-      
       setOpenWarGames(open);
-      setCompletedWarGames(history); // Use history (in_progress + completed)
       
       console.log('✅ War games filtered:');
       console.log('  📗 OPEN games (can join):', open.length);
@@ -166,21 +181,6 @@ export const WarGames = () => {
         creatorUsername: g.creatorUsername,
         pointsStake: g.pointsStake
       })));
-      console.log('  📘 IN PROGRESS games:', inProgress.length);
-      console.log('  📘 In progress games details:', inProgress.map(g => ({
-        id: g.id,
-        status: g.status,
-        creatorUsername: g.creatorUsername,
-        opponentUsername: g.opponentUsername
-      })));
-      console.log('  📕 COMPLETED games:', completed.length);
-      console.log('  📕 Completed games details:', completed.map(g => ({
-        id: g.id,
-        status: g.status,
-        creatorUsername: g.creatorUsername,
-        opponentUsername: g.opponentUsername
-      })));
-      console.log('  📜 HISTORY games (in_progress + completed):', history.length);
       
       // Set first game as selected if available
       if (open.length > 0) {
@@ -282,7 +282,7 @@ export const WarGames = () => {
 
         alert('✅ ' + t('pages.warGames.messages.createSuccess'));
         resetToSelectMode();
-        loadAllWarGames();
+        loadWarGameStats();
       } else if (warGameMode === 'join') {
         if (!selectedWarGameId) {
           alert(t('pages.warGames.join.errors.selectWarGame'));
@@ -296,7 +296,7 @@ export const WarGames = () => {
 
         alert('✅ ' + t('pages.warGames.messages.joinSuccess'));
         resetToSelectMode();
-        loadAllWarGames();
+        loadWarGameStats();
       }
     } catch (error) {
       console.error('Failed to submit war game:', error);
@@ -375,16 +375,40 @@ export const WarGames = () => {
             <p className="text-lg text-[var(--mvx-text-color-secondary)]">
               {t('pages.warGames.subtitle')}
             </p>
+            
+            {/* War Games Statistics */}
+            {warGameStats && (
+              <div className="mt-4 flex flex-wrap gap-4 text-sm">
+                <div className="flex items-center gap-2 px-3 py-1 bg-[var(--mvx-bg-color-secondary)] rounded-lg">
+                  <span className="text-[var(--mvx-text-accent-color)]">⚔️</span>
+                  <span className="text-[var(--mvx-text-color-primary)]">
+                    {t('pages.warGames.stats.active', { count: warGameStats.active })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-[var(--mvx-bg-color-secondary)] rounded-lg">
+                  <span className="text-[var(--mvx-text-accent-color)]">📜</span>
+                  <span className="text-[var(--mvx-text-color-primary)]">
+                    {t('pages.warGames.stats.historical', { count: warGameStats.historical })}
+                  </span>
+                </div>
+                <div className="flex items-center gap-2 px-3 py-1 bg-[var(--mvx-bg-color-secondary)] rounded-lg">
+                  <span className="text-[var(--mvx-text-accent-color)]">📊</span>
+                  <span className="text-[var(--mvx-text-color-primary)]">
+                    {t('pages.warGames.stats.total', { count: warGameStats.total })}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex gap-2">
             {/* Refresh button */}
             <Button
-              onClick={loadAllWarGames}
+              onClick={loadWarGameStats}
               variant="secondary"
-              disabled={loadingWarGames}
+              disabled={loadingStats || loadingWarGames}
               className="flex items-center gap-2"
             >
-              {loadingWarGames ? (
+              {(loadingStats || loadingWarGames) ? (
                 <div className="animate-spin inline-block w-4 h-4 border-2 border-current border-t-transparent rounded-full"></div>
               ) : (
                 <span>🔄</span>
@@ -414,7 +438,7 @@ export const WarGames = () => {
           />
 
           <ActiveWarGamesList
-            warGames={openWarGames}
+            warGames={allWarGames}
             currentUserId={supabaseUserId}
             onJoinClick={handleJoinFromCard}
             showBadge={true}
@@ -422,10 +446,7 @@ export const WarGames = () => {
 
           {/* War Games History */}
           <div className="mt-8 w-full max-w-4xl">
-            <WarGameHistory 
-              userId={supabaseUserId} 
-              completedGames={completedWarGames}
-            />
+            <WarGameHistory userId={supabaseUserId} />
           </div>
         </div>
       )}

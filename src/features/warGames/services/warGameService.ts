@@ -1,4 +1,5 @@
 import { supabase } from 'lib/supabase/client';
+import { warGamesAPI } from 'api/wargames';
 import type { 
   WarGame, 
   WarGameWithDetails, 
@@ -59,26 +60,20 @@ export class WarGameService {
    * Get all war games for display (open, in_progress, completed)
    * Returns all war games without user filtering
    */
-  static async getAllUserVisibleWarGames(): Promise<WarGameWithDetails[]> {
-    console.log('📊 Fetching ALL user-visible war games from database');
+  static async getAllUserVisibleWarGames(limit?: number): Promise<WarGameWithDetails[]> {
+    console.log('📊 Fetching ALL user-visible war games from API');
     
     try {
-      const { data, error } = await supabase
-        .from('war_games')
-        .select(`
-          *,
-          creator:creator_id(username, avatar_url, wallet_address),
-          opponent:opponent_id(username, avatar_url, wallet_address)
-        `)
-        .in('status', ['open', 'in_progress', 'completed'])
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching all war games:', error);
-        throw new Error('Failed to fetch all war games');
+      // Use provided limit or default to 100 if not specified
+      const actualLimit = limit || 100;
+      const response = await warGamesAPI.getAll(undefined, actualLimit, 0);
+      
+      // Check if response is successful and has data
+      if (!response.success || !response.data) {
+        throw new Error('Invalid war games response');
       }
-
-      const allGames = (data || []).map(this.transformWarGame);
+      
+      const allGames = response.data.warGames.map((game: any) => this.transformWarGame(game));
       
       console.log('📊 Total war games retrieved:', allGames.length);
       console.log('📊 Status breakdown:', {
@@ -272,41 +267,17 @@ export class WarGameService {
     warGameData: CreateWarGameData,
     userId: string
   ): Promise<WarGame> {
-    if (!userId) {
-      throw new Error('User ID is required to create a war game');
-    }
-
-    console.log('Creating war game for user:', userId);
+    console.log('Creating war game via API');
     console.log('War game data:', warGameData);
 
     try {
-      const { data, error } = await supabase
-        .from('war_games')
-        .insert({
-          creator_id: userId,
-          creator_team_id: warGameData.teamId,
-          points_stake: warGameData.pointsStake,
-          entry_deadline: warGameData.entryDeadline,
-          status: 'open'
-        })
-        .select()
-        .single();
+      const response = await warGamesAPI.create(
+        warGameData.teamId,
+        warGameData.pointsStake,
+        warGameData.entryDeadline
+      );
 
-      if (error) {
-        console.error('Error creating war game:', error);
-        
-        if (error.code === '42501' || error.message.includes('war_games')) {
-          throw new Error('Database table not found. Please run the migration script.');
-        }
-        
-        if (error.code === 'PGRST301' || error.message.includes('JWT')) {
-          throw new Error('Authentication error. Please refresh and try again.');
-        }
-        
-        throw new Error(`Failed to create war game: ${error.message}`);
-      }
-
-      return this.transformWarGame(data);
+      return this.transformWarGame(response.warGame);
     } catch (error) {
       console.error('Error in createWarGame:', error);
       throw error;
@@ -320,88 +291,15 @@ export class WarGameService {
     joinData: JoinWarGameData,
     userId: string
   ): Promise<WarGame> {
-    if (!userId) {
-      throw new Error('User ID is required to join a war game');
-    }
-
-    console.log('🔍 DEBUG: Joining war game:', joinData.warGameId);
-    console.log('🔍 DEBUG: User joining:', userId);
-    console.log('🔍 DEBUG: Team ID:', joinData.teamId);
+    console.log('🔍 Joining war game via API:', joinData.warGameId);
+    console.log('🔍 Team ID:', joinData.teamId);
 
     try {
-      // First, get the war game details to check creator and current state
-      const { data: warGameData, error: fetchError } = await supabase
-        .from('war_games')
-        .select('id, creator_id, opponent_id, status, creator_username')
-        .eq('id', joinData.warGameId)
-        .single();
-
-      if (fetchError) {
-        console.error('🔍 DEBUG: Error fetching war game details:', fetchError);
-        throw new Error('Failed to fetch war game details');
-      }
-
-      if (!warGameData) {
-        throw new Error('War game not found');
-      }
-
-      console.log('🔍 DEBUG: War game details:', warGameData);
-      console.log('🔍 DEBUG: Creator ID:', warGameData.creator_id);
-      console.log('🔍 DEBUG: Current opponent ID:', warGameData.opponent_id);
-      console.log('🔍 DEBUG: User joining ID:', userId);
-      console.log('🔍 DEBUG: Are they the same?', warGameData.creator_id === userId);
-
-      // Check if user is trying to join their own war game
-      if (warGameData.creator_id === userId) {
-        throw new Error('You cannot join your own war game');
-      }
-
-      // Check if war game already has an opponent
-      if (warGameData.opponent_id !== null) {
-        throw new Error('This war game already has an opponent');
-      }
-
-      // Check if war game is still open
-      if (warGameData.status !== 'open') {
-        throw new Error('This war game is no longer open');
-      }
-
-      console.log('🔍 DEBUG: Attempting to update war game...');
-
-      const { data, error } = await supabase
-        .from('war_games')
-        .update({
-          opponent_id: userId,
-          opponent_team_id: joinData.teamId,
-          status: 'in_progress',
-          started_at: new Date().toISOString()
-        })
-        .eq('id', joinData.warGameId)
-        .eq('status', 'open')
-        .is('opponent_id', null)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('🔍 DEBUG: Error joining war game:', error);
-        console.error('🔍 DEBUG: Error details:', error.details);
-        console.error('🔍 DEBUG: Error hint:', error.hint);
-        
-        if (error.code === 'PGRST116') {
-          throw new Error('War game not found or already has an opponent');
-        }
-        
-        throw new Error(`Failed to join war game: ${error.message}`);
-      }
-
-      if (!data) {
-        throw new Error('War game not found or already has an opponent');
-      }
-
-      console.log('🔍 DEBUG: Successfully joined war game:', data);
-      return this.transformWarGame(data);
+      const response = await warGamesAPI.join(joinData.warGameId, joinData.teamId);
+      console.log('🔍 Successfully joined war game');
+      return this.transformWarGame(response.warGame);
     } catch (error) {
-      console.error('🔍 DEBUG: Error in joinWarGame:', error);
+      console.error('🔍 Error in joinWarGame:', error);
       throw error;
     }
   }
@@ -410,23 +308,8 @@ export class WarGameService {
    * Cancel a war game (only if creator and no opponent)
    */
   static async cancelWarGame(warGameId: string, userId: string): Promise<void> {
-    if (!userId) {
-      throw new Error('User ID is required');
-    }
-
     try {
-      const { error } = await supabase
-        .from('war_games')
-        .update({ status: 'cancelled' })
-        .eq('id', warGameId)
-        .eq('creator_id', userId)
-        .eq('status', 'open')
-        .is('opponent_id', null);
-
-      if (error) {
-        console.error('Error cancelling war game:', error);
-        throw new Error('Failed to cancel war game');
-      }
+      await warGamesAPI.cancel(warGameId);
     } catch (error) {
       console.error('Error in cancelWarGame:', error);
       throw error;

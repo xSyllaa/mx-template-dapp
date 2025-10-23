@@ -1,70 +1,53 @@
-import { useState, useEffect, useCallback } from 'react';
-import type { PredictionStats } from '../types';
-import {
-  getPredictionStats,
-  subscribeToPredictionStats
-} from '../services/predictionStatsService';
+import { useState, useEffect } from 'react';
+import { predictionsAPI } from 'api/predictions';
 
 interface UsePredictionStatsReturn {
-  stats: PredictionStats | null;
+  stats: {
+    active: number;
+    historical: number;
+    total: number;
+  } | null;
   loading: boolean;
   error: Error | null;
   refresh: () => Promise<void>;
 }
 
-/**
- * Custom hook to fetch and subscribe to real-time prediction statistics
- * @param predictionId - Prediction UUID
- */
-export const usePredictionStats = (
-  predictionId: string | null
-): UsePredictionStatsReturn => {
-  const [stats, setStats] = useState<PredictionStats | null>(null);
+export const usePredictionStats = (): UsePredictionStatsReturn => {
+  const [stats, setStats] = useState<{
+    active: number;
+    historical: number;
+    total: number;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
-  // Fetch stats
-  const fetchStats = useCallback(async () => {
-    if (!predictionId) {
-      setLoading(false);
-      return;
-    }
-
+  const fetchStats = async () => {
     try {
       setLoading(true);
       setError(null);
-
-      const data = await getPredictionStats(predictionId);
-      setStats(data);
+      
+      const response = await predictionsAPI.getStats();
+      
+      if (!response.success || !response.data) {
+        throw new Error('Invalid predictions stats response');
+      }
+      
+      setStats(response.data);
     } catch (err) {
       console.error('[usePredictionStats] Error fetching stats:', err);
       setError(err as Error);
     } finally {
       setLoading(false);
     }
-  }, [predictionId]);
+  };
 
-  // Initial fetch
   useEffect(() => {
     fetchStats();
-  }, [fetchStats]);
+  }, []);
 
-  // Subscribe to real-time updates
-  useEffect(() => {
-    if (!predictionId) return;
-
-    const unsubscribe = subscribeToPredictionStats(predictionId, (newStats) => {
-      setStats(newStats);
-    });
-
-    return unsubscribe;
-  }, [predictionId]);
-
-  return {
-    stats,
-    loading,
-    error,
-    refresh: fetchStats
+  const refresh = async () => {
+    await fetchStats();
   };
-};
 
+  return { stats, loading, error, refresh };
+};

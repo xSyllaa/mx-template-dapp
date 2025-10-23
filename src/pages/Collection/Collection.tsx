@@ -16,7 +16,8 @@ import {
   useRefreshCollection,
   CollectionStats,
   CollectionFilters,
-  CollectionGrid
+  CollectionGrid,
+  CollectionSkeleton
 } from 'features/collection';
 import { NFTDetailModal } from 'features/myNFTs';
 import type { GalacticXNFT } from 'features/collection';
@@ -153,6 +154,15 @@ export const Collection = () => {
     loadMore();
   };
   
+  // Show skeleton while loading initial data or when no NFTs are available yet
+  if (allNFTsLoading || allNFTs.length === 0) {
+    return (
+      <div className="container max-w-7xl mx-auto px-4 py-8">
+        <CollectionSkeleton nftCount={20} />
+      </div>
+    );
+  }
+
   return (
     <div className="container max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
@@ -171,12 +181,12 @@ export const Collection = () => {
       </div>
 
       {/* Stats Section */}
-      {!allNFTsLoading && !allNFTsError && allNFTs.length > 0 && (
+      {!allNFTsError && allNFTs.length > 0 && (
         <CollectionStats nfts={allNFTs} totalCount={totalCount} />
       )}
 
       {/* Filters Section */}
-      {!allNFTsLoading && !allNFTsError && allNFTs.length > 0 && (
+      {!allNFTsError && allNFTs.length > 0 && (
         <CollectionFilters
           filterRarity={filterRarity}
           onRarityChange={(value) => handleFilterChange('rarity', value)}
@@ -219,7 +229,7 @@ export const Collection = () => {
       <CollectionGrid
         nfts={displayedNFTs}
         onNFTClick={handleNFTClick}
-        loading={allNFTsLoading}
+        loading={displayedNFTsLoading}
         error={allNFTsError}
         hasMore={hasMore}
         onLoadMore={handleLoadMore}

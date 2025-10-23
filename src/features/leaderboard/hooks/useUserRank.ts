@@ -51,6 +51,7 @@ export const useUserRank = (
     if (!userId) {
       setLoading(false);
       setRank(null);
+      setError(null);
       return;
     }
 
@@ -67,7 +68,15 @@ export const useUserRank = (
       lastFetchRef.current = fetchKey;
 
       const data = await getUserRank(userId, memoizedFilters);
-      setRank(data);
+      
+      // Handle case where getUserRank returns null (user not ranked)
+      if (data === null) {
+        console.log('[useUserRank] User not ranked yet for filters:', memoizedFilters);
+        setRank(null);
+        setError(null); // This is not an error, just no rank data
+      } else {
+        setRank(data);
+      }
     } catch (err) {
       console.error('[useUserRank] Error fetching user rank:', err);
       setError(err as Error);

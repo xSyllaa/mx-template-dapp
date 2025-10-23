@@ -15,12 +15,10 @@ import { CalculationTypeBadge } from './CalculationTypeBadge';
 
 interface PredictionCardProps {
   prediction: Prediction;
-  onSubmitSuccess?: () => void;
 }
 
 export const PredictionCard = ({
-  prediction,
-  onSubmitSuccess
+  prediction
 }: PredictionCardProps) => {
   const { t } = useTranslation();
   const { address } = useGetAccount();
@@ -30,7 +28,7 @@ export const PredictionCard = ({
   const [betAmount, setBetAmount] = useState<number>(prediction.min_bet_points);
 
   // Get user's existing prediction (use Supabase UUID, not wallet address)
-  const { userPrediction, hasParticipated, submitting, submit } =
+  const { userPrediction, hasParticipated, submitting, isAnimating, submit } =
     useUserPrediction(prediction.id, supabaseUserId || null);
 
   // Get user's point balance
@@ -98,8 +96,6 @@ export const PredictionCard = ({
           amount: betAmount
         })
       );
-      
-      onSubmitSuccess?.();
     } catch (error) {
       console.error('Error submitting prediction:', error);
       toast.error(t('toasts.predictions.betFailed'), t('toasts.predictions.betFailedMessage'));
@@ -189,7 +185,7 @@ export const PredictionCard = ({
             </span>
           )}
         </div>
-        <ParticipationBadge hasParticipated={hasParticipated} />
+        <ParticipationBadge hasParticipated={hasParticipated} isAnimating={isAnimating} />
       </div>
 
       {/* Infos match (équipes, compétition) */}

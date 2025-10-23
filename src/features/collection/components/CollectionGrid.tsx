@@ -83,8 +83,9 @@ export const CollectionGrid = ({
     );
   }
   
-  // Empty state
-  if (nfts.length === 0) {
+  // Empty state - only show if we have completely finished loading and have no results
+  // This should never show during initial loading phase
+  if (nfts.length === 0 && !loading && !isLoadingMore) {
     return (
       <div className="text-center py-16">
         <div className="text-6xl mb-4">🔍</div>

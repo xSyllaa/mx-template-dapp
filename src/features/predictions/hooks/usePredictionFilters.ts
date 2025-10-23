@@ -12,7 +12,7 @@ const defaultFilters: PredictionFilters = {
   betTypes: [],
   calculationType: 'all',
   competitions: [],
-  statuses: ['open', 'closed']  // Include both open and closed by default
+  statuses: []  // No default status filters - user must select
 };
 
 export const usePredictionFilters = (predictions: Prediction[]) => {
@@ -110,7 +110,7 @@ export const usePredictionFilters = (predictions: Prediction[]) => {
       filters.betTypes.length > 0 ||
       filters.calculationType !== 'all' ||
       filters.competitions.length > 0 ||
-      (filters.statuses.length !== 1 || filters.statuses[0] !== 'open')
+      filters.statuses.length > 0
     );
   }, [filters]);
 

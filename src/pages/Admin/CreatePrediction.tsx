@@ -8,6 +8,7 @@ import { ToastContainer } from 'components/Toast';
 import type { BetType, BetCalculationType, PredictionOption } from 'features/predictions/types';
 import { predictionService } from 'features/predictions';
 import { BetTypeSelector } from 'features/predictions/components';
+import { DateTimePicker } from 'components/ui/DateTimePicker';
 
 export const CreatePrediction = () => {
   const { t } = useTranslation('predictions');
@@ -41,8 +42,8 @@ export const CreatePrediction = () => {
     { id: '1', label: '', odds: '' },
     { id: 'X', label: '', odds: '' }
   ]);
-  const [startDate, setStartDate] = useState('');
-  const [closeDate, setCloseDate] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>();
+  const [closeDate, setCloseDate] = useState<Date | undefined>();
   const [pointsReward, setPointsReward] = useState('10');
   const [minBetPoints, setMinBetPoints] = useState('10');
   const [maxBetPoints, setMaxBetPoints] = useState('1000');
@@ -50,6 +51,16 @@ export const CreatePrediction = () => {
   // UI state
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Auto-fill close date when start date changes
+  useEffect(() => {
+    if (startDate) {
+      // Set close date to 1 minute before start date
+      const autoCloseDate = new Date(startDate);
+      autoCloseDate.setMinutes(autoCloseDate.getMinutes() - 1);
+      setCloseDate(autoCloseDate);
+    }
+  }, [startDate]);
 
   // Convert extended bet type to legacy bet type for backward compatibility
   const getLegacyBetType = (extendedType: string): BetType => {
@@ -118,7 +129,7 @@ export const CreatePrediction = () => {
       setError(t('admin.validation.required') + ' (Dates)');
       return false;
     }
-    if (new Date(closeDate) > new Date(startDate)) {
+    if (closeDate > startDate) {
       setError(t('admin.validation.invalidDates'));
       return false;
     }
@@ -175,8 +186,8 @@ export const CreatePrediction = () => {
             label: opt.label.trim(),
             odds: opt.odds.trim()
           })),
-          start_date: new Date(startDate).toISOString(),
-          close_date: new Date(closeDate).toISOString(),
+          start_date: startDate!.toISOString(),
+          close_date: closeDate!.toISOString(),
           points_reward: Number(pointsReward),
           min_bet_points: Number(minBetPoints),
           max_bet_points: Number(maxBetPoints)
@@ -386,11 +397,12 @@ export const CreatePrediction = () => {
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
               {t('admin.startDate')} *
             </label>
-            <input
-              type="datetime-local"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+            <DateTimePicker
+              date={startDate}
+              onDateChange={setStartDate}
+              placeholder="Sélectionner la date du match"
+              className="w-full"
+              isStartDatePicker={true}
             />
             <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
               {t('admin.startDateHelp')}
@@ -400,14 +412,16 @@ export const CreatePrediction = () => {
             <label className="block text-[var(--mvx-text-color-primary)] font-semibold mb-2">
               {t('admin.closeDate')} *
             </label>
-            <input
-              type="datetime-local"
-              value={closeDate}
-              onChange={(e) => setCloseDate(e.target.value)}
-              className="w-full px-4 py-3 bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg text-[var(--mvx-text-color-primary)] focus:outline-none focus:border-[var(--mvx-text-accent-color)]"
+            <DateTimePicker
+              date={closeDate}
+              onDateChange={setCloseDate}
+              placeholder="Sélectionner la date de fermeture"
+              className="w-full"
+              startDate={startDate}
+              isStartDatePicker={false}
             />
             <p className="text-sm text-[var(--mvx-text-color-secondary)] mt-1">
-              {t('admin.closeDateHelp')}
+              {t('admin.closeDateHelp')} (Pré-rempli automatiquement 1 min avant le match)
             </p>
           </div>
         </div>

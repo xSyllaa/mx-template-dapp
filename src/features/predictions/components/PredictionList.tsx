@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { usePredictions } from '../hooks/usePredictions';
+import { usePredictions, usePredictionStats } from '../hooks';
 import { usePredictionFilters } from '../hooks/usePredictionFilters';
 import { PredictionCard } from './PredictionCard';
 import { PredictionFilters } from './PredictionFilters';
@@ -28,6 +28,9 @@ export const PredictionList = () => {
     loadMore,
     hasMore
   } = usePredictions('history', 10);
+
+  // Get prediction statistics
+  const { stats: predictionStats } = usePredictionStats();
 
   // Determine which data to display
   const isActive = activeTab === 'active';
@@ -173,14 +176,13 @@ export const PredictionList = () => {
               <PredictionCard
                 key={prediction.id}
                 prediction={prediction}
-                onSubmitSuccess={handleRefresh}
               />
             ))}
           </div>
 
           {/* Load More Button (for history) */}
           {activeTab === 'history' && hasMore && (
-            <div className="flex justify-center pt-4">
+            <div className="flex flex-col items-center pt-4 space-y-2">
               <button
                 onClick={handleLoadMore}
                 disabled={historyLoading}
@@ -188,6 +190,14 @@ export const PredictionList = () => {
               >
                 {historyLoading ? t('common.loading') : t('predictions.loadMore')}
               </button>
+              {predictionStats && (
+                <p className="text-sm text-[var(--mvx-text-color-secondary)]">
+                  {t('predictions.showing', { 
+                    current: historyPredictions.length, 
+                    total: predictionStats.historical 
+                  })}
+                </p>
+              )}
             </div>
           )}
         </>

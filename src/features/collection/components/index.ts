@@ -4,4 +4,5 @@
 export { CollectionStats } from './CollectionStats';
 export { CollectionFilters } from './CollectionFilters';
 export { CollectionGrid } from './CollectionGrid';
+export { CollectionSkeleton } from './CollectionSkeleton';
 

@@ -114,6 +114,11 @@ export const Leaderboard = () => {
     refresh: refreshRank
   } = useUserRank(supabaseUserId, filters, true);
 
+  // Get refetch functions for all tabs at component level
+  const { refetch: refetchAllTime } = useCachedLeaderboard('all_time');
+  const { refetch: refetchWeekly } = useCachedLeaderboard('weekly');
+  const { refetch: refetchMonthly } = useCachedLeaderboard('monthly');
+
   // Refresh function for the refresh button component
   const handleRefreshAll = useCallback(async () => {
     console.log('🔄 [Refresh] All leaderboards');
@@ -127,10 +132,6 @@ export const Leaderboard = () => {
     // Refresh other tabs in background (no await to not block UI)
     setTimeout(async () => {
       try {
-        const { refetch: refetchAllTime } = useCachedLeaderboard('all_time');
-        const { refetch: refetchWeekly } = useCachedLeaderboard('weekly');
-        const { refetch: refetchMonthly } = useCachedLeaderboard('monthly');
-
         await Promise.all([
           refetchAllTime(),
           refetchWeekly(),
@@ -140,7 +141,7 @@ export const Leaderboard = () => {
         console.error('Error refreshing other leaderboards:', error);
       }
     }, 100);
-  }, [refresh, refreshRank]);
+  }, [refresh, refreshRank, refetchAllTime, refetchWeekly, refetchMonthly]);
 
   // Logs handled centrally in useLeaderboard
 

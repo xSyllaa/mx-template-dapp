@@ -1,4 +1,5 @@
 import { supabase } from 'lib/supabase/client';
+import { predictionsAPI } from 'api/predictions';
 import type {
   Prediction,
   UserPrediction,
@@ -13,19 +14,39 @@ import type {
 
 /**
  * Get all active predictions (status = 'open' or 'closed')
+ * Only show predictions where close_date is after current time
  * Closed predictions are shown but users can't bet on them
  */
 export const getActivePredictions = async (): Promise<Prediction[]> => {
   try {
-    const { data, error } = await supabase
-      .from('predictions')
-      .select('*')
-      .in('status', ['open', 'closed'])
-      .order('start_date', { ascending: true });
+    // Get all predictions and filter for open/closed
+    const response = await predictionsAPI.getAll();
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid predictions response');
+    }
+    
+    const now = new Date();
+    
+    const predictions = response.data.predictions.filter(
+      (p) => {
+        // Must be open or closed status
+        const hasValidStatus = p.status === 'open' || p.status === 'closed';
+        
+        // Must have close_date after current time
+        const isNotExpired = new Date(p.close_date) > now;
+        
+        return hasValidStatus && isNotExpired;
+      }
+    );
+    
+    // Sort by start_date ascending
+    predictions.sort((a, b) => 
+      new Date(a.start_date).getTime() - new Date(b.start_date).getTime()
+    );
 
-    if (error) throw error;
-
-    return (data || []) as Prediction[];
+    return predictions as Prediction[];
   } catch (error) {
     console.error('[PredictionService] Error fetching active predictions:', error);
     throw error;
@@ -33,7 +54,7 @@ export const getActivePredictions = async (): Promise<Prediction[]> => {
 };
 
 /**
- * Get recent prediction history (resulted/closed in last 24 hours)
+ * Get prediction history (resulted/closed/expired predictions)
  * @param limit - Number of predictions to fetch (default: 10)
  * @param offset - Pagination offset (default: 0)
  */
@@ -42,20 +63,13 @@ export const getRecentHistory = async (
   offset = 0
 ): Promise<Prediction[]> => {
   try {
-    const twentyFourHoursAgo = new Date();
-    twentyFourHoursAgo.setHours(twentyFourHoursAgo.getHours() - 24);
-
-    const { data, error } = await supabase
-      .from('predictions')
-      .select('*')
-      .in('status', ['resulted', 'closed', 'cancelled'])
-      .gte('updated_at', twentyFourHoursAgo.toISOString())
-      .order('updated_at', { ascending: false })
-      .range(offset, offset + limit - 1);
-
-    if (error) throw error;
-
-    return (data || []) as Prediction[];
+    const response = await predictionsAPI.getHistory(undefined, limit, offset);
+    
+    if (!response.success || !response.data) {
+      throw new Error('Invalid predictions response');
+    }
+    
+    return response.data.predictions as Prediction[];
   } catch (error) {
     console.error('[PredictionService] Error fetching prediction history:', error);
     throw error;
@@ -69,22 +83,19 @@ export const getPredictionById = async (
   predictionId: string
 ): Promise<Prediction | null> => {
   try {
-    const { data, error } = await supabase
-      .from('predictions')
-      .select('*')
-      .eq('id', predictionId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // Not found
-        return null;
-      }
-      throw error;
+    const response = await predictionsAPI.getById(predictionId);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      return null;
     }
-
-    return data as Prediction;
+    
+    return response.data.prediction as Prediction;
   } catch (error) {
+    // If error message indicates not found, return null
+    if (error instanceof Error && error.message.includes('not found')) {
+      return null;
+    }
     console.error('[PredictionService] Error fetching prediction:', error);
     throw error;
   }
@@ -92,7 +103,7 @@ export const getPredictionById = async (
 
 /**
  * Submit a user's prediction
- * @param userId - User's UUID
+ * @param userId - User's UUID (unused, backend gets it from JWT)
  * @param predictionId - Prediction UUID
  * @param selectedOptionId - Selected option ID
  * @param pointsWagered - Amount of points to wager
@@ -104,37 +115,30 @@ export const submitPrediction = async (
   pointsWagered: number
 ): Promise<UserPrediction> => {
   try {
-    // Insert the user prediction
-    const { data, error } = await supabase
-      .from('user_predictions')
-      .insert({
-        user_id: userId,
-        prediction_id: predictionId,
-        selected_option_id: selectedOptionId,
-        points_wagered: pointsWagered,
-        points_earned: 0,
-        is_correct: null
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Deduct wagered points from user's balance via transaction record
-    const { error: updateError } = await supabase.rpc('record_points_transaction', {
-      p_user_id: userId,
-      p_amount: -pointsWagered,
-      p_source_type: 'prediction_bet',
-      p_source_id: predictionId,
-      p_metadata: { selected_option_id: selectedOptionId }
-    });
-
-    if (updateError) {
-      console.error('[PredictionService] Error recording bet transaction:', updateError);
-      // Note: Prediction is already inserted, this is a warning
+    const response = await predictionsAPI.placeBet(
+      predictionId,
+      selectedOptionId,
+      pointsWagered
+    );
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid bet response');
     }
-
-    return data as UserPrediction;
+    
+    // Create a UserPrediction object from the response data
+    const userPrediction: UserPrediction = {
+      id: response.data.betId,
+      user_id: userId,
+      prediction_id: predictionId,
+      selected_option_id: response.data.selectedOption,
+      points_wagered: response.data.pointsWagered,
+      points_earned: 0, // Will be set when result is validated
+      is_correct: null, // Will be set when result is validated
+      created_at: new Date().toISOString()
+    };
+    
+    return userPrediction;
   } catch (error) {
     console.error('[PredictionService] Error submitting prediction:', error);
     throw error;
@@ -143,7 +147,7 @@ export const submitPrediction = async (
 
 /**
  * Get user's prediction for a specific match
- * @param userId - User's UUID
+ * @param userId - User's UUID (unused, backend gets it from JWT)
  * @param predictionId - Prediction UUID
  */
 export const getUserPrediction = async (
@@ -151,22 +155,19 @@ export const getUserPrediction = async (
   predictionId: string
 ): Promise<UserPrediction | null> => {
   try {
-    const { data, error } = await supabase
-      .from('user_predictions')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('prediction_id', predictionId)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // Not found - user hasn't participated
-        return null;
-      }
-      throw error;
+    // Get all user predictions and find the one matching this prediction
+    const response = await predictionsAPI.getUserPredictions('active', 1000, 0);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      return null;
     }
-
-    return data as UserPrediction;
+    
+    const userPrediction = response.data.predictions.find(
+      (p: any) => p.prediction_id === predictionId
+    );
+    
+    return userPrediction ? (userPrediction as UserPrediction) : null;
   } catch (error) {
     console.error('[PredictionService] Error fetching user prediction:', error);
     throw error;
@@ -175,7 +176,7 @@ export const getUserPrediction = async (
 
 /**
  * Get all user predictions for multiple predictions at once
- * @param userId - User's UUID
+ * @param userId - User's UUID (unused, backend gets it from JWT)
  * @param predictionIds - Array of prediction UUIDs
  */
 export const getUserPredictions = async (
@@ -185,15 +186,19 @@ export const getUserPredictions = async (
   try {
     if (predictionIds.length === 0) return [];
 
-    const { data, error } = await supabase
-      .from('user_predictions')
-      .select('*')
-      .eq('user_id', userId)
-      .in('prediction_id', predictionIds);
+    // Get all user predictions and filter by prediction IDs
+    const response = await predictionsAPI.getUserPredictions('active', 1000, 0);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      return [];
+    }
+    
+    const filtered = response.data.predictions.filter((p: any) =>
+      predictionIds.includes(p.prediction_id)
+    );
 
-    if (error) throw error;
-
-    return (data || []) as UserPrediction[];
+    return filtered as UserPrediction[];
   } catch (error) {
     console.error('[PredictionService] Error fetching user predictions:', error);
     throw error;
@@ -209,14 +214,34 @@ export const getUserPredictions = async (
  */
 export const getAllPredictions = async (): Promise<Prediction[]> => {
   try {
-    const { data, error } = await supabase
-      .from('predictions')
-      .select('*')
-      .order('start_date', { ascending: false });
-
-    if (error) throw error;
-
-    return (data || []) as Prediction[];
+    // Use admin API instead of direct Supabase
+    const response = await predictionsAPI.getAll();
+    
+    // 🔍 DEBUG: Log API response
+    console.log('🔍 [PredictionService] getAllPredictions API response:', response);
+    
+    if (!response.success || !response.data) {
+      console.error('🔍 [PredictionService] Invalid predictions response:', response);
+      throw new Error('Invalid predictions response');
+    }
+    
+    const predictions = response.data.predictions as Prediction[];
+    
+    // 🔍 DEBUG: Log predictions data
+    console.log('🔍 [PredictionService] Predictions from API:', predictions);
+    console.log('🔍 [PredictionService] Predictions count:', predictions.length);
+    
+    // Log each prediction status
+    predictions.forEach((prediction, index) => {
+      console.log(`🔍 [PredictionService] Prediction ${index + 1} status:`, {
+        id: prediction.id,
+        status: prediction.status,
+        home_team: prediction.home_team,
+        away_team: prediction.away_team
+      });
+    });
+    
+    return predictions;
   } catch (error) {
     console.error('[PredictionService] Error fetching all predictions:', error);
     throw error;
@@ -231,6 +256,7 @@ export const createPrediction = async (
   createdBy: string
 ): Promise<Prediction> => {
   try {
+    // Use Supabase directly for creation (admin API not yet implemented)
     const { data: newPrediction, error } = await supabase
       .from('predictions')
       .insert({

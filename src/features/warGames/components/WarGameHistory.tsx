@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { WarGameService } from '../services/warGameService';
+import { useWarGamesHistory, useWarGameStats } from '../hooks';
 import { TeamService } from '../services/teamService';
 import type { WarGameWithDetails } from '../types';
 
 interface WarGameHistoryProps {
   userId?: string | null;
-  completedGames?: WarGameWithDetails[]; // Optional: if provided, use these instead of fetching
 }
 
 interface TeamPlayer {
@@ -15,10 +14,10 @@ interface TeamPlayer {
   playerName?: string;
 }
 
-export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGameHistoryProps) => {
+export const WarGameHistory = ({ userId }: WarGameHistoryProps) => {
   const { t } = useTranslation();
-  const [completedGames, setCompletedGames] = useState<WarGameWithDetails[]>(providedGames || []);
-  const [loading, setLoading] = useState(!providedGames);
+  const { warGames: completedGames, loading, hasMore, loadMore } = useWarGamesHistory(userId, 10);
+  const { stats: warGameStats } = useWarGameStats();
   const [expandedGameId, setExpandedGameId] = useState<string | null>(null);
   const [teamDetails, setTeamDetails] = useState<Record<string, {
     creator: {
@@ -34,35 +33,6 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
       players: TeamPlayer[];
     } | null;
   }>>({});
-
-  // Update completed games if provided externally
-  useEffect(() => {
-    if (providedGames) {
-      setCompletedGames(providedGames);
-      setLoading(false);
-    }
-  }, [providedGames]);
-
-  // Fetch if not provided
-  useEffect(() => {
-    if (!providedGames && userId) {
-      loadCompletedGames();
-    }
-  }, [userId, providedGames]);
-
-  const loadCompletedGames = async () => {
-    if (!userId) return;
-    
-    setLoading(true);
-    try {
-      const games = await WarGameService.getCompletedWarGames(userId);
-      setCompletedGames(games);
-    } catch (error) {
-      console.error('Failed to load completed war games:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const toggleGameDetails = async (gameId: string) => {
     if (expandedGameId === gameId) {
@@ -432,6 +402,27 @@ export const WarGameHistory = ({ userId, completedGames: providedGames }: WarGam
           </div>
         ))}
       </div>
+
+      {/* Load More Button */}
+      {hasMore && completedGames.length > 0 && (
+        <div className="mt-4 flex flex-col items-center space-y-2">
+          <button
+            onClick={loadMore}
+            disabled={loading}
+            className="px-6 py-3 bg-[var(--mvx-bg-color-secondary)] text-[var(--mvx-text-color-primary)] border border-[var(--mvx-border-color-secondary)] rounded-lg font-semibold hover:border-[var(--mvx-text-accent-color)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {loading ? t('common.loading') : t('pages.warGames.history.loadMore')}
+          </button>
+          {warGameStats && (
+            <p className="text-sm text-[var(--mvx-text-color-secondary)]">
+              {t('pages.warGames.history.showing', { 
+                current: completedGames.length, 
+                total: warGameStats.historical 
+              })}
+            </p>
+          )}
+        </div>
+      )}
     </div>
   );
 };

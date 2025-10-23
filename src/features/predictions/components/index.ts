@@ -1,5 +1,6 @@
 export { PredictionCard } from './PredictionCard';
 export { PredictionList } from './PredictionList';
+export { PredictionStats } from './PredictionStats';
 export { PredictionStatsDisplay } from './PredictionStatsDisplay';
 export { ParticipationBadge } from './ParticipationBadge';
 export { BetAmountInput } from './BetAmountInput';

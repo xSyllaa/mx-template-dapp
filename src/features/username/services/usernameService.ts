@@ -1,4 +1,5 @@
 import { supabase } from 'lib/supabase/client';
+import { usersAPI } from 'api/users';
 import type {
   UsernameValidation,
   UsernameAvailability,
@@ -188,17 +189,16 @@ export const updateUsername = async (
       };
     }
 
-    // Update username (RLS policies will enforce security)
-    const { error } = await supabase
-      .from('users')
-      .update({ username: trimmed })
-      .eq('id', userId);
-
-    if (error) {
+    // Update username via backend API
+    try {
+      const response = await usersAPI.updateUsername(trimmed);
+      console.log('[UsernameService] Username updated successfully:', trimmed);
+      return { success: true };
+    } catch (error: any) {
       console.error('[UsernameService] Update error:', error);
 
-      // Check if it's a unique constraint violation
-      if (error.code === '23505') {
+      // Check error message for specific issues
+      if (error.message?.includes('taken') || error.message?.includes('exists')) {
         return {
           success: false,
           error: 'username.validation.taken'
@@ -210,9 +210,6 @@ export const updateUsername = async (
         error: 'username.error'
       };
     }
-
-    console.log('[UsernameService] Username updated successfully:', trimmed);
-    return { success: true };
   } catch (error) {
     console.error('[UsernameService] Unexpected error:', error);
     return {

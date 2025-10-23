@@ -33,7 +33,7 @@ export const usePredictions = (
   const [hasMore, setHasMore] = useState(true);
 
   const fetchPredictions = useCallback(
-    async (isLoadMore = false) => {
+    async (isLoadMore = false, currentOffset = 0) => {
       try {
         if (!isLoadMore) {
           setLoading(true);
@@ -49,7 +49,7 @@ export const usePredictions = (
             break;
 
           case 'history':
-            data = await getRecentHistory(limit, isLoadMore ? offset : 0);
+            data = await getRecentHistory(limit, currentOffset);
             setHasMore(data.length === limit);
             break;
 
@@ -60,7 +60,12 @@ export const usePredictions = (
         }
 
         if (isLoadMore) {
-          setPredictions((prev) => [...prev, ...data]);
+          setPredictions((prev) => {
+            // Avoid duplicates by filtering out existing IDs
+            const existingIds = new Set(prev.map(p => p.id));
+            const newData = data.filter(p => !existingIds.has(p.id));
+            return [...prev, ...newData];
+          });
         } else {
           setPredictions(data);
         }
@@ -71,7 +76,7 @@ export const usePredictions = (
         setLoading(false);
       }
     },
-    [filter, limit, offset]
+    [filter, limit]
   );
 
   // Initial fetch
@@ -91,7 +96,7 @@ export const usePredictions = (
 
     const newOffset = offset + limit;
     setOffset(newOffset);
-    await fetchPredictions(true);
+    await fetchPredictions(true, newOffset);
   }, [hasMore, loading, offset, limit, fetchPredictions]);
 
   return {

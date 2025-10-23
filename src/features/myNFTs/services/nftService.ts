@@ -1,7 +1,6 @@
 /**
- * NFT Service - Handles MultiversX API calls for NFT data
+ * NFT Service - Handles MultiversX API calls for NFT data directly from MultiversX API
  */
-import axios from 'axios';
 import type { MultiversXNFT, GalacticXNFT, NFTAttributes, NFTOwnershipResult } from '../types';
 import { getRealPlayerName } from '../../../data/playerDataService';
 
@@ -226,36 +225,66 @@ export const parseNFT = async (rawNFT: MultiversXNFT, includeErrors: boolean = f
 };
 
 /**
- * Fetch NFTs for a given wallet address from MultiversX API
+ * Fetch NFTs for a given wallet address directly from MultiversX API
  */
 export const fetchUserNFTs = async (
   walletAddress: string,
   includeErrors: boolean = false
 ): Promise<NFTOwnershipResult> => {
   try {
-    const response = await axios.get<MultiversXNFT[]>(
-      `${API_BASE_URL}/accounts/${walletAddress}/nfts`,
-      {
-        params: {
-          search: GALACTIC_COLLECTION_ID,
-          size: 500 // Max NFTs to fetch
-        },
-        timeout: 15000, // 15 seconds timeout
-        headers: {
-          'accept': 'application/json'
-        }
-      }
-    );
+    console.log(`🔍 Fetching NFTs for ${walletAddress.substring(0, 10)}... from MultiversX API`);
     
-    const rawNFTs = response.data;
+    // Fetch NFTs directly from MultiversX API with pagination
+    const allNFTs: MultiversXNFT[] = [];
+    let from = 0;
+    const size = 1000; 
+    let hasMore = true;
+    
+    while (hasMore) {
+      const url = `${API_BASE_URL}/accounts/${walletAddress}/nfts?size=${size}&from=${from}`;
+      console.log(`📡 Fetching batch: from=${from}, size=${size}`);
+      
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error(`MultiversX API error: ${response.status} ${response.statusText}`);
+      }
+      
+      const data = await response.json();
+      const batchNFTs = data || [];
+      
+      // Filter for GalacticX collection NFTs only
+      const galacticNFTs = batchNFTs.filter((nft: any) => 
+        nft.collection === GALACTIC_COLLECTION_ID
+      );
+      
+      allNFTs.push(...galacticNFTs);
+      
+      // Check if we have more NFTs to fetch
+      hasMore = batchNFTs.length === size;
+      from += size;
+      
+      console.log(`📦 Batch ${Math.floor(from / size)}: ${galacticNFTs.length} GalacticX NFTs (${allNFTs.length} total)`);
+      
+      // Safety limit to prevent infinite loops
+      if (from > 10000) {
+        console.warn('⚠️ Reached safety limit of 10,000 NFTs');
+        break;
+      }
+    }
+    
+    console.log(`📊 Total GalacticX NFTs found: ${allNFTs.length}`);
     
     // Parse NFTs and filter out any with errors (now async for IPFS recovery)
-    const parsedNFTsPromises = rawNFTs.map(nft => parseNFT(nft, includeErrors));
+    const parsedNFTsPromises = allNFTs.map(nft => parseNFT(nft, includeErrors));
     const parsedNFTsResults = await Promise.all(parsedNFTsPromises);
     const parsedNFTs = parsedNFTsResults.filter(nft => nft !== null);
     
-    // Log summary only
-    console.log(`✅ Fetched ${parsedNFTs.length} NFTs for ${walletAddress.substring(0, 10)}...`);
+    console.log(`✅ Successfully parsed ${parsedNFTs.length} NFTs for ${walletAddress.substring(0, 10)}...`);
     
     return {
       hasNFTs: parsedNFTs.length > 0,
@@ -265,37 +294,36 @@ export const fetchUserNFTs = async (
     };
   } catch (error) {
     console.error('Error fetching NFTs from MultiversX API:', error);
-    
-    if (axios.isAxiosError(error)) {
-      throw new Error(
-        error.response?.data?.message || 
-        'Failed to fetch NFTs. Please check your connection and try again.'
-      );
-    }
-    
-    throw new Error('An unexpected error occurred while fetching NFTs.');
+    throw new Error('Failed to fetch NFTs. Please check your connection and try again.');
   }
 };
 
 /**
- * Get NFT details by identifier
+ * Get NFT details by identifier directly from MultiversX API
  */
 export const fetchNFTDetails = async (identifier: string): Promise<GalacticXNFT> => {
   try {
-    const response = await axios.get<MultiversXNFT>(
-      `${API_BASE_URL}/nfts/${identifier}`,
-      {
-        timeout: 10000,
-        headers: {
-          'accept': 'application/json'
-        }
-      }
-    );
+    console.log(`🔍 Fetching NFT details for ${identifier} from MultiversX API`);
     
-    const parsed = await parseNFT(response.data, true);
+    const url = `${API_BASE_URL}/nfts/${identifier}`;
+    const response = await fetch(url, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
+    
+    if (!response.ok) {
+      throw new Error(`MultiversX API error: ${response.status} ${response.statusText}`);
+    }
+    
+    const rawNFT = await response.json();
+    
+    const parsed = await parseNFT(rawNFT as MultiversXNFT, true);
     if (!parsed) {
       throw new Error('Failed to parse NFT data');
     }
+    
+    console.log(`✅ Successfully fetched NFT details for ${identifier}`);
     return parsed;
   } catch (error) {
     console.error('Error fetching NFT details:', error);

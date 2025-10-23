@@ -1,4 +1,5 @@
 import { supabase } from 'lib/supabase/client';
+import { streaksAPI } from 'api/streaks';
 import type {
   WeekStreak,
   WeekClaims,
@@ -86,23 +87,42 @@ export const getCurrentWeekStreak = async (
   userId: string
 ): Promise<WeekStreak | null> => {
   try {
-    const weekStart = getCurrentWeekStart();
-
-    // Read existing record only, do NOT create
-    const { data, error } = await supabase
-      .from('weekly_streaks')
-      .select('*')
-      .eq('user_id', userId)
-      .eq('week_start', weekStart)
-      .maybeSingle();
-
-    if (error) {
-      console.error('[StreakService] Error getting current week streak:', error);
-      throw error;
+    console.log('[StreakService] Fetching current streak for user:', userId);
+    const response = await streaksAPI.getCurrent();
+    
+    console.log('[StreakService] API response:', response);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      console.log('[StreakService] Invalid response:', response);
+      throw new Error('Invalid streak response');
     }
 
-    // Return data or null (creation happens only on claim)
-    return data ? (data as WeekStreak) : null;
+    const data = response.data as any; // Temporary type assertion
+    console.log('[StreakService] Streak data:', data);
+    
+    // Check if we have a weekStreak object in the response
+    if (!data.weekStreak) {
+      console.log('[StreakService] No weekStreak in response');
+      return null;
+    }
+
+    // Use the weekStreak data directly from the API
+    const weekStreak = {
+      id: data.weekStreak.id,
+      user_id: data.weekStreak.user_id,
+      week_start: data.weekStreak.week_start,
+      week_end: data.weekStreak.week_end || new Date(new Date(data.weekStreak.week_start).getTime() + 6 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      claims: data.weekStreak.claims,
+      total_points: parseInt(data.weekStreak.total_points) || 0,
+      bonus_tokens: parseInt(data.weekStreak.bonus_tokens) || 0,
+      completed: data.weekStreak.completed,
+      created_at: data.weekStreak.created_at,
+      updated_at: data.weekStreak.updated_at
+    };
+    
+    console.log('[StreakService] Using weekStreak from API:', weekStreak);
+    return weekStreak;
   } catch (error) {
     console.error('[StreakService] Error getting current week streak:', error);
     throw error;
@@ -118,104 +138,22 @@ export const claimDailyReward = async (
   dayOfWeek: DayOfWeek
 ): Promise<ClaimRewardResponse> => {
   try {
-    // Get current week streak (may be null if first claim)
-    let weekStreak = await getCurrentWeekStreak(userId);
+    console.log('[StreakService] Claiming reward for day:', dayOfWeek);
+    const response = await streaksAPI.claim(dayOfWeek);
     
-    // Create week streak only if it doesn't exist (first claim of the week)
-    if (!weekStreak) {
-      const weekStart = getCurrentWeekStart();
-      console.log('[StreakService] First claim of the week - Creating streak record');
-      
-      const { data: created, error: createError } = await supabase
-        .from('weekly_streaks')
-        .insert({
-          user_id: userId,
-          week_start: weekStart,
-          claims: {},
-          total_points: 0,
-          bonus_tokens: 0,
-          completed: false
-        })
-        .select()
-        .single();
-        
-      if (createError) {
-        console.error('[StreakService] Error creating streak record:', createError);
-        throw createError;
-      }
-      
-      weekStreak = created as WeekStreak;
-      console.log('[StreakService] Streak record created:', weekStreak.id);
+    console.log('[StreakService] Claim response:', response);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid claim response');
     }
-
-    // Check if already claimed
-    if (weekStreak.claims[dayOfWeek]) {
-      throw new Error('Already claimed for this day');
-    }
-
-    // Calculate consecutive days BEFORE this claim
-    const consecutiveDays = calculateConsecutiveDays(weekStreak.claims);
-
-    // Calculate reward for this claim
-    const pointsEarned = getClaimReward(consecutiveDays);
-
-    // Update claims
-    const updatedClaims: WeekClaims = {
-      ...weekStreak.claims,
-      [dayOfWeek]: true
-    };
-
-    // Calculate new total
-    const newTotalPoints = weekStreak.total_points + pointsEarned;
-
-    // Check if week is completed
-    const isCompleted = Object.keys(updatedClaims).length === 7;
-
-    // Update record in Supabase
-    const { data, error } = await supabase
-      .from('weekly_streaks')
-      .update({
-        claims: updatedClaims,
-        total_points: newTotalPoints,
-        completed: isCompleted
-      })
-      .eq('id', weekStreak.id)
-      .select()
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    // Record points transaction for the claim
-    const { error: userUpdateError } = await supabase.rpc(
-      'record_points_transaction',
-      {
-        p_user_id: userId,
-        p_amount: pointsEarned,
-        p_source_type: 'streak_claim',
-        p_source_id: weekStreak.id,
-        p_metadata: {
-          day_of_week: dayOfWeek,
-          consecutive_days: consecutiveDays,
-          week_start: weekStreak.week_start
-        }
-      }
-    );
-
-    if (userUpdateError) {
-      console.warn(
-        '[StreakService] Failed to record points transaction:',
-        userUpdateError
-      );
-    }
-
+    
     return {
       success: true,
-      points_earned: pointsEarned,
-      consecutive_days: consecutiveDays + 1,
-      total_points: newTotalPoints,
-      message: `Successfully claimed ${pointsEarned} points!`
+      points_earned: response.data.pointsEarned,
+      consecutive_days: response.data.newStreak,
+      total_points: response.data.totalPoints,
+      message: response.message
     };
   } catch (error) {
     console.error('[StreakService] Error claiming daily reward:', error);
@@ -231,19 +169,29 @@ export const getStreakHistory = async (
   weeksCount = 4
 ): Promise<WeekStreak[]> => {
   try {
-    const { data, error } = await supabase
-      .from('weekly_streaks')
-      .select('*')
-      .eq('user_id', userId)
-      .order('week_start', { ascending: false })
-      .limit(weeksCount);
-
-    if (error) {
-      console.error('[StreakService] Error getting streak history:', error);
-      throw error;
+    const response = await streaksAPI.getHistory(weeksCount);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid streak history response');
     }
-
-    return (data as WeekStreak[]) || [];
+    
+    // Transform API response to WeekStreak format
+    return response.data.streaks.map((streak: any) => ({
+      id: streak.id,
+      user_id: streak.userId,
+      week_start: streak.weekStart,
+      week_end: streak.weekEnd,
+      claims: streak.daysCompleted.reduce((acc: WeekClaims, day: DayOfWeek) => {
+        acc[day] = true;
+        return acc;
+      }, {} as WeekClaims),
+      total_points: streak.totalPointsEarned,
+      bonus_tokens: 0,
+      completed: streak.isCompleted,
+      created_at: streak.createdAt,
+      updated_at: streak.updatedAt
+    })) as WeekStreak[];
   } catch (error) {
     console.error('[StreakService] Error getting streak history:', error);
     throw error;

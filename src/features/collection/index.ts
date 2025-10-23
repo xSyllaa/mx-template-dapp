@@ -30,7 +30,8 @@ export {
 export {
   CollectionStats,
   CollectionFilters,
-  CollectionGrid
+  CollectionGrid,
+  CollectionSkeleton
 } from './components';
 
 // Types

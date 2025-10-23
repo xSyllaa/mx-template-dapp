@@ -41,12 +41,12 @@ export const TeamOfWeek = () => {
   // Use cached collection system to get NFT details
   const { nfts, nftMap, loading: nftLoading, allFound, missingIdentifiers } = useNFTsByIdentifiers(nftIdentifiers);
 
-  // Log if some NFTs are missing
+  // Log if some NFTs are missing (only after loading is complete)
   useEffect(() => {
-    if (!allFound && missingIdentifiers.length > 0) {
+    if (!nftLoading && !allFound && missingIdentifiers.length > 0) {
       console.warn(`⚠️ Team of the Week: ${missingIdentifiers.length} NFTs not found in collection:`, missingIdentifiers);
     }
-  }, [allFound, missingIdentifiers]);
+  }, [nftLoading, allFound, missingIdentifiers]);
 
   const getCurrentWeek = () => {
     const today = new Date();
@@ -133,7 +133,6 @@ export const TeamOfWeek = () => {
   // which uses the cached collection data
 
   // Show loading skeleton while data is being fetched
-  // The hook now properly handles initial loading state to prevent showing "no teams" message
   if (loading) {
     return (
       <div className="container max-w-7xl mx-auto px-4 py-8">
@@ -179,6 +178,15 @@ export const TeamOfWeek = () => {
             {t('pages.teamOfWeek.empty.subtitle')}
           </p>
         </div>
+      </div>
+    );
+  }
+
+  // Show NFT loading state if we have teams but NFTs are still loading
+  if (teams.length > 0 && selectedTeam && nftLoading && nfts.length === 0) {
+    return (
+      <div className="container max-w-7xl mx-auto px-4 py-8">
+        <TeamOfWeekSkeleton playerCount={selectedTeam.players.length} />
       </div>
     );
   }
@@ -337,21 +345,45 @@ export const TeamOfWeek = () => {
                         )}
                       </div>
                     ) : (
-                      <div className="aspect-square bg-gradient-to-br from-gray-700 to-gray-900 flex items-center justify-center animate-pulse">
-                        <div className="text-center flex flex-col items-center justify-center h-full">
-                          <div className="text-4xl mb-2 opacity-50">🎴</div>
-                          {nftLoading && (
-                            <div className="text-sm text-gray-400 flex items-center gap-2">
-                              <div className="animate-spin rounded-full h-3 w-3 border border-gray-400 border-t-transparent"></div>
-                              {t('pages.teamOfWeek.placeholder.playerCard.loading')}
+                      <div className="aspect-square bg-gradient-to-br from-[var(--mvx-bg-color-secondary)] to-[var(--mvx-bg-color-primary)] flex items-center justify-center relative overflow-hidden">
+                        {/* Animated background pattern */}
+                        <div className="absolute inset-0 bg-gradient-to-br from-[var(--mvx-text-accent-color)]/10 via-transparent to-[var(--mvx-text-accent-color)]/5 animate-pulse"></div>
+                        
+                        <div className="text-center flex flex-col items-center justify-center h-full relative z-10">
+                          {/* Main icon with animation */}
+                          <div className="text-5xl mb-3 opacity-60 animate-bounce">🎴</div>
+                          
+                          {/* Loading state */}
+                          {nftLoading ? (
+                            <div className="flex flex-col items-center gap-2">
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-[var(--mvx-text-color-secondary)] border-t-[var(--mvx-text-accent-color)]"></div>
+                              <div className="text-xs text-[var(--mvx-text-color-secondary)] font-medium">
+                                {t('pages.teamOfWeek.placeholder.playerCard.loading')}
+                              </div>
                             </div>
-                          )}
-                          {!nftLoading && !nft && (
-                            <div className="text-xs text-gray-500 px-2">
-                              {t('pages.teamOfWeek.placeholder.playerCard.notFound')}
+                          ) : !nft ? (
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="text-xs text-[var(--mvx-text-color-tertiary)] font-medium">
+                                {t('pages.teamOfWeek.placeholder.playerCard.notFound')}
+                              </div>
+                              <div className="text-xs text-[var(--mvx-text-color-tertiary)] opacity-75">
+                                {displayName}
+                              </div>
+                            </div>
+                          ) : (
+                            <div className="flex flex-col items-center gap-1">
+                              <div className="text-xs text-[var(--mvx-text-color-secondary)] font-medium">
+                                {t('pages.teamOfWeek.placeholder.playerCard.loading')}
+                              </div>
+                              <div className="text-xs text-[var(--mvx-text-color-tertiary)] opacity-75">
+                                {displayName}
+                              </div>
                             </div>
                           )}
                         </div>
+                        
+                        {/* Subtle border animation */}
+                        <div className="absolute inset-0 border-2 border-[var(--mvx-text-accent-color)]/20 rounded-lg animate-pulse"></div>
                       </div>
                     )}
 
@@ -394,8 +426,8 @@ export const TeamOfWeek = () => {
             })}
           </div>
 
-          {/* Warning if some NFTs are missing */}
-          {!allFound && missingIdentifiers.length > 0 && (
+          {/* Warning if some NFTs are missing (only show after loading is complete) */}
+          {!nftLoading && !allFound && missingIdentifiers.length > 0 && (
             <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">⚠️</span>

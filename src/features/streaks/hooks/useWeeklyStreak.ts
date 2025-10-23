@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useGetAccount } from 'lib';
 import { useAuth } from 'contexts/AuthContext';
 import { ClaimStatus } from '../types';
@@ -16,6 +16,10 @@ import {
   getCurrentDayOfWeek,
   getClaimReward
 } from '../services/streakService';
+
+// Cache for streak data (5 minutes)
+const CACHE_DURATION = 5 * 60 * 1000;
+const cache = new Map<string, { data: WeekStreak | null; timestamp: number }>();
 
 interface UseWeeklyStreakReturn {
   weekStreak: WeekStreak | null;
@@ -38,6 +42,7 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
   const [weekStreak, setWeekStreak] = useState<WeekStreak | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
+  const lastFetchRef = useRef<string>('');
 
   // Get user_id from localStorage (set during Supabase auth)
   const getUserId = useCallback((): string | null => {
@@ -53,7 +58,7 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
     return null;
   }, []);
 
-  // Fetch current week streak
+  // Fetch current week streak with cache
   const fetchWeekStreak = useCallback(async () => {
     if (!address) {
       setLoading(false);
@@ -84,14 +89,39 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
       return;
     }
 
+    // Check cache first
+    const cacheKey = `streak-${userId}`;
+    const cached = cache.get(cacheKey);
+    const now = Date.now();
+    
+    if (cached && (now - cached.timestamp) < CACHE_DURATION) {
+      console.log('🔁 [Streak] Source: cache');
+      setWeekStreak(cached.data);
+      setLoading(false);
+      return;
+    }
+    
+    // Prevent duplicate fetches
+    if (lastFetchRef.current === cacheKey) {
+      return;
+    }
+
     try {
       setLoading(true);
       setError(null);
+      lastFetchRef.current = cacheKey;
+
       const data = await getCurrentWeekStreak(userId);
+      
+      // Cache the data
+      cache.set(cacheKey, { data, timestamp: now });
+      
+      console.log('🔁 [Streak] Source: API');
       setWeekStreak(data);
     } catch (err) {
       console.error('[useWeeklyStreak] Error fetching streak:', err);
       setError(err as Error);
+      lastFetchRef.current = ''; // Reset on error to allow retry
     } finally {
       setLoading(false);
     }
@@ -129,7 +159,12 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
 
       try {
         const response = await claimDailyReward(userId, day);
-        // Refresh data after successful claim
+        
+        // Clear cache and refresh data after successful claim
+        const cacheKey = `streak-${userId}`;
+        cache.delete(cacheKey);
+        lastFetchRef.current = '';
+        
         await fetchWeekStreak();
         return response;
       } catch (err) {
@@ -140,10 +175,16 @@ export const useWeeklyStreak = (): UseWeeklyStreakReturn => {
     [getUserId, fetchWeekStreak]
   );
 
-  // Refresh function
+  // Refresh function (clears cache)
   const refresh = useCallback(async () => {
+    const userId = getUserId();
+    if (userId) {
+      const cacheKey = `streak-${userId}`;
+      cache.delete(cacheKey);
+      lastFetchRef.current = '';
+    }
     await fetchWeekStreak();
-  }, [fetchWeekStreak]);
+  }, [fetchWeekStreak, getUserId]);
 
   // Calculate stats
   const stats: WeekStreakStats | null = weekStreak

@@ -23,34 +23,41 @@ export const ActiveWarGamesList = ({
   return (
     <div className="mt-8 w-full max-w-4xl">
       <div className="bg-[var(--mvx-bg-color-secondary)] rounded-lg p-6 border border-[var(--mvx-border-color-secondary)]">
-        {/* Active War Games Badge - Inside container */}
+        {/* War Games List Badge - Inside container */}
         {showBadge && (
           <div className="mb-6 flex justify-center">
             <span className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[var(--mvx-bg-accent-color)] border border-[var(--mvx-border-color-secondary)] text-[var(--mvx-text-color-primary)] font-medium">
-              ⚔️ {t('pages.warGames.activeCount', { count: warGames.length, defaultValue_one: '{{count}} active war game', defaultValue_other: '{{count}} active war games' })}
+              ⚔️ {t('pages.warGames.allWarGames', { count: warGames.length, defaultValue_one: '{{count}} war game', defaultValue_other: '{{count}} war games' })}
             </span>
           </div>
         )}
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Scrollable list with max height */}
+        <div className="max-h-96 overflow-y-auto space-y-3 pr-2">
         {warGames.map((game) => {
           // Check if this war game was created by the current user
           const isOwnWarGame = game.creatorId === currentUserId;
           
+          // Check if the game is expired
+          const isExpired = new Date(game.entryDeadline) < new Date();
+          
+          // Determine if the game is accessible
+          const isAccessible = !isOwnWarGame && !isExpired;
+          
           return (
             <div
               key={game.id}
-              className={`bg-[var(--mvx-bg-color-secondary)] border border-[var(--mvx-border-color-secondary)] rounded-lg p-4 transition-colors ${
-                isOwnWarGame 
-                  ? 'opacity-50 cursor-not-allowed' 
-                  : 'hover:border-[var(--mvx-text-accent-color)]'
+              className={`bg-[var(--mvx-bg-color-secondary)] border rounded-lg p-4 transition-colors ${
+                isAccessible
+                  ? 'border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]'
+                  : 'border-red-500 bg-red-50/10 opacity-75 cursor-not-allowed'
               }`}
             >
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">⚔️</span>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-[var(--mvx-text-color-primary)]">
+                    <span className={`font-semibold ${isAccessible ? 'text-[var(--mvx-text-color-primary)]' : 'text-red-600'}`}>
                       {game.creatorUsername || t('common.anonymous')}
                     </span>
                     {game.creatorAddress && (
@@ -76,7 +83,7 @@ export const ActiveWarGamesList = ({
                   <span className="text-sm text-[var(--mvx-text-color-secondary)]">
                     {t('pages.warGames.activeGames.stake')}:
                   </span>
-                  <span className="font-bold text-[var(--mvx-text-accent-color)]">
+                  <span className={`font-bold ${isAccessible ? 'text-[var(--mvx-text-accent-color)]' : 'text-red-600'}`}>
                     {game.pointsStake} {t('common.points')}
                   </span>
                 </div>
@@ -85,15 +92,21 @@ export const ActiveWarGamesList = ({
                   <span className="text-sm text-[var(--mvx-text-color-secondary)]">
                     {t('pages.warGames.activeGames.deadline')}:
                   </span>
-                  <span className="text-sm text-[var(--mvx-text-color-primary)]">
+                  <span className={`text-sm ${isExpired ? 'text-red-600 font-bold' : isAccessible ? 'text-[var(--mvx-text-color-primary)]' : 'text-red-600'}`}>
                     {new Date(game.entryDeadline).toLocaleDateString()}
+                    {isExpired && ' (Expiré)'}
                   </span>
                 </div>
               </div>
               
-              {isOwnWarGame ? (
-                <div className="w-full bg-gray-500 text-white py-2 px-4 rounded-lg text-center font-semibold">
-                  {t('pages.warGames.activeGames.ownWarGame')}
+              {!isAccessible ? (
+                <div className="w-full bg-red-500 text-white py-2 px-4 rounded-lg text-center font-semibold">
+                  {isOwnWarGame 
+                    ? t('pages.warGames.activeGames.ownWarGame')
+                    : isExpired 
+                      ? t('pages.warGames.activeGames.expired')
+                      : t('pages.warGames.activeGames.notAccessible')
+                  }
                 </div>
               ) : (
                 <button

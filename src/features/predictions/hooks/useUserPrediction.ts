@@ -11,6 +11,7 @@ interface UseUserPredictionReturn {
   loading: boolean;
   error: Error | null;
   submitting: boolean;
+  isAnimating: boolean;
   submit: (optionId: string, pointsWagered: number) => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -31,6 +32,7 @@ export const useUserPrediction = (
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [isAnimating, setIsAnimating] = useState(false);
 
   // Fetch user's prediction
   const fetchUserPrediction = useCallback(async () => {
@@ -55,10 +57,12 @@ export const useUserPrediction = (
     }
   }, [userId, predictionId]);
 
-  // Initial fetch
+  // Initial fetch - only when userId or predictionId changes
   useEffect(() => {
-    fetchUserPrediction();
-  }, [fetchUserPrediction]);
+    if (userId && predictionId) {
+      fetchUserPrediction();
+    }
+  }, [userId, predictionId]); // Remove fetchUserPrediction from dependencies
 
   // Submit prediction
   const submit = useCallback(
@@ -84,6 +88,14 @@ export const useUserPrediction = (
 
         setUserPrediction(newPrediction);
         setHasParticipated(true);
+        
+        // Trigger animation
+        setIsAnimating(true);
+        
+        // Reset animation after completion
+        setTimeout(() => {
+          setIsAnimating(false);
+        }, 1200);
       } catch (err) {
         console.error('[useUserPrediction] Error submitting prediction:', err);
         setError(err as Error);
@@ -106,6 +118,7 @@ export const useUserPrediction = (
     loading,
     error,
     submitting,
+    isAnimating,
     submit,
     refresh
   };

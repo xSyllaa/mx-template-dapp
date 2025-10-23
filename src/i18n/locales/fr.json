@@ -135,6 +135,7 @@
     "participate": "Participer",
     "participated": "Participé",
     "loadMore": "Charger Plus",
+    "showing": "Affichage de {{current}} sur {{total}} prédictions",
     "noActive": "Aucune prédiction active",
     "noHistory": "Aucun historique de prédiction",
     "submitPrediction": "Soumettre ma Prédiction",
@@ -170,6 +171,11 @@
       "results": "{{count}} résultat(s)"
     },
     "stats": {
+      "active_one": "{{count}} Active",
+      "active_other": "{{count}} Actives",
+      "historical_one": "{{count}} Historique",
+      "historical_other": "{{count}} Historiques",
+      "total": "{{count}} Total",
       "bettingPool": "Cagnotte",
       "totalWagered": "Total Parié",
       "participants": "Participants",
@@ -253,6 +259,8 @@
       "refresh": "Actualiser les Données",
       "activeCount_one": "{{count}} war game actif",
       "activeCount_other": "{{count}} war games actifs",
+      "allWarGames_one": "{{count}} war game",
+      "allWarGames_other": "{{count}} war games",
       "field": {
         "title": "Ton Équipe",
         "formation": "Formation: 4-4-2",
@@ -347,6 +355,11 @@
         "genericError": "Échec de l'envoi. Réessaye.",
         "loadWarGamesError": "Échec du chargement des war games disponibles"
       },
+      "stats": {
+        "active": "{{count}} Actifs",
+        "historical": "{{count}} Historiques",
+        "total": "{{count}} Total"
+      },
       "create": {
         "title": "Créer un War Game",
         "subtitle": "Configure ton war game et attends un adversaire",
@@ -427,11 +440,15 @@
         "stake": "Mise",
         "deadline": "Date Limite",
         "joinButton": "Rejoindre ce War Game",
-        "ownWarGame": "Ton War Game"
+        "ownWarGame": "Ton War Game",
+        "expired": "Expiré",
+        "notAccessible": "Non accessible"
       },
       "history": {
         "title": "Historique War Games",
         "loading": "Chargement de l'historique...",
+        "loadMore": "Charger Plus",
+        "showing": "Affichage de {{current}} sur {{total}} war games",
         "noHistory": "Aucun War Game",
         "noHistoryDescription": "Les war games terminés apparaîtront ici",
         "stake": "Mise",
@@ -672,8 +689,11 @@
       "topNationalities": "Top Nationalités"
     },
     "refresh": "Actualiser les Données",
-    "loading": "Chargement de la collection...",
     "loadingMore": "Chargement de plus de NFTs...",
+    "loading": {
+      "collection": "Chargement de la collection...",
+      "nfts": "Chargement des NFTs..."
+    },
     "scrollForMore": "Faites défiler pour plus",
     "endOfResults": "Vous avez atteint la fin",
     "scrollToLoadMore": "Faites défiler vers le bas pour charger plus de NFTs",
@@ -755,6 +775,13 @@
       "failedToLoad": "Échec du chargement des prédictions",
       "noPredictionsYet": "Aucune prédiction créée pour le moment",
       "noPredictionsForFilter": "Aucune prédiction ne correspond à ce filtre",
+      "predictions": {
+        "status": "Statut",
+        "betType": "Type de pari",
+        "startDate": "Date de début",
+        "closeDate": "Date de fermeture",
+        "bettingOptions": "Options de pari"
+      },
       "sections": {
         "resultedPredictions": "Prédictions Résultées",
         "resultedAndCancelledPredictions": "Prédictions Résultées & Annulées",
@@ -791,7 +818,20 @@
       "actions": {
         "close": "Fermer",
         "cannotDelete": "Impossible de supprimer les prédictions validées"
-      }
+      },
+      "historicalActions": "Prédiction historique - consultation uniquement",
+      "status": "Statut",
+      "betType": "Type de pari",
+      "startDate": "Date de début",
+      "closeDate": "Date de fermeture",
+      "bettingOptions": "Options de pari",
+      "statistics": "Statistiques",
+      "totalParticipants": "Total des participants",
+      "totalPool": "Cagnotte totale",
+      "createdAt": "Créé le",
+      "optionStatistics": "Statistiques des options",
+      "participantsLower": "participants",
+      "winner": "Gagnant"
     }
   }
 }

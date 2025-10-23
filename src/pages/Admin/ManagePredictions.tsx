@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { predictionService } from 'features/predictions';
+import { getRecentHistory } from 'features/predictions/services/predictionService';
 import type { Prediction } from 'features/predictions/types';
 import { Loader } from 'components/Loader';
 import { useToast } from 'hooks/useToast';
 import { ToastContainer } from 'components/Toast';
 import { useAdminPredictionStats } from 'features/predictions/hooks/useAdminPredictionStats';
-import { ValidatePredictionModal } from './components/ValidatePredictionModal';
+import { ValidatePredictionModal, ActionMenu, PredictionDetailModal } from './components';
 import { RefreshButton } from 'components/RefreshButton';
 
 // PredictionsTable Component
@@ -19,6 +20,8 @@ interface PredictionsTableProps {
   handleOpenValidate: (prediction: Prediction) => void;
   handleOpenCancel: (id: string) => void;
   handleChangeStatus: (id: string, status: 'open' | 'closed' | 'cancelled') => void;
+  handleViewDetails: (prediction: Prediction) => void;
+  isHistorical: boolean;
   t: (key: string, options?: any) => string;
 }
 
@@ -30,6 +33,8 @@ const PredictionsTable = ({
   handleOpenValidate,
   handleOpenCancel,
   handleChangeStatus,
+  handleViewDetails,
+  isHistorical,
   t
 }: PredictionsTableProps) => {
   return (
@@ -114,39 +119,15 @@ const PredictionsTable = ({
                 {new Date(prediction.start_date).toLocaleDateString()}
               </td>
               <td className="py-4 px-4">
-                <div className="flex justify-end gap-2">
-                  {/* Validate Button */}
-                  {(prediction.status === 'closed' ||
-                    prediction.status === 'open') && (
-                    <button
-                      onClick={() => handleOpenValidate(prediction)}
-                      className="px-3 py-1 bg-green-500/20 text-green-400 rounded hover:bg-green-500/30 transition-colors text-sm"
-                    >
-                      {t('predictions.admin.validateResult')}
-                    </button>
-                  )}
-
-                  {/* Status Change Buttons */}
-                  {prediction.status === 'open' && (
-                    <button
-                      onClick={() =>
-                        handleChangeStatus(prediction.id, 'closed')
-                      }
-                      className="px-3 py-1 bg-orange-500/20 text-orange-400 rounded hover:bg-orange-500/30 transition-colors text-sm"
-                    >
-                      {t('toasts.admin.actions.close')}
-                    </button>
-                  )}
-
-                  {/* Cancel Button */}
-                  {prediction.status !== 'resulted' && prediction.status !== 'cancelled' && (
-                    <button
-                      onClick={() => handleOpenCancel(prediction.id)}
-                      className="px-3 py-1 bg-red-500/20 text-red-400 rounded hover:bg-red-500/30 transition-colors text-sm"
-                    >
-                      {t('predictions.admin.cancel')}
-                    </button>
-                  )}
+                <div className="flex justify-end">
+                  <ActionMenu
+                    prediction={prediction}
+                    isHistorical={isHistorical}
+                    onViewDetails={handleViewDetails}
+                    onValidate={handleOpenValidate}
+                    onClose={(id) => handleChangeStatus(id, 'closed')}
+                    onCancel={handleOpenCancel}
+                  />
                 </div>
               </td>
             </tr>
@@ -164,6 +145,7 @@ export const ManagePredictions = () => {
   const { stats, fetchStats, getStatsForPrediction, loading: statsLoading } = useAdminPredictionStats();
 
   const [predictions, setPredictions] = useState<Prediction[]>([]);
+  const [historicalPredictions, setHistoricalPredictions] = useState<Prediction[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -180,6 +162,10 @@ export const ManagePredictions = () => {
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [cancelling, setCancelling] = useState(false);
 
+  // Detail modal state
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const [selectedPredictionForDetail, setSelectedPredictionForDetail] = useState<Prediction | null>(null);
+
   // Section state
   const [showResultedSection, setShowResultedSection] = useState(true);
   const [showOtherSection, setShowOtherSection] = useState(true);
@@ -189,12 +175,37 @@ export const ManagePredictions = () => {
     try {
       setLoading(true);
       setError(null);
-      const data = await predictionService.getAllPredictions();
-      setPredictions(data);
       
-      // Fetch stats for all predictions
-      const predictionIds = data.map(p => p.id);
-      await fetchStats(predictionIds);
+      // Fetch all predictions and historical predictions in parallel
+      const [allPredictions, historyData] = await Promise.all([
+        predictionService.getAllPredictions(),
+        getRecentHistory(50, 0) // Get up to 50 historical predictions
+      ]);
+      
+      // 🔍 DEBUG: Log all predictions retrieved
+      console.log('🔍 [ManagePredictions] All predictions retrieved:', allPredictions);
+      console.log('🔍 [ManagePredictions] Historical predictions retrieved:', historyData);
+      console.log('🔍 [ManagePredictions] Total predictions count:', allPredictions.length);
+      console.log('🔍 [ManagePredictions] Historical predictions count:', historyData.length);
+      
+      // Log each prediction with its status
+      allPredictions.forEach((prediction: Prediction, index: number) => {
+        console.log(`🔍 [ManagePredictions] Prediction ${index + 1}:`, {
+          id: prediction.id,
+          match: `${prediction.home_team} vs ${prediction.away_team}`,
+          status: prediction.status,
+          start_date: prediction.start_date,
+          close_date: prediction.close_date,
+          created_at: prediction.created_at
+        });
+      });
+      
+      setPredictions(allPredictions);
+      setHistoricalPredictions(historyData);
+      
+      // Fetch stats for all predictions (including historical ones)
+      const allPredictionIds = [...allPredictions.map((p: Prediction) => p.id), ...historyData.map((p: Prediction) => p.id)];
+      await fetchStats(allPredictionIds);
     } catch (err) {
       console.error('Error fetching predictions:', err);
       setError(t('toasts.admin.failedToLoad'));
@@ -212,6 +223,12 @@ export const ManagePredictions = () => {
     setSelectedPrediction(prediction);
     setSelectedWinner('');
     setValidateModalOpen(true);
+  };
+
+  // Open detail modal
+  const handleViewDetails = (prediction: Prediction) => {
+    setSelectedPredictionForDetail(prediction);
+    setDetailModalOpen(true);
   };
 
   // Validate result
@@ -342,13 +359,32 @@ export const ManagePredictions = () => {
     return { label: optionLabel, percentage: Math.round(topOption.percentage) };
   };
 
-  // Separate predictions into two categories
-  const resultedPredictions = predictions.filter(prediction => 
-    prediction.status === 'resulted' || prediction.status === 'cancelled'
-  );
+  // Use historical predictions for resulted section, and filter active predictions for other section
+  const resultedPredictions = historicalPredictions; // Use the historical predictions from API
   const otherPredictions = predictions.filter(prediction => 
     prediction.status !== 'resulted' && prediction.status !== 'cancelled'
   );
+
+  // 🔍 DEBUG: Log prediction filtering
+  console.log('🔍 [ManagePredictions] Prediction filtering results:');
+  console.log('🔍 [ManagePredictions] Total active predictions:', predictions.length);
+  console.log('🔍 [ManagePredictions] Historical predictions:', historicalPredictions.length);
+  console.log('🔍 [ManagePredictions] Resulted/Cancelled predictions:', resultedPredictions.length);
+  console.log('🔍 [ManagePredictions] Other predictions:', otherPredictions.length);
+  
+  // Log detailed breakdown by status for active predictions
+  const statusCounts = predictions.reduce((acc, prediction) => {
+    acc[prediction.status] = (acc[prediction.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log('🔍 [ManagePredictions] Active predictions status breakdown:', statusCounts);
+  
+  // Log detailed breakdown by status for historical predictions
+  const historicalStatusCounts = historicalPredictions.reduce((acc, prediction) => {
+    acc[prediction.status] = (acc[prediction.status] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
+  console.log('🔍 [ManagePredictions] Historical predictions status breakdown:', historicalStatusCounts);
 
   if (loading) {
     return (
@@ -412,7 +448,7 @@ export const ManagePredictions = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-96 overflow-y-auto relative">
                     <PredictionsTable 
                       predictions={otherPredictions}
                       getStatsForPrediction={getStatsForPrediction}
@@ -421,6 +457,8 @@ export const ManagePredictions = () => {
                       handleOpenValidate={handleOpenValidate}
                       handleOpenCancel={handleOpenCancel}
                       handleChangeStatus={handleChangeStatus}
+                      handleViewDetails={handleViewDetails}
+                      isHistorical={false}
                       t={t}
                     />
                   </div>
@@ -452,7 +490,7 @@ export const ManagePredictions = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="max-h-96 overflow-y-auto">
+                  <div className="max-h-96 overflow-y-auto relative">
                     <PredictionsTable 
                       predictions={resultedPredictions}
                       getStatsForPrediction={getStatsForPrediction}
@@ -461,6 +499,8 @@ export const ManagePredictions = () => {
                       handleOpenValidate={handleOpenValidate}
                       handleOpenCancel={handleOpenCancel}
                       handleChangeStatus={handleChangeStatus}
+                      handleViewDetails={handleViewDetails}
+                      isHistorical={true}
                       t={t}
                     />
                   </div>
@@ -526,6 +566,15 @@ export const ManagePredictions = () => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Detail Modal */}
+      {detailModalOpen && selectedPredictionForDetail && (
+        <PredictionDetailModal
+          prediction={selectedPredictionForDetail}
+          stats={getStatsForPrediction(selectedPredictionForDetail.id)}
+          onClose={() => setDetailModalOpen(false)}
+        />
       )}
 
       {/* Toast Container */}

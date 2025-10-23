@@ -27,6 +27,7 @@ export { useCachedPredictions } from './hooks/usePredictionsWithCache';
 // Components
 export { PredictionCard } from './components/PredictionCard';
 export { PredictionList } from './components/PredictionList';
+export { PredictionStats } from './components/PredictionStats';
 export { ParticipationBadge } from './components/ParticipationBadge';
 export { BetAmountInput } from './components/BetAmountInput';
 export { PredictionStatsDisplay } from './components/PredictionStatsDisplay';

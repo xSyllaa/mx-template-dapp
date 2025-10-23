@@ -1,4 +1,5 @@
 import { supabase } from 'lib/supabase/client';
+import { leaderboardAPI } from 'api/leaderboard';
 import type {
   LeaderboardEntry,
   LeaderboardFilters,
@@ -51,6 +52,116 @@ export const recordPointsTransaction = async (
 // ============================================================
 
 /**
+ * Get all-time leaderboard
+ * @param limit - Number of entries to return (default: 50, max: 100)
+ * @param offset - Pagination offset (default: 0)
+ */
+export const getAllTimeLeaderboard = async (
+  limit = 50,
+  offset = 0
+): Promise<LeaderboardEntry[]> => {
+  try {
+    console.log(`🏆 [Leaderboard] All-time - API`);
+    const response = await leaderboardAPI.getAllTime(limit, offset);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid all-time leaderboard response');
+    }
+    
+    // Transform API response to LeaderboardEntry format
+    const entries: LeaderboardEntry[] = response.data.entries.map((entry) => ({
+      user_id: entry.userId,
+      username: entry.username || null,
+      avatar_url: entry.avatarUrl || null,
+      points: entry.points,
+      rank: entry.rank
+    }));
+
+    return entries;
+  } catch (error) {
+    console.error('[LeaderboardService] Error fetching all-time leaderboard:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get weekly leaderboard
+ * @param week - Week number (1-52). If not specified, uses current week
+ * @param year - Year. If not specified, uses current year
+ * @param limit - Number of entries to return (default: 50, max: 100)
+ * @param offset - Pagination offset (default: 0)
+ */
+export const getWeeklyLeaderboard = async (
+  week?: number,
+  year?: number,
+  limit = 50,
+  offset = 0
+): Promise<LeaderboardEntry[]> => {
+  try {
+    console.log(`🏆 [Leaderboard] Weekly - API (week: ${week || 'current'}, year: ${year || 'current'})`);
+    const response = await leaderboardAPI.getWeekly(week, year, limit, offset);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid weekly leaderboard response');
+    }
+    
+    // Transform API response to LeaderboardEntry format
+    const entries: LeaderboardEntry[] = response.data.entries.map((entry) => ({
+      user_id: entry.userId,
+      username: entry.username || null,
+      avatar_url: entry.avatarUrl || null,
+      points: entry.points,
+      rank: entry.rank
+    }));
+
+    return entries;
+  } catch (error) {
+    console.error('[LeaderboardService] Error fetching weekly leaderboard:', error);
+    throw error;
+  }
+};
+
+/**
+ * Get monthly leaderboard
+ * @param month - Month (1-12). If not specified, uses current month
+ * @param year - Year. If not specified, uses current year
+ * @param limit - Number of entries to return (default: 50, max: 100)
+ * @param offset - Pagination offset (default: 0)
+ */
+export const getMonthlyLeaderboard = async (
+  month?: number,
+  year?: number,
+  limit = 50,
+  offset = 0
+): Promise<LeaderboardEntry[]> => {
+  try {
+    console.log(`🏆 [Leaderboard] Monthly - API (month: ${month || 'current'}, year: ${year || 'current'})`);
+    const response = await leaderboardAPI.getMonthly(month, year, limit, offset);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid monthly leaderboard response');
+    }
+    
+    // Transform API response to LeaderboardEntry format
+    const entries: LeaderboardEntry[] = response.data.entries.map((entry) => ({
+      user_id: entry.userId,
+      username: entry.username || null,
+      avatar_url: entry.avatarUrl || null,
+      points: entry.points,
+      rank: entry.rank
+    }));
+
+    return entries;
+  } catch (error) {
+    console.error('[LeaderboardService] Error fetching monthly leaderboard:', error);
+    throw error;
+  }
+};
+
+/**
  * Get leaderboard for a specific period
  * @param filters - Leaderboard filters (type, period, source types)
  */
@@ -58,58 +169,42 @@ export const getLeaderboard = async (
   filters: LeaderboardFilters
 ): Promise<LeaderboardEntry[]> => {
   try {
-    const { type, week, month, year, sourceTypes, limit = 100 } = filters;
+    const { type, limit = 100, week, month, year } = filters;
 
-    // Try to call the real Supabase function first
-    try {
-      console.log(`🏆 [Leaderboard] ${type} - supabase`);
-      const { data, error } = await supabase.rpc('get_leaderboard', {
-        p_type: type,
-        p_week: week || null,
-        p_month: month || null,
-        p_year: year || null,
-        p_limit: limit,
-        p_source_types: sourceTypes || null
-      });
-
-      if (error) {
-        console.error('📡 [LeaderboardService] Supabase function error:', error);
-        throw error;
-      }
-
-      return (data || []) as LeaderboardEntry[];
-    } catch (functionError: any) {
-      // If function doesn't exist, fallback to direct table query
-      if (functionError.code === '42883') { // function does not exist
-        // Function not found, fallback to users table
-        console.log(`🏆 [Leaderboard] ${type} - fallback (users table)`);
-
-        // Fallback: Get all users with their total_points (including negative)
-        const { data, error } = await supabase
-          .from('users')
-          .select('id, username, avatar_url, total_points')
-          .not('total_points', 'is', null)
-          .order('total_points', { ascending: false })
-          .limit(limit);
-
-        if (error) {
-          console.error('📡 [LeaderboardService] Fallback query error:', error);
-          throw error;
-        }
-
-        // Transform to LeaderboardEntry format with ranks (including negative points)
-        const entries: LeaderboardEntry[] = (data || []).map((user, index) => ({
-          user_id: user.id,
-          username: user.username,
-          avatar_url: user.avatar_url,
-          points: user.total_points || 0,
-          rank: index + 1
-        }));
-
-        return entries;
-      }
-      throw functionError;
+    console.log(`🏆 [Leaderboard] ${type} - API`);
+    
+    let response;
+    
+    // Use specific API endpoints based on type
+    switch (type) {
+      case 'all_time':
+        response = await leaderboardAPI.getAllTime(limit, 0);
+        break;
+      case 'weekly':
+        response = await leaderboardAPI.getWeekly(week, year, limit, 0);
+        break;
+      case 'monthly':
+        response = await leaderboardAPI.getMonthly(month, year, limit, 0);
+        break;
+      default:
+        response = await leaderboardAPI.getAllTime(limit, 0);
     }
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid leaderboard response');
+    }
+    
+    // Transform API response to LeaderboardEntry format
+    const entries: LeaderboardEntry[] = response.data.entries.map((entry) => ({
+      user_id: entry.userId,
+      username: entry.username || null,
+      avatar_url: entry.avatarUrl || null,
+      points: entry.points,
+      rank: entry.rank
+    }));
+
+    return entries;
   } catch (error) {
     console.error('[LeaderboardService] Error fetching leaderboard:', error);
     throw error;
@@ -117,8 +212,40 @@ export const getLeaderboard = async (
 };
 
 /**
+ * Get dashboard stats for current user (all ranks + total users)
+ * @returns Complete dashboard stats including all ranks with total users
+ */
+export const getDashboardStats = async (): Promise<{
+  totalPoints: number;
+  username: string | null;
+  walletAddress: string;
+  globalRank: number;
+  globalTotalUsers: number;
+  weeklyRank: number;
+  weeklyTotalUsers: number;
+  monthlyRank: number;
+  monthlyTotalUsers: number;
+} | null> => {
+  try {
+    console.log('[LeaderboardService] Fetching dashboard stats...');
+    const response = await leaderboardAPI.getDashboardStats();
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      console.warn('[LeaderboardService] Invalid dashboard stats response:', response);
+      return null;
+    }
+    
+    return response.data;
+  } catch (error) {
+    console.error('[LeaderboardService] Error fetching dashboard stats:', error);
+    return null;
+  }
+};
+
+/**
  * Get user's rank in a specific leaderboard
- * @param userId - User's UUID
+ * @param userId - User's UUID (unused, backend gets it from JWT)
  * @param filters - Leaderboard filters
  */
 export const getUserRank = async (
@@ -126,37 +253,82 @@ export const getUserRank = async (
   filters: LeaderboardFilters
 ): Promise<UserRankInfo | null> => {
   try {
-    const { type, week, month, year, sourceTypes } = filters;
+    const { type } = filters;
 
-    // User rank fetching logs removed as requested - only essential leaderboard logs remain
-
-    // Try to call the real Supabase function
-    const { data, error } = await supabase.rpc('get_user_rank', {
-      p_user_id: userId,
-      p_type: type,
-      p_week: week || null,
-      p_month: month || null,
-      p_year: year || null,
-      p_source_types: sourceTypes || null
+    const response = await leaderboardAPI.getUserRank(type);
+    
+    // Debug: Log the full response to understand the structure
+    console.log('[LeaderboardService] getUserRank response:', response);
+    console.log('[LeaderboardService] Response data structure:', {
+      hasUserRank: !!response.data.userRank,
+      hasUserId: !!(response.data as any).userId,
+      hasTotalUsers: !!(response.data as any).totalUsers,
+      totalUsersValue: (response.data as any).totalUsers,
+      allData: response.data
     });
-
-    if (error) {
-      console.error('📡 [LeaderboardService] Supabase error:', error);
-      // If function doesn't exist yet, return null
-      if (error.code === '42883') { // function does not exist
-        return null;
-      }
-      throw error;
-    }
-
-    if (!data || data.length === 0) {
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      console.warn('[LeaderboardService] Invalid user rank response:', response);
       return null;
     }
+    
+    // Handle different possible response structures
+    let userRankData: any = null;
+    let totalUsers = 0;
+    
+    // Check if response.data has userRank property (new structure)
+    if (response.data.userRank && typeof response.data.userRank === 'object') {
+      userRankData = response.data.userRank;
+      totalUsers = response.data.allTimeRank || 0;
+    }
+    // Check if response.data is directly the userRank (alternative structure)
+    else if ((response.data as any).userId && typeof (response.data as any).points === 'number') {
+      userRankData = response.data;
+      // Check for totalUsers in the response data - this is the correct field name
+      totalUsers = (response.data as any).totalUsers || 0;
+    }
+    // Check if response.data has entries array (fallback to first entry)
+    else if ((response.data as any).entries && Array.isArray((response.data as any).entries) && (response.data as any).entries.length > 0) {
+      userRankData = (response.data as any).entries[0];
+      totalUsers = (response.data as any).total || 0;
+    }
+    
+    if (!userRankData) {
+      console.warn('[LeaderboardService] No user rank data available in response:', response.data);
+      return null;
+    }
+    
+    // Validate required fields
+    if (!userRankData.userId || typeof userRankData.points !== 'number' || typeof userRankData.rank !== 'number') {
+      console.warn('[LeaderboardService] Invalid user rank structure:', userRankData);
+      return null;
+    }
+    
+    // Transform API response to UserRankInfo format
+    const userRankInfo: UserRankInfo = {
+      user_id: userRankData.userId,
+      username: userRankData.username || null,
+      avatar_url: userRankData.avatarUrl || null,
+      points: userRankData.points,
+      rank: userRankData.rank,
+      total_users: totalUsers
+    };
 
-    return data[0] as UserRankInfo;
+    // Debug log to verify the data
+    console.log('[LeaderboardService] Processed user rank info:', {
+      userId: userRankInfo.user_id,
+      rank: userRankInfo.rank,
+      totalUsers: userRankInfo.total_users,
+      originalTotalUsers: totalUsers,
+      userRankData: userRankData
+    });
+
+    return userRankInfo;
   } catch (error) {
     console.error('[LeaderboardService] Error fetching user rank:', error);
-    throw error;
+    // Return null on error (user might not be ranked yet)
+    return null;
   }
 };
 
@@ -166,7 +338,7 @@ export const getUserRank = async (
 
 /**
  * Get user's points transaction history
- * @param userId - User's UUID
+ * @param userId - User's UUID (unused, backend gets it from JWT)
  * @param limit - Number of transactions to fetch
  * @param offset - Pagination offset
  */
@@ -176,16 +348,25 @@ export const getUserPointsHistory = async (
   offset = 0
 ): Promise<PointsTransaction[]> => {
   try {
-    const { data, error } = await supabase
-      .from('points_transactions')
-      .select('*')
-      .eq('user_id', userId)
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+    const response = await leaderboardAPI.getPointsHistory(limit, offset);
+    
+    // Check if response is successful and has data
+    if (!response.success || !response.data) {
+      throw new Error('Invalid points history response');
+    }
+    
+    // Transform API response to PointsTransaction format
+    const transactions: PointsTransaction[] = response.data.transactions.map((tx) => ({
+      id: tx.id,
+      user_id: tx.userId,
+      amount: tx.amount,
+      source_type: tx.sourceType as PointsSourceType,
+      source_id: tx.sourceId || null,
+      metadata: tx.metadata || null,
+      created_at: tx.createdAt
+    }));
 
-    if (error) throw error;
-
-    return (data || []) as PointsTransaction[];
+    return transactions;
   } catch (error) {
     console.error('[LeaderboardService] Error fetching points history:', error);
     throw error;

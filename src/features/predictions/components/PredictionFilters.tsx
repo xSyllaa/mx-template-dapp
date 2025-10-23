@@ -158,6 +158,115 @@ export const PredictionFilters = ({
     cancelled: t('predictions.status.cancelled', { defaultValue: 'Cancelled' })
   };
 
+  // Create filter sections with their content
+  const filterSections = [
+    {
+      key: 'calculation',
+      label: t('predictions.filters.calculation', { defaultValue: 'Calculation Type' }),
+      content: (
+        <div className="flex flex-wrap gap-1">
+          <button
+            onClick={() => setCalculationType('all')}
+            className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
+              calculationType === 'all'
+                ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
+                : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
+            }`}
+          >
+            {t('common.all', { defaultValue: 'All' })}
+          </button>
+          <button
+            onClick={() => setCalculationType('fixed_odds')}
+            className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
+              calculationType === 'fixed_odds'
+                ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+                : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-blue-500/30'
+            }`}
+          >
+            🎯 {t('predictions.calculationTypes.fixedOdds', { defaultValue: 'Fixed Odds' })}
+          </button>
+          <button
+            onClick={() => setCalculationType('pool_ratio')}
+            className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
+              calculationType === 'pool_ratio'
+                ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
+                : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-violet-500/30'
+            }`}
+          >
+            📊 {t('predictions.calculationTypes.poolRatio', { defaultValue: 'Pool Ratio' })}
+          </button>
+        </div>
+      )
+    },
+    ...(availableBetTypes.length > 0 ? [{
+      key: 'betType',
+      label: t('predictions.filters.betType', { defaultValue: 'Bet Type' }),
+      content: (
+        <div className="flex flex-wrap gap-1">
+          {availableBetTypes.map(betType => {
+            const betTypeInfo = getBetTypeInfo(betType);
+            return (
+              <button
+                key={betType}
+                onClick={() => toggleBetType(betType)}
+                className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
+                  betTypes.includes(betType)
+                    ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
+                    : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
+                }`}
+                title={betTypeInfo.label}
+              >
+                {betTypeInfo.icon} {betTypeInfo.label}
+              </button>
+            );
+          })}
+        </div>
+      )
+    }] : []),
+    ...(availableCompetitions.length > 1 ? [{
+      key: 'competition',
+      label: t('predictions.filters.competition', { defaultValue: 'Competition' }),
+      content: (
+        <div className="flex flex-wrap gap-1">
+          {availableCompetitions.map(competition => (
+            <button
+              key={competition}
+              onClick={() => toggleCompetition(competition)}
+              className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
+                competitions.includes(competition)
+                  ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
+                  : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
+              }`}
+            >
+              🏆 {competition}
+            </button>
+          ))}
+        </div>
+      )
+    }] : []),
+    {
+      key: 'status',
+      label: t('predictions.filters.status', { defaultValue: 'Status' }),
+      content: (
+        <div className="flex flex-wrap gap-1">
+          {(['open', 'closed', 'resulted', 'cancelled'] as PredictionStatus[]).map(status => (
+            <button
+              key={status}
+              onClick={() => toggleStatus(status)}
+              className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
+                statuses.includes(status)
+                  ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
+                  : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
+              }`}
+            >
+              {statusLabels[status]}
+            </button>
+          ))}
+        </div>
+      )
+    }
+  ];
+
   return (
     <div className="bg-[var(--mvx-bg-color-secondary)] rounded-xl p-3 border border-[var(--mvx-border-color-secondary)] mb-4">
       {/* Header - Compact */}
@@ -175,120 +284,16 @@ export const PredictionFilters = ({
         )}
       </div>
 
-      {/* Filters Grid - Compact */}
-      <div className="space-y-3">
-        {/* Calculation Type */}
-        <div>
-          <label className="text-xs font-medium text-[var(--mvx-text-color-secondary)] mb-1 block">
-            {t('predictions.filters.calculation', { defaultValue: 'Calculation Type' })}
-          </label>
-          <div className="flex flex-wrap gap-1">
-            <button
-              onClick={() => setCalculationType('all')}
-              className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
-                calculationType === 'all'
-                  ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
-                  : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
-              }`}
-            >
-              {t('common.all', { defaultValue: 'All' })}
-            </button>
-            <button
-              onClick={() => setCalculationType('fixed_odds')}
-              className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
-                calculationType === 'fixed_odds'
-                  ? 'bg-blue-500/20 text-blue-400 border-blue-500/30'
-                  : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-blue-500/30'
-              }`}
-            >
-              🎯 {t('predictions.calculationTypes.fixedOdds', { defaultValue: 'Fixed Odds' })}
-            </button>
-            <button
-              onClick={() => setCalculationType('pool_ratio')}
-              className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
-                calculationType === 'pool_ratio'
-                  ? 'bg-violet-500/20 text-violet-400 border-violet-500/30'
-                  : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-violet-500/30'
-              }`}
-            >
-              📊 {t('predictions.calculationTypes.poolRatio', { defaultValue: 'Pool Ratio' })}
-            </button>
-          </div>
-        </div>
-
-        {/* Bet Type */}
-        {availableBetTypes.length > 0 && (
-          <div>
+      {/* Flexible Filters Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3">
+        {filterSections.map((section) => (
+          <div key={section.key} className="min-w-0">
             <label className="text-xs font-medium text-[var(--mvx-text-color-secondary)] mb-1 block">
-              {t('predictions.filters.betType', { defaultValue: 'Bet Type' })}
+              {section.label}
             </label>
-            <div className="flex flex-wrap gap-1">
-              {availableBetTypes.map(betType => {
-                const betTypeInfo = getBetTypeInfo(betType);
-                return (
-                  <button
-                    key={betType}
-                    onClick={() => toggleBetType(betType)}
-                    className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
-                      betTypes.includes(betType)
-                        ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
-                        : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
-                    }`}
-                    title={betTypeInfo.label} // Show full name on hover
-                  >
-                    {betTypeInfo.icon} {betTypeInfo.label}
-                  </button>
-                );
-              })}
-            </div>
+            {section.content}
           </div>
-        )}
-
-        {/* Competitions */}
-        {availableCompetitions.length > 1 && (
-          <div>
-            <label className="text-xs font-medium text-[var(--mvx-text-color-secondary)] mb-1 block">
-              {t('predictions.filters.competition', { defaultValue: 'Competition' })}
-            </label>
-            <div className="flex flex-wrap gap-1">
-              {availableCompetitions.map(competition => (
-                <button
-                  key={competition}
-                  onClick={() => toggleCompetition(competition)}
-                  className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
-                    competitions.includes(competition)
-                      ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
-                      : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
-                  }`}
-                >
-                  🏆 {competition}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Status */}
-        <div>
-          <label className="text-xs font-medium text-[var(--mvx-text-color-secondary)] mb-1 block">
-            {t('predictions.filters.status', { defaultValue: 'Status' })}
-          </label>
-          <div className="flex flex-wrap gap-1">
-            {(['open', 'closed', 'resulted', 'cancelled'] as PredictionStatus[]).map(status => (
-              <button
-                key={status}
-                onClick={() => toggleStatus(status)}
-                className={`px-2 py-1 text-xs font-semibold rounded-full border transition-colors ${
-                  statuses.includes(status)
-                    ? 'bg-[var(--mvx-text-accent-color)] text-white border-[var(--mvx-text-accent-color)]'
-                    : 'bg-[var(--mvx-bg-color-primary)] text-[var(--mvx-text-color-primary)] border-[var(--mvx-border-color-secondary)] hover:border-[var(--mvx-text-accent-color)]/50'
-                }`}
-              >
-                {statusLabels[status]}
-              </button>
-            ))}
-          </div>
-        </div>
+        ))}
       </div>
 
       {/* Results Count - Compact */}

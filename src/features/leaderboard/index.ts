@@ -17,6 +17,7 @@ export {
   recordPointsTransaction,
   getLeaderboard,
   getUserRank,
+  getDashboardStats,
   getUserPointsHistory,
   getUserPointsForPeriod,
   getCurrentWeekNumber,
@@ -31,5 +32,12 @@ export {
 } from './services/leaderboardService';
 
 // Hooks
-export { useLeaderboard, useUserRank, usePointsHistory } from './hooks';
+export { 
+  useLeaderboard, 
+  useUserRank, 
+  usePointsHistory, 
+  useDashboardStats,
+  formatRank,
+  getRankInfo
+} from './hooks';
 

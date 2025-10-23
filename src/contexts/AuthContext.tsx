@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useGetAccount, Message, Address, getAccountProvider } from 'lib';
-import { getCustomJWT, configureRealtimeAuth, refreshSupabaseClient } from 'lib/supabase/client';
+import { authAPI } from 'api/auth';
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -15,10 +15,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 // Fonction utilitaire pour nettoyer l'auth (exportée pour compatibilité)
 export const clearAuthData = () => {
-  localStorage.removeItem('supabase.auth.token');
+  localStorage.removeItem('accessToken');
   localStorage.removeItem('galacticx.user');
-  localStorage.removeItem('supabase.auth.expires_at');
-  configureRealtimeAuth(null);
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
@@ -32,18 +30,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   // Restaurer la session au montage (une seule fois)
   useEffect(() => {
-    const jwt = getCustomJWT();
-    if (jwt) {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
       const userData = JSON.parse(localStorage.getItem('galacticx.user') || '{}');
       if (userData.id && userData.wallet_address === address) {
-        configureRealtimeAuth(jwt);
-        // Ensure REST requests use JWT immediately on restoration
-        try {
-          refreshSupabaseClient();
-          console.log('[AuthProvider] Supabase REST headers configured on restore');
-        } catch (e) {
-          console.warn('[AuthProvider] Failed to configure REST headers on restore', e);
-        }
         setAuthState({
           isAuthenticated: true,
           loading: false,
@@ -87,55 +77,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const signature = Buffer.from(signedMessage.signature).toString('hex');
       console.log('[AuthProvider] Message signé avec succès');
 
-      // 3. Envoyer à l'Edge Function
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/auth-multiversx`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_ANON_KEY
-          },
-          body: JSON.stringify({
-            walletAddress: address,
-            signature,
-            message: messageToSign
-          })
-        }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Authentification échouée');
+      // 3. Envoyer au Backend API
+      const response = await authAPI.login(address, signature, messageToSign);
+      
+      // 🔍 Debug: Vérifier la structure de réponse
+      console.log('[AuthProvider] Response complète:', response);
+      console.log('[AuthProvider] Success:', response.success);
+      console.log('[AuthProvider] Data:', response.data);
+      console.log('[AuthProvider] User:', response.data?.user);
+      console.log('[AuthProvider] Token:', response.data?.accessToken);
+      
+      // Vérifier que la réponse est valide
+      if (!response.success || !response.data) {
+        throw new Error('Réponse API invalide');
       }
+      
+      console.log('[AuthProvider] JWT reçu pour user:', response.data.user.id);
 
-      const data = await response.json();
-      console.log('[AuthProvider] JWT reçu pour user:', data.user_id);
-
-      // 4. Stocker le JWT et configurer Supabase
-      const expiresAt = Date.now() + (data.expires_in * 1000);
-      localStorage.setItem('supabase.auth.token', data.access_token);
-      localStorage.setItem('supabase.auth.expires_at', expiresAt.toString());
+      // 4. Stocker le JWT et les données utilisateur
+      localStorage.setItem('accessToken', response.data.accessToken);
       localStorage.setItem('galacticx.user', JSON.stringify({
-        id: data.user_id,
-        wallet_address: data.wallet_address,
-        role: data.role
+        id: response.data.user.id,
+        wallet_address: response.data.user.walletAddress,
+        role: response.data.user.role,
+        username: response.data.user.username,
+        totalPoints: response.data.user.totalPoints,
+        currentStreak: response.data.user.currentStreak,
+        nftCount: response.data.user.nftCount
       }));
-
-      // Configurer immédiatement REST/Realtime avec le JWT
-      try {
-        refreshSupabaseClient();
-        console.log('[AuthProvider] REST headers configured after sign-in');
-      } catch (e) {
-        console.warn('[AuthProvider] Failed to configure REST headers after sign-in', e);
-      }
-      configureRealtimeAuth(data.access_token);
 
       setAuthState({
         isAuthenticated: true,
         loading: false,
         error: null,
-        supabaseUserId: data.user_id
+        supabaseUserId: response.data.user.id
       });
 
       console.log('[AuthProvider] Authentification réussie');
@@ -166,9 +141,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Auto sign-in si wallet connecté et pas de session
   useEffect(() => {
     if (address && !authState.isAuthenticated && !authState.loading) {
-      const jwt = getCustomJWT();
-      if (!jwt) {
-        // Pas de JWT, demander signature automatiquement
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        // Pas de token, demander signature automatiquement
         console.log('[AuthProvider] Pas de session, démarrage auto-signin');
         signIn().catch((error) => {
           // Gérer l'erreur silencieusement, l'utilisateur peut réessayer
